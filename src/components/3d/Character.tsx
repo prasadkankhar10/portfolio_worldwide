@@ -103,6 +103,28 @@ export const Character = () => {
 
     // Freeze character input if Free Cam is active
     let { forward, back, left, right, run, jump } = get();
+    
+    // Merge Mobile Virtual Controls
+    const { virtualJoystick, virtualButtons, virtualCameraDelta, setVirtualCameraDelta, isMobile } = useGameStore.getState();
+    
+    if (isMobile) {
+      forward = forward || virtualJoystick.y > 0.1;
+      back = back || virtualJoystick.y < -0.1;
+      right = right || virtualJoystick.x > 0.1;
+      left = left || virtualJoystick.x < -0.1;
+      run = run || virtualButtons.run;
+      jump = jump || virtualButtons.jump;
+      
+      // Apply virtual camera delta
+      if (virtualCameraDelta.x !== 0 || virtualCameraDelta.y !== 0) {
+        yaw.current -= virtualCameraDelta.x * 0.005;
+        pitch.current -= virtualCameraDelta.y * 0.005;
+        pitch.current = Math.max(minPitch, Math.min(maxPitch, pitch.current));
+        // Reset delta after consumption
+        setVirtualCameraDelta(0, 0);
+      }
+    }
+
     if (isFreeCam) {
       forward = back = left = right = run = jump = false;
     }

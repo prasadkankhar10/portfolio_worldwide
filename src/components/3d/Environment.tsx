@@ -140,19 +140,34 @@ export const Environment = () => {
     }
   }, [isNearWell, setActiveOutlineMesh]);
 
-  // Press E to interact
+  const triggerInteractEvent = useGameStore(state => state.triggerInteractEvent);
+
+  // Press E to interact or use Mobile Button
   useEffect(() => {
+    const triggerWell = () => {
+       setActiveDialog('well_interaction', wellId);
+       const summonRole = Math.random() > 0.5 ? 'BlueSoldier Female' : 'BlueSoldier Male';
+       useGameStore.getState().summonNpc(summonRole);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isNearWell && (e.key === 'e' || e.key === 'E')) {
-         setActiveDialog('well_interaction', wellId);
-         // Pick a random BlueSoldier to summon!
-         const summonRole = Math.random() > 0.5 ? 'BlueSoldier Female' : 'BlueSoldier Male';
-         useGameStore.getState().summonNpc(summonRole);
+         triggerWell();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isNearWell, setActiveDialog, wellId]);
+
+  // Mobile Interaction Listener
+  useEffect(() => {
+    if (isNearWell && triggerInteractEvent > 0) {
+       setActiveDialog('well_interaction', wellId);
+       const summonRole = Math.random() > 0.5 ? 'BlueSoldier Female' : 'BlueSoldier Male';
+       useGameStore.getState().summonNpc(summonRole);
+    }
+  }, [triggerInteractEvent]); // Only triggers when the counter increments
 
   // Close dialog if walking away
   useEffect(() => {

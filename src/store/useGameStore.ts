@@ -26,6 +26,17 @@ interface GameStore {
   summonNpc: (role: string | null) => void;
   dialogFlags: Record<string, boolean>;
   setDialogFlag: (flag: string, value: boolean) => void;
+  // Mobile Controls
+  isMobile: boolean;
+  setIsMobile: (mobile: boolean) => void;
+  virtualJoystick: { x: number, y: number }; // x, y from -1 to 1
+  setVirtualJoystick: (x: number, y: number) => void;
+  virtualCameraDelta: { x: number, y: number };
+  setVirtualCameraDelta: (x: number, y: number) => void;
+  virtualButtons: { jump: boolean, run: boolean };
+  setVirtualButton: (button: 'jump' | 'run', active: boolean) => void;
+  triggerInteractEvent: number; // A counter that increments when tapped
+  fireInteractEvent: () => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -50,4 +61,14 @@ export const useGameStore = create<GameStore>((set) => ({
   summonNpc: (role) => set({ summonedNpcRole: role }),
   dialogFlags: {},
   setDialogFlag: (flag, value) => set((state) => ({ dialogFlags: { ...state.dialogFlags, [flag]: value } })),
+  isMobile: false,
+  setIsMobile: (mobile) => set({ isMobile: mobile }),
+  virtualJoystick: { x: 0, y: 0 },
+  setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),
+  virtualCameraDelta: { x: 0, y: 0 },
+  setVirtualCameraDelta: (x, y) => set({ virtualCameraDelta: { x, y } }),
+  virtualButtons: { jump: false, run: false },
+  setVirtualButton: (button, active) => set((state) => ({ virtualButtons: { ...state.virtualButtons, [button]: active } })),
+  triggerInteractEvent: 0,
+  fireInteractEvent: () => set((state) => ({ triggerInteractEvent: state.triggerInteractEvent + 1 })),
 }));

@@ -107,7 +107,9 @@ export const DialogOverlay: React.FC = () => {
         </div>
         
         <div className="absolute top-2 right-4 text-xs text-white/40">
-          {isTyping ? "Press 'E' to skip" : "Press 'E' to continue"}
+          {useGameStore.getState().isMobile 
+            ? (isTyping ? "Tap to skip" : "Tap to continue") 
+            : (isTyping ? "Press 'E' to skip" : "Press 'E' to continue")}
         </div>
       </div>
     </div>

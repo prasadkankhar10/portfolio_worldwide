@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { Scene } from './components/3d/Scene';
 import { useGameStore } from './store/useGameStore';
 import { DialogOverlay } from './components/ui/DialogOverlay';
+import { MobileControls } from './components/ui/MobileControls';
 
 export const Controls = {
   forward: 'forward',
@@ -21,6 +22,17 @@ export type ControlsType = keyof typeof Controls;
 function App() {
   const toggleFreeCam = useGameStore((state) => state.toggleFreeCam);
   const hasStarted = useGameStore((state) => state.hasStarted);
+  const setIsMobile = useGameStore((state) => state.setIsMobile);
+
+  useEffect(() => {
+    // Basic mobile detection based on pointer type (coarse = touch)
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    setIsMobile(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, [setIsMobile]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,6 +60,7 @@ function App() {
     <KeyboardControls map={map}>
       <Layout />
       {hasStarted && <DialogOverlay />}
+      {hasStarted && <MobileControls />}
       <div className="absolute inset-0 z-0">
         <Canvas
           shadows
