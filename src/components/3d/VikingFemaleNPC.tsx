@@ -23,7 +23,7 @@ export const VikingFemaleNPC = ({
   maxWanderRadius,
   dialogId
 }: VikingFemaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Viking_Female.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Viking_Female.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

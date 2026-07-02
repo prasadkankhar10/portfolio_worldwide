@@ -10,7 +10,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 
 export const Environment = () => {
-  const { scene } = useGLTF('/models/island_model.glb');
+  const { scene } = useGLTF('./models/island_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 

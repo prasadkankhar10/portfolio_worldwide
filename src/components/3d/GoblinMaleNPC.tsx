@@ -23,7 +23,7 @@ export const GoblinMaleNPC = ({
   maxWanderRadius,
   dialogId
 }: GoblinMaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Goblin_Male.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Goblin_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

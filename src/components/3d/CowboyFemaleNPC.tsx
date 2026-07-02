@@ -23,7 +23,7 @@ export const CowboyFemaleNPC = ({
   maxWanderRadius,
   dialogId
 }: CowboyFemaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Cowboy_Female.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Cowboy_Female.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

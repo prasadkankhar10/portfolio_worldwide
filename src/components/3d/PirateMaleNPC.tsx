@@ -23,7 +23,7 @@ export const PirateMaleNPC = ({
   maxWanderRadius,
   dialogId
 }: PirateMaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Pirate_Male.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Pirate_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

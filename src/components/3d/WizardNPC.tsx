@@ -23,7 +23,7 @@ export const WizardNPC = ({
   maxWanderRadius,
   dialogId
 }: WizardNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Wizard.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Wizard.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

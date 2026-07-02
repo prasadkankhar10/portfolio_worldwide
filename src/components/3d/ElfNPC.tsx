@@ -23,7 +23,7 @@ export const ElfNPC = ({
   maxWanderRadius,
   dialogId
 }: ElfNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Elf.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Elf.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

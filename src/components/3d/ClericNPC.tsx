@@ -18,7 +18,7 @@ export const ClericNPC = ({
   startPosition, 
   roleName = "Cleric"
 }: ClericNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Cleric.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Cleric.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const { world } = useRapier(); 

@@ -23,7 +23,7 @@ export const Casual3MaleNPC = ({
   maxWanderRadius,
   dialogId
 }: Casual3MaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/Casual3_Male.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Casual3_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

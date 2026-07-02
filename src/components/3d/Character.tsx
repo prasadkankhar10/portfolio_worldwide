@@ -13,7 +13,7 @@ export const globalPlayerState = {
 };
 
 export const Character = () => {
-  const { scene, animations } = useGLTF('/models/NPCs/Adventurer.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/Adventurer.glb');
   const { actions } = useAnimations(animations, scene);
 
   // Live Debugging Controls

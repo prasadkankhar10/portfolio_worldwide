@@ -7,7 +7,7 @@ interface InstancedTreesProps {
 }
 
 export const InstancedTrees = ({ spawnMatrices }: InstancedTreesProps) => {
-  const { nodes, materials } = useGLTF('/models/trees.glb') as any;
+  const { nodes, materials } = useGLTF('./models/trees.glb') as any;
 
   // We have 6 unique trees in the GLB
   const treeMeshes = useMemo(() => [

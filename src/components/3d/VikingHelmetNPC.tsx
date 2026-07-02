@@ -23,7 +23,7 @@ export const VikingHelmetNPC = ({
   maxWanderRadius,
   dialogId
 }: VikingHelmetNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/VikingHelmet.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/VikingHelmet.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);

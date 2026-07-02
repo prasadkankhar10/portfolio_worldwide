@@ -23,7 +23,7 @@ export const BlueSoldierMaleNPC = ({
   maxWanderRadius,
   dialogId
 }: BlueSoldierMaleNPCProps) => {
-  const { scene, animations } = useGLTF('/models/NPCs/BlueSoldier_Male.glb');
+  const { scene, animations } = useGLTF('./models/NPCs/BlueSoldier_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);
