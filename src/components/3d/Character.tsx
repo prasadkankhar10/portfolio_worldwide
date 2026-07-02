@@ -13,7 +13,7 @@ export const globalPlayerState = {
 };
 
 export const Character = () => {
-  const { scene, animations } = useGLTF('/models/Adventurer.glb');
+  const { scene, animations } = useGLTF('/models/NPCs/Adventurer.glb');
   const { actions } = useAnimations(animations, scene);
 
   // Live Debugging Controls
@@ -22,7 +22,7 @@ export const Character = () => {
     jumpForce, gravityScale, rollThreshold,
     minPitch, maxPitch
   } = useControls('Character Setup', {
-    walkSpeed: { value: 4, min: 1, max: 20 },
+    walkSpeed: { value: 3, min: 1, max: 20 },
     runSpeed: { value: 8, min: 1, max: 30 },
     rotationSpeed: { value: 10, min: 1, max: 50 },
     jumpForce: { value: 6, min: 1, max: 30 },
@@ -318,4 +318,4 @@ export const Character = () => {
   );
 };
 
-useGLTF.preload('/models/Adventurer.glb');
+useGLTF.preload('/models/NPCs/Adventurer.glb');

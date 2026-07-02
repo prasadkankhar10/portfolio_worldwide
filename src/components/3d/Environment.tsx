@@ -1,15 +1,18 @@
 import { useGLTF } from '@react-three/drei';
 import { RigidBody } from '@react-three/rapier';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { InstancedTrees } from './InstancedTrees';
 import { useControls } from 'leva';
+import { globalPlayerState } from './Character';
+import { useGameStore } from '../../store/useGameStore';
 
 export const Environment = () => {
   const { scene } = useGLTF('/models/island_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
+  const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -42,6 +45,11 @@ export const Environment = () => {
       // Grab the wind fan so we can animate it
       if (name.includes('wind_fan')) {
         windFanRef.current = child;
+      }
+
+      // Grab the well so we can make it interactive
+      if (name.includes('well')) {
+        wellMeshRef.current = child;
       }
 
       // Find the hidden cubes (handles Blender naming and typos)
@@ -98,6 +106,60 @@ export const Environment = () => {
       windFanRef.current.rotation.z += fanSpeed * delta;
     }
   });
+
+  // --- WELL INTERACTION LOGIC ---
+  const [isNearWell, setIsNearWell] = useState(false);
+  
+  const setActiveDialog = useGameStore(state => state.setActiveDialog);
+  const activeDialogNpcId = useGameStore(state => state.activeDialogNpcId);
+  const setActiveOutlineMesh = useGameStore(state => state.setActiveOutlineMesh);
+  const wellId = useMemo(() => Math.random().toString(), []);
+
+  useFrame(() => {
+    if (!wellMeshRef.current) return;
+    const wellPos = new THREE.Vector3();
+    wellMeshRef.current.getWorldPosition(wellPos);
+    
+    const distToPlayer = wellPos.distanceTo(globalPlayerState.position);
+    
+    if (distToPlayer < 4.5) { // Slightly larger radius for the well since it's a big object
+      if (!isNearWell) setIsNearWell(true);
+    } else {
+      if (isNearWell) setIsNearWell(false);
+    }
+  });
+
+  // Highlight the well when the player is near
+  useEffect(() => {
+    if (isNearWell && wellMeshRef.current) {
+      setActiveOutlineMesh(wellMeshRef.current);
+    } else if (!isNearWell) {
+      if (useGameStore.getState().activeOutlineMesh === wellMeshRef.current) {
+        setActiveOutlineMesh(null);
+      }
+    }
+  }, [isNearWell, setActiveOutlineMesh]);
+
+  // Press E to interact
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNearWell && (e.key === 'e' || e.key === 'E')) {
+         setActiveDialog('well_interaction', wellId);
+         // Pick a random BlueSoldier to summon!
+         const summonRole = Math.random() > 0.5 ? 'BlueSoldier Female' : 'BlueSoldier Male';
+         useGameStore.getState().summonNpc(summonRole);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNearWell, setActiveDialog, wellId]);
+
+  // Close dialog if walking away
+  useEffect(() => {
+    if (!isNearWell && activeDialogNpcId === wellId) {
+      setActiveDialog(null);
+    }
+  }, [isNearWell, activeDialogNpcId, setActiveDialog, wellId]);
 
   return (
     <>

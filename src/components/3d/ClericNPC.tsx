@@ -7,22 +7,24 @@ import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { globalPlayerState } from './Character';
 
-interface NPCProps {
+interface ClericNPCProps {
   colorTint?: string;
   roleName?: string;
   startPosition?: THREE.Vector3;
-  modelPath?: string;
 }
 
-export const NPC = ({ 
+export const ClericNPC = ({ 
   colorTint, 
   startPosition, 
-  roleName = "Wanderer",
-  modelPath = '/models/Adventurer.glb' 
-}: NPCProps) => {
-  const { scene, animations } = useGLTF(modelPath);
-  const groupRef = useRef<THREE.Group>(null);
+  roleName = "Cleric"
+}: ClericNPCProps) => {
+  const { scene, animations } = useGLTF('/models/NPCs/Cleric.glb');
+  const containerRef = useRef<THREE.Group>(null);
+  const modelRef = useRef<THREE.Group>(null);
   const { world } = useRapier(); 
+  
+  // Hardcoded scale for the Cleric model to match player size
+  const scale = 0.688645;
   
   // React state for the dialog box (only triggers ONCE when approached)
   const [isInteracting, setIsInteracting] = useState(false);
@@ -42,40 +44,24 @@ export const NPC = ({
     }
   }, [clone, colorTint]);
 
-  const { actions } = useAnimations(animations, groupRef);
+  // Set initial position once on mount to prevent React from resetting it on re-renders
+  useEffect(() => {
+    if (containerRef.current && startPosition) {
+      containerRef.current.position.copy(startPosition);
+    }
+  }, []);
 
-  // Animation Name Resolver (Searches the raw animations array safely)
+  const { actions } = useAnimations(animations, modelRef);
+
+  // Hardcoded mappings for Cleric.gltf
   const anims = useMemo(() => {
-    const hasAnim = (name: string) => animations.some(a => a.name === name);
-    
-    // Prefer Idle_Weapon if it exists (for the Cleric), otherwise normal Idle
-    let idle = '';
-    if (hasAnim('Idle_Weapon')) idle = 'Idle_Weapon';
-    else if (hasAnim('Idle')) idle = 'Idle';
-    else if (hasAnim('CharacterArmature|Idle')) idle = 'CharacterArmature|Idle';
-
-    let walk = '';
-    if (hasAnim('Walk')) walk = 'Walk';
-    else if (hasAnim('CharacterArmature|Walk')) walk = 'CharacterArmature|Walk';
-
-    let run = '';
-    if (hasAnim('Run')) run = 'Run';
-    else if (hasAnim('CharacterArmature|Run')) run = 'CharacterArmature|Run';
-
-    let wave = '';
-    if (hasAnim('Wave')) wave = 'Wave';
-    else if (hasAnim('CharacterArmature|Wave')) wave = 'CharacterArmature|Wave';
-    else if (hasAnim('Spell1')) wave = 'Spell1'; // Cleric greeting fallback
-    
-    // Failsafe so we never crash
-    const first = animations.length > 0 ? animations[0].name : '';
     return {
-      idle: idle || first,
-      walk: walk || first,
-      run: run || first,
-      wave: wave || first,
+      idle: 'Idle_Weapon',
+      walk: 'Walk',
+      run: 'Run',
+      wave: 'Spell1', // We use Spell1 as a fun greeting wave for the cleric
     };
-  }, [animations]);
+  }, []);
 
   // 3. AI RAYCAST WANDERER BRAIN
   const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING'>('THINKING');
@@ -104,14 +90,14 @@ export const NPC = ({
   const startupTimer = useRef(0);
 
   useFrame((rootState, delta) => {
-    if (!groupRef.current || !currentAnim.current) return;
+    if (!containerRef.current || !currentAnim.current) return;
 
     if (startupTimer.current < 1.0) {
       startupTimer.current += delta;
       return;
     }
 
-    const npcPos = groupRef.current.position;
+    const npcPos = containerRef.current.position;
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
@@ -197,7 +183,7 @@ export const NPC = ({
         dirToPlayer.normalize();
         const angle = Math.atan2(dirToPlayer.x, dirToPlayer.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-        groupRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+        containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
       }
       
       // Wave for 2 seconds, then go to Idle
@@ -252,10 +238,10 @@ export const NPC = ({
         // TURN TO FACE TARGET
         const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-        groupRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+        containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
-        // MOVE FORWARD - Speed synced to exact Player values (4 = walk, 8 = run)
-        const speed = stateRef.current === 'ESCAPING' ? 8.0 : 4.0;
+        // MOVE FORWARD - Slower relaxed pacing speed
+        const speed = stateRef.current === 'ESCAPING' ? 5.0 : 2.0;
         npcPos.addScaledVector(dirToTarget, speed * delta);
         
         // 3. TERRAIN SNAPPING (RAPIER)
@@ -285,11 +271,11 @@ export const NPC = ({
 
   // Array of random fun greetings
   const greetings = useMemo(() => [
-    "Hello traveler! Lovely day for exploring the island, isn't it?",
-    "Hey there! Have you seen the windmill up the hill?",
-    "Greetings! I'm just taking a walk to clear my mind.",
-    "Hi! This island is full of hidden details if you look closely.",
-    "Hey! Be careful near the cliffs, it's a long drop!"
+    "Blessings upon you! The wind is strong today.",
+    "Stay on the path, traveler. The woods are deep.",
+    "Do you seek healing? I am just taking a walk.",
+    "May the light guide your way across this island.",
+    "Be careful near the cliffs. My magic can only do so much!"
   ], []);
 
   // Pick a random greeting when interacting starts
@@ -301,19 +287,19 @@ export const NPC = ({
   }, [isInteracting, greetings]);
 
   return (
-    <group ref={groupRef} position={startPosition || new THREE.Vector3(0,0,0)}>
-      <primitive object={clone} />
+    <group ref={containerRef} scale={scale}>
+      <primitive ref={modelRef} object={clone} />
 
       {/* DIALOG BOX (Only renders when player is nearby and NPC is stopped) */}
       {/* Position elevated to 3.5 so it is cleanly above the NPC's head */}
       {isInteracting && (
         <Html position={[0, 3.5, 0]} center zIndexRange={[100, 0]}>
-          <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border-b-4 border-indigo-500 w-64 transform transition-all animate-in zoom-in duration-200 pointer-events-none">
-            <p className="text-indigo-600 font-black text-sm mb-1 uppercase tracking-wider">{roleName}</p>
+          <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border-b-4 border-amber-500 w-64 transform transition-all animate-in zoom-in duration-200 pointer-events-none">
+            <p className="text-amber-600 font-black text-sm mb-1 uppercase tracking-wider">{roleName}</p>
             <p className="text-slate-700 text-sm font-medium leading-relaxed">
               "{currentGreeting.current}"
             </p>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-indigo-500 transform rotate-45"></div>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-amber-500 transform rotate-45"></div>
           </div>
         </Html>
       )}

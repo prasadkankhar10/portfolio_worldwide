@@ -5,6 +5,7 @@ import { Suspense, useMemo, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Scene } from './components/3d/Scene';
 import { useGameStore } from './store/useGameStore';
+import { DialogOverlay } from './components/ui/DialogOverlay';
 
 export const Controls = {
   forward: 'forward',
@@ -19,6 +20,7 @@ export type ControlsType = keyof typeof Controls;
 
 function App() {
   const toggleFreeCam = useGameStore((state) => state.toggleFreeCam);
+  const hasStarted = useGameStore((state) => state.hasStarted);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,6 +47,7 @@ function App() {
   return (
     <KeyboardControls map={map}>
       <Layout />
+      {hasStarted && <DialogOverlay />}
       <div className="absolute inset-0 z-0">
         <Canvas
           shadows

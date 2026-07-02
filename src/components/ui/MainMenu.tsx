@@ -3,6 +3,13 @@ import { useGameStore } from '../../store/useGameStore';
 export const MainMenu = () => {
   const setGameState = useGameStore((state) => state.setGameState);
   const setActiveSection = useGameStore((state) => state.setActiveSection);
+  const hasStarted = useGameStore((state) => state.hasStarted);
+  const setHasStarted = useGameStore((state) => state.setHasStarted);
+
+  const handleStart = () => {
+    if (!hasStarted) setHasStarted(true);
+    setGameState('playing');
+  };
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm text-stone-200">
@@ -17,12 +24,12 @@ export const MainMenu = () => {
 
       <div className="flex flex-col gap-4 w-64">
         <button 
-          onClick={() => setGameState('playing')}
+          onClick={handleStart}
           className="group relative px-6 py-3 border border-amber-600/50 bg-stone-900/80 hover:bg-amber-600/20 transition-all duration-300 overflow-hidden"
         >
           <div className="absolute inset-0 w-0 bg-amber-600/20 group-hover:w-full transition-all duration-500 ease-out" />
           <span className="relative text-lg tracking-widest uppercase font-semibold text-amber-500 group-hover:text-amber-400">
-            Start Exploring
+            {hasStarted ? 'Resume Game' : 'Start Exploring'}
           </span>
         </button>
 

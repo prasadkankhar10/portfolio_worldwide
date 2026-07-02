@@ -1,15 +1,25 @@
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useKeyboardControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRef, useEffect } from 'react';
 import type { ControlsType } from '../../App';
+import { useGameStore } from '../../store/useGameStore';
+
+export const FreeCamManager = () => {
+  const isFreeCam = useGameStore((state) => state.isFreeCam);
+  return isFreeCam ? <FreeCam /> : null;
+};
 
 export const FreeCam = () => {
+  const { camera } = useThree();
   const [, get] = useKeyboardControls<ControlsType>();
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'));
   const speed = 25;
 
   useEffect(() => {
+    // Inherit rotation from the player camera when entering free cam
+    euler.current.setFromQuaternion(camera.quaternion, 'YXZ');
+    
     const handleMouseMove = (e: MouseEvent) => {
       if (document.pointerLockElement) {
         euler.current.y -= e.movementX * 0.002;
@@ -20,7 +30,7 @@ export const FreeCam = () => {
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [camera]);
 
   useFrame((state, delta) => {
     const { forward, back, left, right, jump, run } = get();
