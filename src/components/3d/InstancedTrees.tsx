@@ -57,4 +57,4 @@ export const InstancedTrees = ({ spawnMatrices }: InstancedTreesProps) => {
   );
 };
 
-useGLTF.preload('/models/trees.glb');
+useGLTF.preload('./models/trees.glb');

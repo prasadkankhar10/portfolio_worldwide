@@ -192,4 +192,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('/models/island_model.glb');
+useGLTF.preload('./models/island_model.glb');

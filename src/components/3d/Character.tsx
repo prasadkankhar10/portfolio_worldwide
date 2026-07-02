@@ -318,4 +318,4 @@ export const Character = () => {
   );
 };
 
-useGLTF.preload('/models/NPCs/Adventurer.glb');
+useGLTF.preload('./models/NPCs/Adventurer.glb');
