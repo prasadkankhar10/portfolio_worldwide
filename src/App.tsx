@@ -7,6 +7,7 @@ import { Scene } from './components/3d/Scene';
 import { useGameStore } from './store/useGameStore';
 import { DialogOverlay } from './components/ui/DialogOverlay';
 import { MobileControls } from './components/ui/MobileControls';
+import { RotateDeviceOverlay } from './components/ui/RotateDeviceOverlay';
 
 export const Controls = {
   forward: 'forward',
@@ -23,6 +24,7 @@ function App() {
   const toggleFreeCam = useGameStore((state) => state.toggleFreeCam);
   const hasStarted = useGameStore((state) => state.hasStarted);
   const setIsMobile = useGameStore((state) => state.setIsMobile);
+  const isMobile = useGameStore((state) => state.isMobile);
 
   useEffect(() => {
     // Basic mobile detection based on pointer type (coarse = touch)
@@ -61,6 +63,7 @@ function App() {
       <Layout />
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
+      {isMobile && <RotateDeviceOverlay />}
       <div className="absolute inset-0 z-0">
         <Canvas
           shadows
