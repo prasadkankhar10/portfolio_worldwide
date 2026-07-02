@@ -41,8 +41,8 @@ export const Scene = () => {
         <Outline 
            selection={activeOutlineMesh ? [activeOutlineMesh] : []}
            blur 
-           visibleEdgeColor="white" 
-           hiddenEdgeColor="white" 
+           visibleEdgeColor={0xffffff} 
+           hiddenEdgeColor={0xffffff} 
            edgeStrength={3} 
         />
       </EffectComposer>
@@ -61,7 +61,7 @@ export const Scene = () => {
         {hasStarted && <Character />}
         
         {/* AI NPCs */}
-        <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(5, 3.1, 10)} dialogId="cleric_ai_1" />
+        <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(5, 3.1, 10)} />
         
         <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" />
         <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" />
