@@ -27,9 +27,10 @@ export const Environment = () => {
   });
 
   // Optimize tree placement - run ONLY when spacing changes
-  const treeMatrices = useMemo(() => {
+  const { treeMatrices, extractedFarmPlots } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
+    const farmPlotsFound: THREE.Vector3[] = [];
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
@@ -50,6 +51,13 @@ export const Environment = () => {
       // Grab the well so we can make it interactive
       if (name.includes('well')) {
         wellMeshRef.current = child;
+      }
+      
+      // Find Farm Dirt nodes
+      if (name.includes('farm_dirt') || name.includes('farm_secondage')) {
+        const position = new THREE.Vector3();
+        child.getWorldPosition(position);
+        farmPlotsFound.push(position.clone());
       }
 
       // Find the hidden cubes (handles Blender naming and typos)
@@ -96,8 +104,15 @@ export const Environment = () => {
       }
     });
 
-    return matrices;
+    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound };
   }, [clonedScene, treeSpacing]);
+
+  const setFarmPlots = useGameStore(state => state.setFarmPlots);
+  useEffect(() => {
+    if (extractedFarmPlots.length > 0) {
+      setFarmPlots(extractedFarmPlots);
+    }
+  }, [extractedFarmPlots, setFarmPlots]);
 
   // Animate the Windmill Fan continuously
   useFrame((state, delta) => {

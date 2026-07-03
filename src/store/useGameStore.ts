@@ -41,6 +41,9 @@ interface GameStore {
   isTrackerOpen: boolean;
   toggleTracker: () => void;
   setTrackerOpen: (open: boolean) => void;
+  // Farming Logic
+  farmPlots: THREE.Vector3[];
+  setFarmPlots: (plots: THREE.Vector3[]) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -72,6 +75,9 @@ export const useGameStore = create<GameStore>((set) => ({
   
   toggleTracker: () => set((state) => ({ isTrackerOpen: !state.isTrackerOpen })),
   setTrackerOpen: (open) => set({ isTrackerOpen: open }),
+  
+  farmPlots: [],
+  setFarmPlots: (plots) => set({ farmPlots: plots }),
   
   virtualJoystick: { x: 0, y: 0 },
   setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),

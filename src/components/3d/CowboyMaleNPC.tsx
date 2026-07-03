@@ -85,12 +85,19 @@ export const CowboyMaleNPC = ({
       idle: getAnim(['idle_weapon', 'idle', 'characterarmature|idle']), 
       walk: getAnim(['walk', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
-      wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
+      wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']),
+      carry: getAnim(['walk_carry', 'carry', 'characterarmature|walk_carry', 'characterarmature|carry']),
+      sit: getAnim(['sitdown', 'sit_down', 'sit', 'characterarmature|sitdown', 'characterarmature|sit_down']),
+      stand: getAnim(['standup', 'stand_up', 'stand', 'characterarmature|standup', 'characterarmature|stand_up']),
+      pickup: getAnim(['pickup', 'pick_up', 'characterarmature|pickup', 'characterarmature|pick_up'])
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING' | 'SUMMONED' | 'FARMING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
+  const targetIsFarmRef = useRef(false);
+  const farmPhase = useRef<'SIT' | 'PICKUP' | 'STAND'>('SIT');
+  const farmTimer = useRef(0);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
   const historyTimer = useRef(0);
@@ -136,7 +143,7 @@ export const CowboyMaleNPC = ({
     if (stateRef.current === 'THINKING') {
       nextAnim = anims.idle; // Fix: Always default to idle when thinking
       idleTimer.current += delta;
-    } else {
+    } else if (stateRef.current !== 'FARMING') {
       idleTimer.current = 0;
     }
 
@@ -163,32 +170,43 @@ export const CowboyMaleNPC = ({
         }
       } else {
         // NORMAL TARGET SELECTION
-        const dist = 5.0 + Math.random() * 15.0; 
+        const farmPlots = useGameStore.getState().farmPlots;
+        const wantsToFarm = farmPlots.length > 0 && Math.random() > 0.3; // 70% chance to farm
         
         let pickTargetX = 0;
         let pickTargetZ = 0;
-        let needsToGoHome = false;
         
-        if (maxWanderRadius && startPosRef.current) {
-          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
-          if (distFromStart > maxWanderRadius * 0.8) {
-             needsToGoHome = true;
-             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
-             dirToStart.y = 0;
-             if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
-             pickTargetX = npcPos.x + dirToStart.x * dist;
-             pickTargetZ = npcPos.z + dirToStart.z * dist;
+        if (wantsToFarm) {
+          const targetPlot = farmPlots[Math.floor(Math.random() * farmPlots.length)];
+          const angle = Math.random() * Math.PI * 2;
+          pickTargetX = targetPlot.x + Math.cos(angle) * 1.5;
+          pickTargetZ = targetPlot.z + Math.sin(angle) * 1.5;
+          targetIsFarmRef.current = true;
+        } else {
+          targetIsFarmRef.current = false;
+          const dist = 5.0 + Math.random() * 15.0; 
+          let needsToGoHome = false;
+          
+          if (maxWanderRadius && startPosRef.current) {
+            const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
+            if (distFromStart > maxWanderRadius * 0.8) {
+               needsToGoHome = true;
+               const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
+               dirToStart.y = 0;
+               if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
+               pickTargetX = npcPos.x + dirToStart.x * dist;
+               pickTargetZ = npcPos.z + dirToStart.z * dist;
+            }
+          }
+          
+          if (!needsToGoHome) {
+            const angle = Math.random() * Math.PI * 2;
+            pickTargetX = npcPos.x + Math.cos(angle) * dist;
+            pickTargetZ = npcPos.z + Math.sin(angle) * dist;
           }
         }
         
-        if (!needsToGoHome) {
-          const angle = Math.random() * Math.PI * 2;
-          pickTargetX = npcPos.x + Math.cos(angle) * dist;
-          pickTargetZ = npcPos.z + Math.sin(angle) * dist;
-        }
-        
         const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
-
         const ray = new RAPIER.Ray(testPos, downDir);
         const hit = world.castRay(ray, 200, true);
         
@@ -199,6 +217,29 @@ export const CowboyMaleNPC = ({
         }
       }
     } 
+    
+    if (stateRef.current === 'FARMING') {
+       farmTimer.current += delta;
+       if (farmPhase.current === 'SIT') {
+          nextAnim = anims.sit;
+          if (farmTimer.current > 3.0) {
+             farmPhase.current = 'PICKUP';
+             farmTimer.current = 0;
+          }
+       } else if (farmPhase.current === 'PICKUP') {
+          nextAnim = anims.pickup;
+          if (farmTimer.current > 2.0) {
+             farmPhase.current = 'STAND';
+             farmTimer.current = 0;
+          }
+       } else if (farmPhase.current === 'STAND') {
+          nextAnim = anims.stand;
+          if (farmTimer.current > 2.0) {
+             nextState = 'THINKING';
+          }
+       }
+    }
+
     
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
@@ -249,12 +290,21 @@ export const CowboyMaleNPC = ({
       if (isBlocked && stateRef.current !== 'ESCAPING' && stateRef.current !== 'SUMMONED') {
         nextState = 'THINKING';
         targetPosRef.current = null;
+        targetIsFarmRef.current = false;
         nextAnim = anims.idle;
       } 
       else if (distToTarget < 1.0) {
-        nextState = 'THINKING';
-        targetPosRef.current = null;
-        nextAnim = anims.idle;
+        if (targetIsFarmRef.current) {
+           nextState = 'FARMING';
+           farmPhase.current = 'SIT';
+           farmTimer.current = 0;
+           targetPosRef.current = null;
+           targetIsFarmRef.current = false;
+        } else {
+           nextState = 'THINKING';
+           targetPosRef.current = null;
+           nextAnim = anims.idle;
+        }
       } else {
         const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
@@ -263,7 +313,11 @@ export const CowboyMaleNPC = ({
         const speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
         npcPos.addScaledVector(dirToTarget, speed * delta);
         
-        nextAnim = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
+        if (targetIsFarmRef.current && anims.carry) {
+          nextAnim = anims.carry;
+        } else {
+          nextAnim = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
+        }
       }
     }
   
