@@ -48,6 +48,10 @@ function App() {
       }
       if (e.key.toLowerCase() === 'm' || e.key === 'Tab') {
         e.preventDefault();
+        const willOpen = !useGameStore.getState().isTrackerOpen;
+        if (willOpen && document.pointerLockElement) {
+          document.exitPointerLock();
+        }
         toggleTracker();
       }
     };
