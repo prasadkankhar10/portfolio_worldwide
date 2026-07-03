@@ -85,6 +85,11 @@ export const HUD = () => {
         </div>
         <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
           <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+            <span className="text-amber-500 font-bold">M</span> Map / Journal
+          </span>
+        </div>
+        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
             <span className="text-amber-500 font-bold">` (Backtick)</span> Debug Menu
           </span>
         </div>

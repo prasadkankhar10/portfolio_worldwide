@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Joystick } from 'react-joystick-component';
 import { useGameStore } from '../../store/useGameStore';
-import { Hand } from 'lucide-react';
+import { Hand, Map } from 'lucide-react';
 
 export const MobileControls: React.FC = () => {
   const isMobile = useGameStore(state => state.isMobile);
@@ -10,6 +10,7 @@ export const MobileControls: React.FC = () => {
   const setVirtualButton = useGameStore(state => state.setVirtualButton);
   const fireInteractEvent = useGameStore(state => state.fireInteractEvent);
   const activeOutlineMesh = useGameStore(state => state.activeOutlineMesh);
+  const toggleTracker = useGameStore(state => state.toggleTracker);
   
   const lastTouch = useRef<{x: number, y: number} | null>(null);
 
@@ -37,6 +38,16 @@ export const MobileControls: React.FC = () => {
           setVirtualCameraDelta(0, 0);
         }}
       />
+
+      {/* Map / Journal Button (Top Left) */}
+      <div className="absolute top-6 left-6 pointer-events-auto">
+        <button
+          onClick={toggleTracker}
+          className="w-12 h-12 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-emerald-400 shadow-xl active:scale-95 active:bg-slate-800 transition-all"
+        >
+          <Map className="w-6 h-6" />
+        </button>
+      </div>
 
       {/* Left Joystick */}
       <div className="absolute bottom-12 left-12 pointer-events-auto opacity-70">

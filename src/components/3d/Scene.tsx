@@ -63,26 +63,26 @@ export const Scene = () => {
         {/* AI NPCs */}
         <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(5, 3.1, 10)} />
         
-        <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" />
-        <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" />
-        <Casual3FemaleNPC startPosition={new THREE.Vector3(15, 30, 5)} />
-        <Casual3MaleNPC startPosition={new THREE.Vector3(-15, 30, -5)} />
-        <CowboyFemaleNPC startPosition={new THREE.Vector3(84, 30, 58)} maxWanderRadius={15} dialogId="cowboy_events_1" />
-        <CowboyHairNPC startPosition={new THREE.Vector3(25, 30, 0)} />
-        <CowboyMaleNPC startPosition={new THREE.Vector3(84, 30, 58)} maxWanderRadius={15} dialogId="cowboy_events_1" />
-        <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" />
-        <GoblinFemaleNPC startPosition={new THREE.Vector3(-5, 30, -25)} dialogId="goblin_game_1" />
-        <GoblinMaleNPC startPosition={new THREE.Vector3(0, 30, -30)} dialogId="goblin_game_1" />
-        <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(30, 30, 10)} dialogId="knight_academics_1" />
-        <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-30, 30, -10)} dialogId="knight_academics_1" />
-        <KnightMaleNPC startPosition={new THREE.Vector3(10, 30, 30)} />
-        <PirateFemaleNPC startPosition={new THREE.Vector3(-10, 30, -30)} dialogId="pirate_web_1" />
-        <PirateMaleNPC startPosition={new THREE.Vector3(0, 30, 40)} dialogId="pirate_web_1" />
-        <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} />
-        <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} />
-        <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} />
-        <WitchNPC startPosition={new THREE.Vector3(-20, 30, -20)} dialogId="witch_creative_1" />
-        <WizardNPC startPosition={new THREE.Vector3(0, 30, 15)} dialogId="wizard_intro_1" />
+        <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" maxWanderRadius={5} />
+        <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" maxWanderRadius={5} />
+        <Casual3FemaleNPC startPosition={new THREE.Vector3(15, 30, 5)} maxWanderRadius={5} />
+        <Casual3MaleNPC startPosition={new THREE.Vector3(-15, 30, -5)} maxWanderRadius={5} />
+        <CowboyFemaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+        <CowboyHairNPC startPosition={new THREE.Vector3(25, 30, 0)} maxWanderRadius={5} />
+        <CowboyMaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+        <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" maxWanderRadius={5} />
+        <GoblinFemaleNPC startPosition={new THREE.Vector3(-5, 30, -25)} dialogId="goblin_game_1" maxWanderRadius={5} />
+        <GoblinMaleNPC startPosition={new THREE.Vector3(0, 30, -30)} dialogId="goblin_game_1" maxWanderRadius={5} />
+        <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(30, 30, 10)} dialogId="knight_academics_1" maxWanderRadius={5} />
+        <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-30, 30, -10)} dialogId="knight_academics_1" maxWanderRadius={5} />
+        <KnightMaleNPC startPosition={new THREE.Vector3(10, 30, 30)} maxWanderRadius={5} />
+        <PirateFemaleNPC startPosition={new THREE.Vector3(-10, 30, -30)} dialogId="pirate_web_1" maxWanderRadius={5} />
+        <PirateMaleNPC startPosition={new THREE.Vector3(0, 30, 40)} dialogId="pirate_web_1" maxWanderRadius={5} />
+        <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
+        <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
+        <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
+        <WitchNPC startPosition={new THREE.Vector3(-20, 30, -20)} dialogId="witch_creative_1" maxWanderRadius={5} />
+        <WizardNPC startPosition={new THREE.Vector3(0, 30, 15)} dialogId="wizard_intro_1" maxWanderRadius={5} />
       </Physics>
 
       {/* Free Camera Mode */}

@@ -8,6 +8,7 @@ import { useGameStore } from './store/useGameStore';
 import { DialogOverlay } from './components/ui/DialogOverlay';
 import { MobileControls } from './components/ui/MobileControls';
 import { RotateDeviceOverlay } from './components/ui/RotateDeviceOverlay';
+import { PortfolioTracker } from './components/ui/PortfolioTracker';
 
 export const Controls = {
   forward: 'forward',
@@ -22,6 +23,7 @@ export type ControlsType = keyof typeof Controls;
 
 function App() {
   const toggleFreeCam = useGameStore((state) => state.toggleFreeCam);
+  const toggleTracker = useGameStore((state) => state.toggleTracker);
   const hasStarted = useGameStore((state) => state.hasStarted);
   const setIsMobile = useGameStore((state) => state.setIsMobile);
   const isMobile = useGameStore((state) => state.isMobile);
@@ -44,10 +46,14 @@ function App() {
       if (e.key.toLowerCase() === 'v') {
         toggleFreeCam();
       }
+      if (e.key.toLowerCase() === 'm' || e.key === 'Tab') {
+        e.preventDefault();
+        toggleTracker();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleFreeCam]);
+  }, [toggleFreeCam, toggleTracker]);
 
   const map = useMemo<KeyboardControlsEntry<ControlsType>[]>(() => [
     { name: Controls.forward, keys: ['ArrowUp', 'KeyW'] },
@@ -63,6 +69,7 @@ function App() {
       <Layout />
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
+      {hasStarted && <PortfolioTracker />}
       {isMobile && <RotateDeviceOverlay />}
       <div className="absolute inset-0 z-0">
         <Canvas

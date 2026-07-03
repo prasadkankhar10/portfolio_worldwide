@@ -37,11 +37,17 @@ interface GameStore {
   setVirtualButton: (button: 'jump' | 'run', active: boolean) => void;
   triggerInteractEvent: number; // A counter that increments when tapped
   fireInteractEvent: () => void;
+  // Map / Quest Tracker
+  isTrackerOpen: boolean;
+  toggleTracker: () => void;
+  setTrackerOpen: (open: boolean) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
   isLoaded: false,
   setIsLoaded: (loaded) => set({ isLoaded: loaded }),
+  
+  isTrackerOpen: false,
   gameState: 'menu',
   setGameState: (state) => set({ gameState: state }),
   activeSection: 'none',
@@ -63,6 +69,10 @@ export const useGameStore = create<GameStore>((set) => ({
   setDialogFlag: (flag, value) => set((state) => ({ dialogFlags: { ...state.dialogFlags, [flag]: value } })),
   isMobile: false,
   setIsMobile: (mobile) => set({ isMobile: mobile }),
+  
+  toggleTracker: () => set((state) => ({ isTrackerOpen: !state.isTrackerOpen })),
+  setTrackerOpen: (open) => set({ isTrackerOpen: open }),
+  
   virtualJoystick: { x: 0, y: 0 },
   setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),
   virtualCameraDelta: { x: 0, y: 0 },
