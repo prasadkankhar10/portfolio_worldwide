@@ -14,8 +14,8 @@ export const Sea: React.FC = () => {
   const normalMap = useTexture('./textures/water_normal.jpg');
   normalMap.wrapS = THREE.RepeatWrapping;
   normalMap.wrapT = THREE.RepeatWrapping;
-  // Repeat the texture so it scales appropriately across the mesh
-  normalMap.repeat.set(20, 20); 
+  // Repeat the texture so it scales appropriately across the massive 100x scaled mesh
+  normalMap.repeat.set(20 * 100, 20 * 100); 
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
@@ -33,7 +33,11 @@ export const Sea: React.FC = () => {
       geometry={seaNode.geometry} 
       position={seaNode.position} 
       rotation={seaNode.rotation} 
-      scale={seaNode.scale}
+      scale={[
+        seaNode.scale.x * 100, 
+        seaNode.scale.y, 
+        seaNode.scale.z * 100
+      ]}
     >
       <meshStandardMaterial 
         ref={materialRef}
