@@ -25,11 +25,10 @@ function inspectGlb(filePath) {
     const jsonStr = buffer.toString('utf8', 20, 20 + chunk0Length);
     const gltf = JSON.parse(jsonStr);
     
-    const meshes = gltf.meshes ? gltf.meshes.map(m => m.name).filter(n => n && n.toLowerCase().includes('farm')) : [];
-    const nodes = gltf.nodes ? gltf.nodes.map(n => n.name).filter(n => n && n.toLowerCase().includes('farm')) : [];
+    const meshes = gltf.meshes ? gltf.meshes.map(m => m.name).filter(n => n && (n.toLowerCase().includes('barn') || n.toLowerCase().includes('mill') || n.toLowerCase().includes('wind'))) : [];
+    const nodes = gltf.nodes ? gltf.nodes.map(n => n.name).filter(n => n && (n.toLowerCase().includes('barn') || n.toLowerCase().includes('mill') || n.toLowerCase().includes('wind'))) : [];
     
-    console.log("Found Farm Meshes:", meshes);
-    console.log("Found Farm Nodes:", nodes);
+    console.log("Found Targets:", { meshes, nodes });
 }
 
 inspectGlb('./public/models/island_model.glb');

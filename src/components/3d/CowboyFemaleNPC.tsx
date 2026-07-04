@@ -93,7 +93,7 @@ export const CowboyFemaleNPC = ({
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING' | 'SUMMONED' | 'FARMING'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING' | 'SUMMONED' | 'FARMING' | 'WALKING_TO_DEPOSIT' | 'DEPOSITING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   const targetIsFarmRef = useRef(false);
   const farmPhase = useRef<'SIT' | 'PICKUP' | 'STAND'>('SIT');
@@ -143,7 +143,7 @@ export const CowboyFemaleNPC = ({
     if (stateRef.current === 'THINKING') {
       nextAnim = anims.idle; // Fix: Always default to idle when thinking
       idleTimer.current += delta;
-    } else if (stateRef.current !== 'FARMING') {
+    } else if (stateRef.current !== 'FARMING' && stateRef.current !== 'DEPOSITING') {
       idleTimer.current = 0;
     }
 
@@ -235,8 +235,37 @@ export const CowboyFemaleNPC = ({
        } else if (farmPhase.current === 'STAND') {
           nextAnim = anims.stand;
           if (farmTimer.current > 2.0) {
-             nextState = 'THINKING';
+             const depositPlots = useGameStore.getState().depositPlots;
+             if (depositPlots.length > 0) {
+                const targetPlot = depositPlots[Math.floor(Math.random() * depositPlots.length)];
+                const angle = Math.random() * Math.PI * 2;
+                targetPosRef.current = new THREE.Vector3(
+                   targetPlot.x + Math.cos(angle) * 3.5,
+                   targetPlot.y,
+                   targetPlot.z + Math.sin(angle) * 3.5
+                );
+                
+                const ray = new RAPIER.Ray(new THREE.Vector3(targetPosRef.current.x, 100, targetPosRef.current.z), downDir);
+                const hit = world.castRay(ray, 200, true);
+                if (hit && hit.timeOfImpact < 200) {
+                   targetPosRef.current.y = 100 - hit.timeOfImpact;
+                }
+                
+                nextState = 'WALKING_TO_DEPOSIT';
+             } else {
+                nextState = 'THINKING';
+             }
+             farmTimer.current = 0;
           }
+       }
+    }
+
+    if (stateRef.current === 'DEPOSITING') {
+       farmTimer.current += delta;
+       nextAnim = anims.idle;
+       if (farmTimer.current > 3.0) {
+          nextState = 'THINKING';
+          farmTimer.current = 0;
        }
     }
 
@@ -257,7 +286,7 @@ export const CowboyFemaleNPC = ({
       } else {
         nextAnim = anims.idle;
       }
-    } else if ((stateRef.current === 'WALKING' || stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') && targetPosRef.current) {
+    } else if ((stateRef.current === 'WALKING' || stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED' || stateRef.current === 'WALKING_TO_DEPOSIT') && targetPosRef.current) {
       const dirToTarget = new THREE.Vector3().subVectors(targetPosRef.current, npcPos);
       dirToTarget.y = 0; 
       const distToTarget = dirToTarget.length();
@@ -294,7 +323,12 @@ export const CowboyFemaleNPC = ({
         nextAnim = anims.idle;
       } 
       else if (distToTarget < 1.0) {
-        if (targetIsFarmRef.current) {
+        if (stateRef.current === 'WALKING_TO_DEPOSIT') {
+           nextState = 'DEPOSITING';
+           farmTimer.current = 0;
+           targetPosRef.current = null;
+        }
+        else if (targetIsFarmRef.current) {
            nextState = 'FARMING';
            farmPhase.current = 'SIT';
            farmTimer.current = 0;
@@ -313,7 +347,7 @@ export const CowboyFemaleNPC = ({
         const speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
         npcPos.addScaledVector(dirToTarget, speed * delta);
         
-        if (targetIsFarmRef.current && anims.carry) {
+        if (stateRef.current === 'WALKING_TO_DEPOSIT' && anims.carry) {
           nextAnim = anims.carry;
         } else {
           nextAnim = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? anims.run : anims.walk;

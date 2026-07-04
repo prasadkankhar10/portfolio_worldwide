@@ -44,6 +44,8 @@ interface GameStore {
   // Farming Logic
   farmPlots: THREE.Vector3[];
   setFarmPlots: (plots: THREE.Vector3[]) => void;
+  depositPlots: THREE.Vector3[];
+  setDepositPlots: (plots: THREE.Vector3[]) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -78,6 +80,8 @@ export const useGameStore = create<GameStore>((set) => ({
   
   farmPlots: [],
   setFarmPlots: (plots) => set({ farmPlots: plots }),
+  depositPlots: [],
+  setDepositPlots: (plots) => set({ depositPlots: plots }),
   
   virtualJoystick: { x: 0, y: 0 },
   setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),

@@ -27,10 +27,11 @@ export const Environment = () => {
   });
 
   // Optimize tree placement - run ONLY when spacing changes
-  const { treeMatrices, extractedFarmPlots } = useMemo(() => {
+  const { treeMatrices, extractedFarmPlots, extractedDepositPlots } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
     const farmPlotsFound: THREE.Vector3[] = [];
+    const depositPlotsFound: THREE.Vector3[] = [];
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
@@ -58,6 +59,15 @@ export const Environment = () => {
         const position = new THREE.Vector3();
         child.getWorldPosition(position);
         farmPlotsFound.push(position.clone());
+      }
+      
+      // Find Deposit nodes (Barn or Mill)
+      if (name.includes('bigbarn') || name.includes('mill-wind')) {
+        const position = new THREE.Vector3();
+        child.getWorldPosition(position);
+        // Add some offset so they don't clip entirely into the barn
+        position.z += 2.0; 
+        depositPlotsFound.push(position.clone());
       }
 
       // Find the hidden cubes (handles Blender naming and typos)
@@ -104,15 +114,20 @@ export const Environment = () => {
       }
     });
 
-    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound };
+    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound };
   }, [clonedScene, treeSpacing]);
 
   const setFarmPlots = useGameStore(state => state.setFarmPlots);
+  const setDepositPlots = useGameStore(state => state.setDepositPlots);
+  
   useEffect(() => {
     if (extractedFarmPlots.length > 0) {
       setFarmPlots(extractedFarmPlots);
     }
-  }, [extractedFarmPlots, setFarmPlots]);
+    if (extractedDepositPlots.length > 0) {
+      setDepositPlots(extractedDepositPlots);
+    }
+  }, [extractedFarmPlots, extractedDepositPlots, setFarmPlots, setDepositPlots]);
 
   // Animate the Windmill Fan continuously
   useFrame((state, delta) => {
