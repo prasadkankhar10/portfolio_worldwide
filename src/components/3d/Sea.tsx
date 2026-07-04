@@ -11,8 +11,8 @@ export const Sea: React.FC<SeaProps> = ({ position = [0, -1, 0] }) => {
   
   // Store initial vertex positions to calculate waves relative to the original flat shape
   const { geometry, positions, initialPositions } = useMemo(() => {
-    // 1000x1000 size, 64x64 segments (low poly enough to look stylized, detailed enough for waves)
-    const geom = new THREE.PlaneGeometry(1000, 1000, 64, 64);
+    // 1000x1000 size, 32x32 segments (drastically reduced for chunkier, distinct triangles)
+    const geom = new THREE.PlaneGeometry(1000, 1000, 32, 32);
     geom.rotateX(-Math.PI / 2); // Lay flat
     
     const pos = geom.attributes.position;
@@ -36,10 +36,10 @@ export const Sea: React.FC<SeaProps> = ({ position = [0, -1, 0] }) => {
         const x = initialPositions[i * 3];
         const z = initialPositions[i * 3 + 2];
         
-        // Complex wave math combining different frequencies and directions
-        const wave1 = Math.sin(x * 0.05 + time) * 0.5;
-        const wave2 = Math.cos(z * 0.05 + time * 0.8) * 0.5;
-        const wave3 = Math.sin((x + z) * 0.02 - time * 1.2) * 1.0;
+        // Complex wave math - drastically increased amplitude for distinct low-poly look
+        const wave1 = Math.sin(x * 0.05 + time) * 3.0;
+        const wave2 = Math.cos(z * 0.05 + time * 0.8) * 3.0;
+        const wave3 = Math.sin((x + z) * 0.02 - time * 1.2) * 2.5;
         
         // Apply height (Y-axis)
         positions.setY(i, initialPositions[i * 3 + 1] + wave1 + wave2 + wave3);
