@@ -17,20 +17,23 @@ export const SeaLife = ({ count = 50 }) => {
   const _dummy = useMemo(() => new THREE.Object3D(), []);
   
   const fishData = useMemo(() => {
+    const getRandomOuterPosition = () => {
+      // Spawn in a donut ring around the island (radius 120 to 300)
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 120 + Math.random() * 180;
+      return new THREE.Vector3(
+        Math.cos(angle) * radius,
+        -15 + Math.random() * 8, // Swim between y = -15 and -7
+        Math.sin(angle) * radius
+      );
+    };
+
     const temp = [];
     for (let i = 0; i < count; i++) {
       temp.push({
-        position: new THREE.Vector3(
-          (Math.random() - 0.5) * 400,
-          -15 + Math.random() * 8, // Swim between y = -15 and -7
-          (Math.random() - 0.5) * 400
-        ),
+        position: getRandomOuterPosition(),
         velocity: new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize(),
-        target: new THREE.Vector3(
-          (Math.random() - 0.5) * 400,
-          -15 + Math.random() * 8,
-          (Math.random() - 0.5) * 400
-        ),
+        target: getRandomOuterPosition(),
         speed: 0.1 + Math.random() * 0.15, 
         turnSpeed: 0.01 + Math.random() * 0.02, 
         color: new THREE.Color(FISH_COLORS[Math.floor(Math.random() * FISH_COLORS.length)])
@@ -60,12 +63,14 @@ export const SeaLife = ({ count = 50 }) => {
     if (!meshRef.current) return;
     
     fishData.forEach((fish, i) => {
-      // 1. Waypoint Logic
+      // 1. Waypoint Logic (Get a new target in the outer ring)
       if (fish.position.distanceTo(fish.target) < 15) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 120 + Math.random() * 180;
         fish.target.set(
-          (Math.random() - 0.5) * 400,
+          Math.cos(angle) * radius,
           -15 + Math.random() * 8,
-          (Math.random() - 0.5) * 400
+          Math.sin(angle) * radius
         );
       }
       

@@ -6,59 +6,76 @@ interface SeaProps {
   position?: [number, number, number];
 }
 
-export const Sea: React.FC<SeaProps> = ({ position = [0, -1, 0] }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  // Store initial vertex positions to calculate waves relative to the original flat shape
-  const { geometry, positions, initialPositions } = useMemo(() => {
-    // 1000x1000 size, 32x32 segments (drastically reduced for chunkier, distinct triangles)
-    const geom = new THREE.PlaneGeometry(1000, 1000, 32, 32);
-    geom.rotateX(-Math.PI / 2); // Lay flat
+// Helper to generate a stylized wave texture in code!
+const generateWaveTexture = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  // Deep Blue Base
+  ctx.fillStyle = '#005f8c';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Stylized wave lines (light cyan)
+  ctx.strokeStyle = '#008bbf';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+
+  // Draw 80 random wave swooshes
+  for (let i = 0; i < 80; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const width = 30 + Math.random() * 50;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(x + width / 2, y - 15, x + width, y);
+    ctx.stroke();
     
-    const pos = geom.attributes.position;
-    const initPos = new Float32Array(pos.count * 3);
-    
-    // Copy the flat positions to serve as a baseline for the wave math
-    for (let i = 0; i < pos.count; i++) {
-      initPos[i * 3] = pos.getX(i);
-      initPos[i * 3 + 1] = pos.getY(i);
-      initPos[i * 3 + 2] = pos.getZ(i);
+    // Draw duplicate on the edges for seamless tiling
+    if (x + width > 512) {
+      ctx.beginPath();
+      ctx.moveTo(x - 512, y);
+      ctx.quadraticCurveTo((x - 512) + width / 2, y - 15, (x - 512) + width, y);
+      ctx.stroke();
     }
-    
-    return { geometry: geom, positions: pos, initialPositions: initPos };
-  }, []);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  // Repeat the texture many times across the massive 1000x1000 block
+  texture.repeat.set(20, 20); 
+  return texture;
+};
+
+export const Sea: React.FC<SeaProps> = ({ position = [0, -25, 0] }) => {
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  
+  const waveTexture = useMemo(() => generateWaveTexture(), []);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
-    
-    if (meshRef.current) {
-      for (let i = 0; i < positions.count; i++) {
-        const x = initialPositions[i * 3];
-        const z = initialPositions[i * 3 + 2];
-        
-        // Complex wave math - drastically increased amplitude for distinct low-poly look
-        const wave1 = Math.sin(x * 0.05 + time) * 3.0;
-        const wave2 = Math.cos(z * 0.05 + time * 0.8) * 3.0;
-        const wave3 = Math.sin((x + z) * 0.02 - time * 1.2) * 2.5;
-        
-        // Apply height (Y-axis)
-        positions.setY(i, initialPositions[i * 3 + 1] + wave1 + wave2 + wave3);
-      }
-      
-      positions.needsUpdate = true;
-      geometry.computeVertexNormals(); // Crucial for dynamic flat shading catching the light
+    if (waveTexture) {
+      // Slowly scroll the texture diagonally to simulate water currents
+      waveTexture.offset.x = time * 0.05;
+      waveTexture.offset.y = time * 0.03;
     }
   });
 
   return (
-    <mesh ref={meshRef} position={new THREE.Vector3(...position)} geometry={geometry}>
+    <mesh position={new THREE.Vector3(...position)}>
+      {/* Massive Solid Block: 1000 width, 50 depth, 1000 height */}
+      <boxGeometry args={[1000, 50, 1000]} />
       <meshStandardMaterial 
-        color="#006994" 
-        flatShading={true} 
+        ref={materialRef}
+        map={waveTexture}
+        color="#008bbf" // Slightly tint the whole block
         transparent={true} 
-        opacity={0.8}
+        opacity={0.9}
         roughness={0.1}
-        metalness={0.6}
+        metalness={0.4}
       />
     </mesh>
   );
