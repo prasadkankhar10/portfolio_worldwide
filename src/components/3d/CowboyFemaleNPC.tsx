@@ -224,11 +224,12 @@ export const CowboyFemaleNPC = ({
           const depositPlots = useGameStore.getState().depositPlots;
           if (depositPlots.length > 0) {
              const targetPlot = depositPlots[Math.floor(Math.random() * depositPlots.length)];
-             const angle = Math.random() * Math.PI * 2;
+             // Instead of a full random angle which can put them inside the building,
+             // use a safe offset (assuming +Z is usually safe outside the front doors)
              targetPosRef.current = new THREE.Vector3(
-                targetPlot.x + Math.cos(angle) * 3.5,
+                targetPlot.x + (Math.random() * 4 - 2), // Random spread on X (-2 to 2)
                 targetPlot.y,
-                targetPlot.z + Math.sin(angle) * 3.5
+                targetPlot.z + 4.0 + (Math.random() * 2) // Always +Z offset to stay outside (4 to 6)
              );
              
              const ray = new RAPIER.Ray(new THREE.Vector3(targetPosRef.current.x, 100, targetPosRef.current.z), downDir);
@@ -354,7 +355,15 @@ export const CowboyFemaleNPC = ({
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
-        const speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
+        let speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
+        
+        // Prevent clipping by slowing down heavily if an obstacle is directly in front
+        if (forwardHit && forwardHit.timeOfImpact < 0.8) {
+           speed = 0.5; // Barely move forward, mostly just rotate
+        } else if (isBlocked) {
+           speed = 1.0; // Slow down slightly while steering
+        }
+        
         npcPos.addScaledVector(currentDir, speed * delta);
         
         if (stateRef.current === 'WALKING_TO_DEPOSIT' && anims.carry) {
