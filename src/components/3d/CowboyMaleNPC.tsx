@@ -96,7 +96,6 @@ export const CowboyMaleNPC = ({
   const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING' | 'SUMMONED' | 'FARMING' | 'WALKING_TO_DEPOSIT' | 'DEPOSITING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   const targetIsFarmRef = useRef(false);
-  const farmPhase = useRef<'SIT' | 'PICKUP' | 'STAND'>('SIT');
   const farmTimer = useRef(0);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -220,43 +219,29 @@ export const CowboyMaleNPC = ({
     
     if (stateRef.current === 'FARMING') {
        farmTimer.current += delta;
-       if (farmPhase.current === 'SIT') {
-          nextAnim = anims.sit;
-          if (farmTimer.current > 3.0) {
-             farmPhase.current = 'PICKUP';
-             farmTimer.current = 0;
-          }
-       } else if (farmPhase.current === 'PICKUP') {
-          nextAnim = anims.pickup;
-          if (farmTimer.current > 2.0) {
-             farmPhase.current = 'STAND';
-             farmTimer.current = 0;
-          }
-       } else if (farmPhase.current === 'STAND') {
-          nextAnim = anims.stand;
-          if (farmTimer.current > 2.0) {
-             const depositPlots = useGameStore.getState().depositPlots;
-             if (depositPlots.length > 0) {
-                const targetPlot = depositPlots[Math.floor(Math.random() * depositPlots.length)];
-                const angle = Math.random() * Math.PI * 2;
-                targetPosRef.current = new THREE.Vector3(
-                   targetPlot.x + Math.cos(angle) * 3.5,
-                   targetPlot.y,
-                   targetPlot.z + Math.sin(angle) * 3.5
-                );
-                
-                const ray = new RAPIER.Ray(new THREE.Vector3(targetPosRef.current.x, 100, targetPosRef.current.z), downDir);
-                const hit = world.castRay(ray, 200, true);
-                if (hit && hit.timeOfImpact < 200) {
-                   targetPosRef.current.y = 100 - hit.timeOfImpact;
-                }
-                
-                nextState = 'WALKING_TO_DEPOSIT';
-             } else {
-                nextState = 'THINKING';
+       nextAnim = anims.pickup;
+       if (farmTimer.current > 3.0) { // Play pickup for 3 seconds
+          const depositPlots = useGameStore.getState().depositPlots;
+          if (depositPlots.length > 0) {
+             const targetPlot = depositPlots[Math.floor(Math.random() * depositPlots.length)];
+             const angle = Math.random() * Math.PI * 2;
+             targetPosRef.current = new THREE.Vector3(
+                targetPlot.x + Math.cos(angle) * 3.5,
+                targetPlot.y,
+                targetPlot.z + Math.sin(angle) * 3.5
+             );
+             
+             const ray = new RAPIER.Ray(new THREE.Vector3(targetPosRef.current.x, 100, targetPosRef.current.z), downDir);
+             const hit = world.castRay(ray, 200, true);
+             if (hit && hit.timeOfImpact < 200) {
+                targetPosRef.current.y = 100 - hit.timeOfImpact;
              }
-             farmTimer.current = 0;
+             
+             nextState = 'WALKING_TO_DEPOSIT';
+          } else {
+             nextState = 'THINKING';
           }
+          farmTimer.current = 0;
        }
     }
 
@@ -330,7 +315,6 @@ export const CowboyMaleNPC = ({
         }
         else if (targetIsFarmRef.current) {
            nextState = 'FARMING';
-           farmPhase.current = 'SIT';
            farmTimer.current = 0;
            targetPosRef.current = null;
            targetIsFarmRef.current = false;
