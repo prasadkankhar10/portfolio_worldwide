@@ -162,7 +162,17 @@ export const PirateMaleNPC = ({
           failedTargetCount.current = 0;
        }
        
-       if (stateRef.current !== nextState) stateRef.current = nextState;
+   
+    // SEA / FALL CATCHER: If they wander into the water or fall off the map
+    if (npcPos.y < 0.8) {
+      if (startPosRef.current) {
+         npcPos.copy(startPosRef.current);
+      }
+      nextState = 'THINKING';
+      targetPosRef.current = null;
+    }
+
+    if (stateRef.current !== nextState) stateRef.current = nextState;
        if (currentAnim.current !== nextAnim && actions[nextAnim]) {
          actions[currentAnim.current]?.fadeOut(0.2);
          actions[nextAnim]?.reset().fadeIn(0.2).play();
