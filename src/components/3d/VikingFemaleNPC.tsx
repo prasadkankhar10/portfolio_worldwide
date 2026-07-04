@@ -206,46 +206,37 @@ export const VikingFemaleNPC = ({
       }
 
       
-      // --- VECTOR PROJECTION WALL SLIDING ---
+      
+      // --- WIDE-SHOULDER ROOMBA PATHFINDING ---
       const shoulderWidth = 0.35;
+      const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.6, npcPos.z);
       const leftShoulder = new THREE.Vector3(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
       const rightShoulder = new THREE.Vector3(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
       
-      const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.2, true);
-      const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.2, true);
+      const fHit = world.castRayAndGetNormal(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.0, true);
+      const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.0, true);
+      const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.0, true);
       
-      let moveDir = dirToTarget.clone();
+      // Determine if a hit is a steep wall (normal.y < 0.7). Hills/stairs (>= 0.7) are ignored!
+      const isWall = (hit) => hit && hit.timeOfImpact < 1.0 && hit.normal && hit.normal.y < 0.7;
+      const isBlocked = isWall(fHit) || isWall(lHit) || isWall(rHit);
       
-      let wallHit = null;
-      if (lHit && lHit.normal && lHit.normal.y < 0.7) wallHit = lHit;
-      if (rHit && rHit.normal && rHit.normal.y < 0.7) {
-         if (!wallHit || rHit.timeOfImpact < wallHit.timeOfImpact) {
-            wallHit = rHit;
-         }
-      }
-      
-      if (wallHit) {
-         const wallNormal = new THREE.Vector3(wallHit.normal.x, wallHit.normal.y, wallHit.normal.z);
-         moveDir.projectOnPlane(wallNormal).normalize();
-         
-         if (moveDir.lengthSq() < 0.1 && stateRef.current !== 'SUMMONED') {
-            nextState = 'THINKING';
-            targetPosRef.current = null;
-            nextAnim = anims.idle;
-         }
-      }
-
-      if (distToTarget < 1.0) {
+      if (isBlocked && stateRef.current !== 'SUMMONED') {
+        // Roomba logic: Immediately stop and pick a new target!
         nextState = 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
-      } else if (targetPosRef.current) {
-        const angle = Math.atan2(moveDir.x, moveDir.z);
+      } else if (distToTarget < 1.0) {
+        nextState = 'THINKING';
+        targetPosRef.current = null;
+        nextAnim = anims.idle;
+      } else {
+        const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         const speed = (stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
-        npcPos.addScaledVector(moveDir, speed * delta);
+        npcPos.addScaledVector(dirToTarget, speed * delta);
         
         nextAnim = (stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
       }
