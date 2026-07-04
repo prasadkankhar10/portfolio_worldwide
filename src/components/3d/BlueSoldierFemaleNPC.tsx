@@ -192,6 +192,40 @@ export const BlueSoldierFemaleNPC = ({
       idleTimer.current = 0;
     }
 
+    
+    // --- GUARANTEED SAFE ESCAPE PLAN ---
+    historyTimer.current += delta;
+    if (historyTimer.current > 4.0) {
+      historyTimer.current = 0;
+      if (historyPositions.current.length > 0) {
+        const oldestPos = historyPositions.current[0];
+        const distMoved = oldestPos.distanceTo(npcPos);
+        
+        // If they moved less than 1.5 units in 4 seconds and aren't interacting, they are STUCK!
+        if (distMoved < 1.5 && stateRef.current !== 'INTERACTING') {
+          
+          if (stateRef.current === 'SUMMONED') {
+             // If they get stuck while chasing the player, safely teleport them near the player!
+             const safePos = globalPlayerState.position.clone();
+             safePos.x += (Math.random() - 0.5) * 4;
+             safePos.z += (Math.random() - 0.5) * 4;
+             safePos.y += 2.0; // Drop them from slightly above
+             npcPos.copy(safePos);
+          } else {
+             // If they get stuck while wandering normally, safely teleport them back to their home spawn!
+             if (startPosRef.current) {
+                npcPos.copy(startPosRef.current);
+             }
+          }
+          
+          // Clear current target and reset to thinking
+          targetPosRef.current = null;
+          nextState = 'THINKING';
+        }
+      }
+      historyPositions.current = [npcPos.clone()];
+    }
+
     // Normal wandering: immediately try to find a target!
     
     
