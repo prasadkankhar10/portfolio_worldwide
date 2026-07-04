@@ -62,7 +62,7 @@ export const Sea: React.FC = () => {
         position={[0, seaNode.position.y - 0.5, 0]} // Slightly below to prevent z-fighting
         rotation={[-Math.PI / 2, 0, 0]} 
       >
-        <ringGeometry args={[100, 2000, 64]} /> 
+        <planeGeometry args={[4000, 4000]} /> 
         <meshStandardMaterial 
           color="#006994"
           normalMap={outerNormalMap}
