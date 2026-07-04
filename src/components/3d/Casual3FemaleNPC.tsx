@@ -142,30 +142,11 @@ export const Casual3FemaleNPC = ({
 
     // Normal wandering: immediately try to find a target!
     
-    // --- 1. SAFE UN-STICKING (The New Escape Plan) ---
-    historyTimer.current += delta;
-    if (historyTimer.current > 4.0) {
-      historyTimer.current = 0;
-      if (historyPositions.current.length > 0) {
-        const oldestPos = historyPositions.current[0];
-        const distMoved = oldestPos.distanceTo(npcPos);
-        
-        // If stuck for 4 seconds in a corner
-        if (distMoved < 1.5 && stateRef.current !== 'INTERACTING') {
-          targetPosRef.current = null;
-          nextState = 'THINKING';
-          
-          // Nudge backwards to get out of the corner
-          const backwardDir = new THREE.Vector3(0,0,1).applyQuaternion(containerRef.current.quaternion);
-          npcPos.addScaledVector(backwardDir, 2.0); // 2 meters backwards!
-        }
-      }
-      historyPositions.current = [npcPos.clone()];
-    }
-
-    // --- 2. LINE-OF-SIGHT TARGET PICKING ---
+    
+    // Normal wandering: immediately try to find a target!
     if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-        const dist = 5.0 + Math.random() * 15.0; 
+        const dist = 5.0 + Math.random() * 10.0; 
+        
         let pickTargetX = 0;
         let pickTargetZ = 0;
         let needsToGoHome = false;
@@ -189,24 +170,12 @@ export const Casual3FemaleNPC = ({
         }
         
         const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
-        const floorRay = new RAPIER.Ray(testPos, downDir);
-        const floorHit = world.castRay(floorRay, 200, true);
+        const ray = new RAPIER.Ray(testPos, downDir);
+        const hit = world.castRay(ray, 200, true);
         
-        if (floorHit && floorHit.timeOfImpact < 200) {
-          const hitPoint = testPos.clone().add(downDir.clone().multiplyScalar(floorHit.timeOfImpact));
-          
-          // Verify Line of Sight
-          const distToHit = new THREE.Vector2(hitPoint.x, hitPoint.z).distanceTo(new THREE.Vector2(npcPos.x, npcPos.z));
-          const dirToHit = new THREE.Vector3(hitPoint.x - npcPos.x, 0, hitPoint.z - npcPos.z).normalize();
-          
-          const losOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 1.5, npcPos.z);
-          const losHit = world.castRay(new RAPIER.Ray(losOrigin, dirToHit), distToHit, true);
-          
-          if (!losHit || losHit.timeOfImpact >= distToHit - 1.0) {
-            // Path is clear!
-            targetPosRef.current = hitPoint;
-            nextState = 'WALKING';
-          }
+        if (hit && hit.timeOfImpact < 200) {
+          targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
+          nextState = 'WALKING';
         }
     } 
     
@@ -235,30 +204,25 @@ export const Casual3FemaleNPC = ({
         dirToTarget.normalize();
       }
 
-      // --- 3. DYNAMIC OBSTACLE STEERING ---
-      const origin = new THREE.Vector3(npcPos.x, npcPos.y + 1.0, npcPos.z);
-      const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4);
+      const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 1.0, npcPos.z);
       const leftDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/4);
+      const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4);
 
-      const fHit = world.castRay(new RAPIER.Ray(origin, dirToTarget), 2.0, true);
-      const lHit = world.castRay(new RAPIER.Ray(origin, leftDir), 1.5, true);
-      const rHit = world.castRay(new RAPIER.Ray(origin, rightDir), 1.5, true);
+      const forwardHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.2, true);
+      const leftHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, leftDir), 0.8, true);
+      const rightHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, rightDir), 0.8, true);
       
-      if (fHit && fHit.timeOfImpact < 2.0) {
-        if (lHit && !rHit) {
-          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/2); // Hard Right
-        } else if (rHit && !lHit) {
-          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/2); // Hard Left
-        } else {
-          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/2); // Fallback Right
-        }
-      } else if (lHit && lHit.timeOfImpact < 1.5) {
-        dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/6); // Soft Right
-      } else if (rHit && rHit.timeOfImpact < 1.5) {
-        dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/6); // Soft Left
-      }
+      const isBlocked = (forwardHit && forwardHit.timeOfImpact < 1.2) || 
+                        (leftHit && leftHit.timeOfImpact < 0.8) || 
+                        (rightHit && rightHit.timeOfImpact < 0.8);
 
-      if (distToTarget < 1.0) {
+      // Simple Roomba logic: If we hit a wall, immediately give up and pick a new target!
+      if (isBlocked && stateRef.current !== 'SUMMONED') {
+        nextState = 'THINKING';
+        targetPosRef.current = null;
+        nextAnim = anims.idle;
+      } 
+      else if (distToTarget < 1.0) {
         nextState = 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
@@ -273,7 +237,6 @@ export const Casual3FemaleNPC = ({
         nextAnim = (stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
       }
     }
-
     // GRAVITY & GROUND SNAPPING (Runs every frame for EVERY NPC)
     // Cast from slightly above the NPC to prevent them from teleporting onto tree canopies above them!
     const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 2.0, npcPos.z);
