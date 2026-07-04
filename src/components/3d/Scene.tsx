@@ -38,7 +38,7 @@ export const Scene = () => {
   return (
     <>
       {/* Postprocessing for Interactive Outlines */}
-      <EffectComposer multisampling={8} autoClear={false}>
+      <EffectComposer multisampling={0} autoClear={false}>
         <Outline 
            selection={activeOutlineMesh ? [activeOutlineMesh] : []}
            blur 

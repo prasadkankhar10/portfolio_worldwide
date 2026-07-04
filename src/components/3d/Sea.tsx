@@ -52,8 +52,6 @@ export const Sea: React.FC = () => {
           color="#006994"
           normalMap={normalMap}
           normalScale={new THREE.Vector2(1.5, 1.5)}
-          transparent={true} 
-          opacity={0.85}
           roughness={0.1}
           metalness={0.8}
         />
@@ -69,8 +67,6 @@ export const Sea: React.FC = () => {
           color="#006994"
           normalMap={outerNormalMap}
           normalScale={new THREE.Vector2(1.5, 1.5)}
-          transparent={true} 
-          opacity={0.85}
           roughness={0.1}
           metalness={0.8}
         />

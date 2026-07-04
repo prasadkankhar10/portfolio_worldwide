@@ -38,7 +38,8 @@ export const Environment = () => {
 
     clonedScene.traverse((child: any) => {
       if (child.isMesh) {
-        child.castShadow = true;
+        // Massive optimization: The island is the ground, it only needs to receive shadows from trees/characters!
+        child.castShadow = false;
         child.receiveShadow = true;
       }
 
@@ -221,8 +222,8 @@ export const Environment = () => {
         intensity={2.0} 
         color="#ffcf99"
         castShadow 
-        shadow-mapSize-width={2048} 
-        shadow-mapSize-height={2048} 
+        shadow-mapSize-width={1024} // Optimized from 2048 to save massive VRAM and fill-rate
+        shadow-mapSize-height={1024} 
         shadow-camera-far={1000}
         shadow-camera-left={-200}
         shadow-camera-right={200}
