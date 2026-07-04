@@ -7,6 +7,7 @@ import { Birds } from './Birds';
 import { Fireflies } from './Fireflies';
 import { FreeCamManager } from './FreeCam';
 import { Sea } from './Sea';
+import { SeaLife } from './SeaLife';
 import { ClericNPC } from './ClericNPC';
 import { BlueSoldierFemaleNPC } from './BlueSoldierFemaleNPC';
 import { BlueSoldierMaleNPC } from './BlueSoldierMaleNPC';
@@ -59,7 +60,8 @@ export const Scene = () => {
 
       <Physics debug={false}>
         <Environment />
-        <Sea position={[0, -0.5, 0]} />
+        <Sea position={[0, -5, 0]} />
+        <SeaLife count={50} />
         {hasStarted && <Character />}
         
         {/* AI NPCs */}
