@@ -60,7 +60,7 @@ export const Scene = () => {
 
       <Physics debug={false}>
         <Environment />
-        <Sea position={[0, -26, 0]} />
+        <Sea />
         <SeaLife count={50} />
         {hasStarted && <Character />}
         

@@ -44,6 +44,11 @@ export const Environment = () => {
 
       const name = child.name.toLowerCase();
       
+      // Hide the default sea mesh since we are rendering a custom animated one in Sea.tsx
+      if (name === 'sea') {
+        child.visible = false;
+      }
+      
       // Grab the wind fan so we can animate it
       if (name.includes('wind_fan')) {
         windFanRef.current = child;
