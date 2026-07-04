@@ -193,27 +193,32 @@ export const KnightMaleNPC = ({
     }
 
     // Normal wandering: immediately try to find a target!
-    if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-      
-      // FAILSAFE: If they have been stuck in THINKING for > 5 seconds (e.g. raycast keeps failing)
-      if (idleTimer.current > 5.0) {
-        nextState = 'ESCAPING';
-        escapeTimer.current = 0;
-        idleTimer.current = 0; // reset
-        
-        // Pick a desperate random escape target ignoring tethers
-        const angle = Math.random() * Math.PI * 2;
-        const testPos = new THREE.Vector3(
-          npcPos.x + Math.cos(angle) * 15.0,
-          100,
-          npcPos.z + Math.sin(angle) * 15.0
-        );
-        const ray = new RAPIER.Ray(testPos, downDir);
-        const hit = world.castRay(ray, 200, true);
-        if (hit && hit.timeOfImpact < 200) {
-          targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
+    // --- GLOBAL STUCK DETECTION ---
+    historyTimer.current += delta;
+    if (historyTimer.current > 4.0) {
+      historyTimer.current = 0;
+      if (historyPositions.current.length > 0) {
+        const oldestPos = historyPositions.current[0];
+        const distMoved = oldestPos.distanceTo(npcPos);
+        // If they moved less than 1.5 units in 4 seconds and aren't talking, they are STUCK!
+        if (distMoved < 1.5 && stateRef.current !== 'INTERACTING') {
+          nextState = 'ESCAPING';
+          escapeTimer.current = 0;
+          // Pick a desperate random escape target
+          const angle = Math.random() * Math.PI * 2;
+          const testPos = new THREE.Vector3(npcPos.x + Math.cos(angle) * 15.0, 100, npcPos.z + Math.sin(angle) * 15.0);
+          const ray = new RAPIER.Ray(testPos, downDir);
+          const hit = world.castRay(ray, 200, true);
+          if (hit && hit.timeOfImpact < 200) {
+            targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
+          }
         }
-      } else {
+      }
+      historyPositions.current = [npcPos.clone()];
+    }
+
+    // Normal wandering: immediately try to find a target!
+    if (stateRef.current === 'THINKING' && !targetPosRef.current) {
         // NORMAL TARGET SELECTION
         const dist = 5.0 + Math.random() * 15.0; 
         
@@ -249,7 +254,6 @@ export const KnightMaleNPC = ({
           targetPosRef.current = hitPoint;
           nextState = 'WALKING';
         }
-      }
     } 
     
     if (stateRef.current === 'INTERACTING') {
