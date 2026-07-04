@@ -296,18 +296,43 @@ export const CowboyFemaleNPC = ({
       const leftHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, leftDir), 1.0, true);
       const rightHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, rightDir), 1.0, true);
       
-      const isBlocked = (forwardHit && forwardHit.timeOfImpact < 1.5) || 
-                        (leftHit && leftHit.timeOfImpact < 1.0) || 
-                        (rightHit && rightHit.timeOfImpact < 1.0);
+      // Steering Behavior calculations
+      let currentDir = dirToTarget.clone();
+      let isBlocked = false;
 
-      // Don't stop for blocks if summoned (we want them to try hard to run around it or push through)
+      if (forwardHit && forwardHit.timeOfImpact < 1.5) {
+         isBlocked = true;
+         // Steer away based on which side is more blocked
+         const dLeft = leftHit ? leftHit.timeOfImpact : 1.5;
+         const dRight = rightHit ? rightHit.timeOfImpact : 1.5;
+         if (dLeft < dRight) {
+           currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/3); // Steer right sharply
+         } else {
+           currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/3); // Steer left sharply
+         }
+      } else if (leftHit && leftHit.timeOfImpact < 1.0) {
+         currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4); // Steer right
+         isBlocked = true;
+      } else if (rightHit && rightHit.timeOfImpact < 1.0) {
+         currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/4); // Steer left
+         isBlocked = true;
+      }
+      
+      // Failsafe timeout for stuck state
       if (isBlocked && stateRef.current !== 'ESCAPING' && stateRef.current !== 'SUMMONED') {
-        nextState = 'THINKING';
-        targetPosRef.current = null;
-        targetIsFarmRef.current = false;
-        nextAnim = anims.idle;
-      } 
-      else if (distToTarget < 1.0) {
+         escapeTimer.current += delta;
+         if (escapeTimer.current > 5.0) {
+            nextState = 'THINKING';
+            targetPosRef.current = null;
+            targetIsFarmRef.current = false;
+            nextAnim = anims.idle;
+            escapeTimer.current = 0;
+         }
+      } else if (stateRef.current !== 'ESCAPING') {
+         escapeTimer.current = 0; // Reset if we aren't blocked
+      }
+      
+      if (distToTarget < 1.0) {
         if (stateRef.current === 'WALKING_TO_DEPOSIT') {
            nextState = 'DEPOSITING';
            farmTimer.current = 0;
@@ -323,13 +348,14 @@ export const CowboyFemaleNPC = ({
            targetPosRef.current = null;
            nextAnim = anims.idle;
         }
-      } else {
-        const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+      } else if (targetPosRef.current !== null) {
+        // Only move if we didn't just transition to THINKING via failsafe
+        const angle = Math.atan2(currentDir.x, currentDir.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         const speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
-        npcPos.addScaledVector(dirToTarget, speed * delta);
+        npcPos.addScaledVector(currentDir, speed * delta);
         
         if (stateRef.current === 'WALKING_TO_DEPOSIT' && anims.carry) {
           nextAnim = anims.carry;
