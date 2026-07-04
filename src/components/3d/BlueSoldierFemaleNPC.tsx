@@ -97,6 +97,7 @@ export const BlueSoldierFemaleNPC = ({
   const escapeTimer = useRef(0);
   const interactTimer = useRef(0);
   const idleTimer = useRef(0);
+  const failedTargetCount = useRef(0);
 
   const currentAnim = useRef('');
   const targetQuaternion = useRef(new THREE.Quaternion());
@@ -193,6 +194,35 @@ export const BlueSoldierFemaleNPC = ({
     }
 
     
+
+    // --- OFF-SCREEN RESET ESCAPE PLAN ---
+    if (stateRef.current === 'ESCAPING') {
+       nextAnim = anims.idle;
+       
+       // Check if camera is looking at the NPC
+       const frustum = new THREE.Frustum();
+       const projScreenMatrix = new THREE.Matrix4();
+       projScreenMatrix.multiplyMatrices(rootState.camera.projectionMatrix, rootState.camera.matrixWorldInverse);
+       frustum.setFromProjectionMatrix(projScreenMatrix);
+       
+       if (!frustum.containsPoint(npcPos)) {
+          // Player is not looking! Safely reset!
+          if (startPosRef.current) {
+             npcPos.copy(startPosRef.current);
+          }
+          nextState = 'THINKING';
+          failedTargetCount.current = 0;
+       }
+       
+       if (stateRef.current !== nextState) stateRef.current = nextState;
+       if (currentAnim.current !== nextAnim && actions[nextAnim]) {
+         actions[currentAnim.current]?.fadeOut(0.2);
+         actions[nextAnim]?.reset().fadeIn(0.2).play();
+         currentAnim.current = nextAnim;
+       }
+       return; // Skip all other logic while waiting to reset
+    }
+
     // Normal wandering: immediately try to find a target!
     
     
@@ -259,6 +289,7 @@ export const BlueSoldierFemaleNPC = ({
 
       
       
+      
       // --- WIDE-SHOULDER ROOMBA PATHFINDING ---
       const shoulderWidth = 0.35;
       const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.6, npcPos.z);
@@ -278,10 +309,17 @@ export const BlueSoldierFemaleNPC = ({
         nextState = 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
+        
+        // Count consecutive failures to detect if we are trapped
+        failedTargetCount.current += 1;
+        if (failedTargetCount.current > 4) {
+           nextState = 'ESCAPING';
+        }
       } else if (distToTarget < 1.0) {
         nextState = 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
+        failedTargetCount.current = 0; // Reset failures on success!
       } else {
         const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
