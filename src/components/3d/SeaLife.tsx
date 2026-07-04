@@ -15,7 +15,7 @@ export const SeaLife = ({ count = 50 }) => {
   
   const _dir = useMemo(() => new THREE.Vector3(), []);
   const _dummy = useMemo(() => new THREE.Object3D(), []);
-  
+  const fishData = useMemo(() => {
     const getRandomOuterPosition = () => {
       // Vast oceanic spawning area (radius 150 to 800)
       const angle = Math.random() * Math.PI * 2;
