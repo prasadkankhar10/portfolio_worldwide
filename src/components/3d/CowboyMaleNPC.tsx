@@ -147,118 +147,74 @@ export const CowboyMaleNPC = ({
     }
 
     // Normal wandering: immediately try to find a target!
-    // --- GLOBAL STUCK DETECTION ---
+    
+    // --- 1. SAFE UN-STICKING (The New Escape Plan) ---
     historyTimer.current += delta;
     if (historyTimer.current > 4.0) {
       historyTimer.current = 0;
       if (historyPositions.current.length > 0) {
         const oldestPos = historyPositions.current[0];
         const distMoved = oldestPos.distanceTo(npcPos);
-        // If they moved less than 1.5 units in 4 seconds and aren't talking, they are STUCK!
+        
+        // If stuck for 4 seconds in a corner
         if (distMoved < 1.5 && stateRef.current !== 'INTERACTING') {
-          nextState = 'ESCAPING';
-          escapeTimer.current = 0;
-          // Pick a desperate random escape target
-          const angle = Math.random() * Math.PI * 2;
-          const testPos = new THREE.Vector3(npcPos.x + Math.cos(angle) * 15.0, 100, npcPos.z + Math.sin(angle) * 15.0);
-          const ray = new RAPIER.Ray(testPos, downDir);
-          const hit = world.castRay(ray, 200, true);
-          if (hit && hit.timeOfImpact < 200) {
-            targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
-          }
+          targetPosRef.current = null;
+          nextState = 'THINKING';
+          
+          // Nudge backwards to get out of the corner
+          const backwardDir = new THREE.Vector3(0,0,1).applyQuaternion(containerRef.current.quaternion);
+          npcPos.addScaledVector(backwardDir, 2.0); // 2 meters backwards!
         }
       }
       historyPositions.current = [npcPos.clone()];
     }
 
-    // Normal wandering: immediately try to find a target!
+    // --- 2. LINE-OF-SIGHT TARGET PICKING ---
     if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-        // NORMAL TARGET SELECTION
-        const farmPlots = useGameStore.getState().farmPlots;
-        const wantsToFarm = farmPlots.length > 0 && Math.random() > 0.3; // 70% chance to farm
-        
+        const dist = 5.0 + Math.random() * 15.0; 
         let pickTargetX = 0;
         let pickTargetZ = 0;
+        let needsToGoHome = false;
         
-        if (wantsToFarm) {
-          const targetPlot = farmPlots[Math.floor(Math.random() * farmPlots.length)];
+        if (maxWanderRadius && startPosRef.current) {
+          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
+          if (distFromStart > maxWanderRadius * 0.8) {
+             needsToGoHome = true;
+             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
+             dirToStart.y = 0;
+             if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
+             pickTargetX = npcPos.x + dirToStart.x * dist;
+             pickTargetZ = npcPos.z + dirToStart.z * dist;
+          }
+        }
+        
+        if (!needsToGoHome) {
           const angle = Math.random() * Math.PI * 2;
-          pickTargetX = targetPlot.x + Math.cos(angle) * 1.5;
-          pickTargetZ = targetPlot.z + Math.sin(angle) * 1.5;
-          targetIsFarmRef.current = true;
-        } else {
-          targetIsFarmRef.current = false;
-          const dist = 5.0 + Math.random() * 15.0; 
-          let needsToGoHome = false;
-          
-          if (maxWanderRadius && startPosRef.current) {
-            const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
-            if (distFromStart > maxWanderRadius * 0.8) {
-               needsToGoHome = true;
-               const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
-               dirToStart.y = 0;
-               if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
-               pickTargetX = npcPos.x + dirToStart.x * dist;
-               pickTargetZ = npcPos.z + dirToStart.z * dist;
-            }
-          }
-          
-          if (!needsToGoHome) {
-            const angle = Math.random() * Math.PI * 2;
-            pickTargetX = npcPos.x + Math.cos(angle) * dist;
-            pickTargetZ = npcPos.z + Math.sin(angle) * dist;
-          }
+          pickTargetX = npcPos.x + Math.cos(angle) * dist;
+          pickTargetZ = npcPos.z + Math.sin(angle) * dist;
         }
         
         const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
-        const ray = new RAPIER.Ray(testPos, downDir);
-        const hit = world.castRay(ray, 200, true);
+        const floorRay = new RAPIER.Ray(testPos, downDir);
+        const floorHit = world.castRay(floorRay, 200, true);
         
-        if (hit && hit.timeOfImpact < 200) {
-          const hitPoint = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
-          targetPosRef.current = hitPoint;
-          nextState = 'WALKING';
+        if (floorHit && floorHit.timeOfImpact < 200) {
+          const hitPoint = testPos.clone().add(downDir.clone().multiplyScalar(floorHit.timeOfImpact));
+          
+          // Verify Line of Sight
+          const distToHit = new THREE.Vector2(hitPoint.x, hitPoint.z).distanceTo(new THREE.Vector2(npcPos.x, npcPos.z));
+          const dirToHit = new THREE.Vector3(hitPoint.x - npcPos.x, 0, hitPoint.z - npcPos.z).normalize();
+          
+          const losOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 1.5, npcPos.z);
+          const losHit = world.castRay(new RAPIER.Ray(losOrigin, dirToHit), distToHit, true);
+          
+          if (!losHit || losHit.timeOfImpact >= distToHit - 1.0) {
+            // Path is clear!
+            targetPosRef.current = hitPoint;
+            nextState = 'WALKING';
+          }
         }
     } 
-    
-    if (stateRef.current === 'FARMING') {
-       farmTimer.current += delta;
-       nextAnim = anims.pickup;
-       if (farmTimer.current > 3.0) { // Play pickup for 3 seconds
-          const depositPlots = useGameStore.getState().depositPlots;
-          if (depositPlots.length > 0) {
-             const targetPlot = depositPlots[Math.floor(Math.random() * depositPlots.length)];
-             // Instead of a full random angle which can put them inside the building,
-             // use a safe offset (assuming +Z is usually safe outside the front doors)
-             targetPosRef.current = new THREE.Vector3(
-                targetPlot.x + (Math.random() * 4 - 2), // Random spread on X (-2 to 2)
-                targetPlot.y,
-                targetPlot.z + 4.0 + (Math.random() * 2) // Always +Z offset to stay outside (4 to 6)
-             );
-             
-             const ray = new RAPIER.Ray(new THREE.Vector3(targetPosRef.current.x, 100, targetPosRef.current.z), downDir);
-             const hit = world.castRay(ray, 200, true);
-             if (hit && hit.timeOfImpact < 200) {
-                targetPosRef.current.y = 100 - hit.timeOfImpact;
-             }
-             
-             nextState = 'WALKING_TO_DEPOSIT';
-          } else {
-             nextState = 'THINKING';
-          }
-          farmTimer.current = 0;
-       }
-    }
-
-    if (stateRef.current === 'DEPOSITING') {
-       farmTimer.current += delta;
-       nextAnim = anims.idle;
-       if (farmTimer.current > 3.0) {
-          nextState = 'THINKING';
-          farmTimer.current = 0;
-       }
-    }
-
     
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
@@ -276,7 +232,7 @@ export const CowboyMaleNPC = ({
       } else {
         nextAnim = anims.idle;
       }
-    } else if ((stateRef.current === 'WALKING' || stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED' || stateRef.current === 'WALKING_TO_DEPOSIT') && targetPosRef.current) {
+    } else if ((stateRef.current === 'WALKING' || stateRef.current === 'SUMMONED') && targetPosRef.current) {
       const dirToTarget = new THREE.Vector3().subVectors(targetPosRef.current, npcPos);
       dirToTarget.y = 0; 
       const distToTarget = dirToTarget.length();
@@ -285,99 +241,44 @@ export const CowboyMaleNPC = ({
         dirToTarget.normalize();
       }
 
-      if (stateRef.current === 'ESCAPING') {
-        escapeTimer.current += delta;
-        if (escapeTimer.current > 3.0) {
-          nextState = 'THINKING';
-          targetPosRef.current = null; // Fix: clear escape path
-        }
-      }
+      // --- 3. DYNAMIC OBSTACLE STEERING ---
+      const origin = new THREE.Vector3(npcPos.x, npcPos.y + 1.0, npcPos.z);
+      const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4);
+      const leftDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/4);
 
-      const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 1.0, npcPos.z);
-      const leftDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/6);
-      const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/6);
-
-      const forwardHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.5, true);
-      const leftHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, leftDir), 1.0, true);
-      const rightHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, rightDir), 1.0, true);
+      const fHit = world.castRay(new RAPIER.Ray(origin, dirToTarget), 2.0, true);
+      const lHit = world.castRay(new RAPIER.Ray(origin, leftDir), 1.5, true);
+      const rHit = world.castRay(new RAPIER.Ray(origin, rightDir), 1.5, true);
       
-      // Steering Behavior calculations
-      let currentDir = dirToTarget.clone();
-      let isBlocked = false;
-
-      if (forwardHit && forwardHit.timeOfImpact < 1.5) {
-         isBlocked = true;
-         // Steer away based on which side is more blocked
-         const dLeft = leftHit ? leftHit.timeOfImpact : 1.5;
-         const dRight = rightHit ? rightHit.timeOfImpact : 1.5;
-         if (dLeft < dRight) {
-           currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/3); // Steer right sharply
-         } else {
-           currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/3); // Steer left sharply
-         }
-      } else if (leftHit && leftHit.timeOfImpact < 1.0) {
-         currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4); // Steer right
-         isBlocked = true;
-      } else if (rightHit && rightHit.timeOfImpact < 1.0) {
-         currentDir.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/4); // Steer left
-         isBlocked = true;
-      }
-      
-      // Failsafe timeout for stuck state
-      if (isBlocked && stateRef.current !== 'ESCAPING' && stateRef.current !== 'SUMMONED') {
-         escapeTimer.current += delta;
-         if (escapeTimer.current > 5.0) {
-            nextState = 'THINKING';
-            targetPosRef.current = null;
-            targetIsFarmRef.current = false;
-            nextAnim = anims.idle;
-            escapeTimer.current = 0;
-         }
-      } else if (stateRef.current !== 'ESCAPING') {
-         escapeTimer.current = 0; // Reset if we aren't blocked
-      }
-      
-      if (distToTarget < 1.0) {
-        if (stateRef.current === 'WALKING_TO_DEPOSIT') {
-           nextState = 'DEPOSITING';
-           farmTimer.current = 0;
-           targetPosRef.current = null;
-        }
-        else if (targetIsFarmRef.current) {
-           nextState = 'FARMING';
-           farmTimer.current = 0;
-           targetPosRef.current = null;
-           targetIsFarmRef.current = false;
+      if (fHit && fHit.timeOfImpact < 2.0) {
+        if (lHit && !rHit) {
+          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/2); // Hard Right
+        } else if (rHit && !lHit) {
+          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/2); // Hard Left
         } else {
-           nextState = 'THINKING';
-           targetPosRef.current = null;
-           nextAnim = anims.idle;
+          dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/2); // Fallback Right
         }
-      } else if (targetPosRef.current !== null) {
-        // Only move if we didn't just transition to THINKING via failsafe
-        const angle = Math.atan2(currentDir.x, currentDir.z);
+      } else if (lHit && lHit.timeOfImpact < 1.5) {
+        dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/6); // Soft Right
+      } else if (rHit && rHit.timeOfImpact < 1.5) {
+        dirToTarget.applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/6); // Soft Left
+      }
+
+      if (distToTarget < 1.0) {
+        nextState = 'THINKING';
+        targetPosRef.current = null;
+        nextAnim = anims.idle;
+      } else {
+        const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
-        let speed = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
+        const speed = (stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
+        npcPos.addScaledVector(dirToTarget, speed * delta);
         
-        // Prevent clipping by slowing down heavily if an obstacle is directly in front
-        if (forwardHit && forwardHit.timeOfImpact < 0.8) {
-           speed = 0.5; // Barely move forward, mostly just rotate
-        } else if (isBlocked) {
-           speed = 1.0; // Slow down slightly while steering
-        }
-        
-        npcPos.addScaledVector(currentDir, speed * delta);
-        
-        if (stateRef.current === 'WALKING_TO_DEPOSIT' && anims.carry) {
-          nextAnim = anims.carry;
-        } else {
-          nextAnim = (stateRef.current === 'ESCAPING' || stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
-        }
+        nextAnim = (stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
       }
     }
-  
 
     // GRAVITY & GROUND SNAPPING (Runs every frame for EVERY NPC)
     // Cast from slightly above the NPC to prevent them from teleporting onto tree canopies above them!
