@@ -257,35 +257,47 @@ export const KnightGoldenFemaleNPC = ({
         dirToTarget.normalize();
       }
 
-      const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 1.0, npcPos.z);
-      const leftDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/4);
-      const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/4);
-
-      const forwardHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.2, true);
-      const leftHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, leftDir), 0.8, true);
-      const rightHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, rightDir), 0.8, true);
       
-      const isBlocked = (forwardHit && forwardHit.timeOfImpact < 1.2) || 
-                        (leftHit && leftHit.timeOfImpact < 0.8) || 
-                        (rightHit && rightHit.timeOfImpact < 0.8);
+      // --- VECTOR PROJECTION WALL SLIDING ---
+      const shoulderWidth = 0.35;
+      const leftShoulder = new THREE.Vector3(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
+      const rightShoulder = new THREE.Vector3(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
+      
+      const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.2, true);
+      const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.2, true);
+      
+      let moveDir = dirToTarget.clone();
+      
+      let wallHit = null;
+      if (lHit && lHit.normal && lHit.normal.y < 0.7) wallHit = lHit;
+      if (rHit && rHit.normal && rHit.normal.y < 0.7) {
+         if (!wallHit || rHit.timeOfImpact < wallHit.timeOfImpact) {
+            wallHit = rHit;
+         }
+      }
+      
+      if (wallHit) {
+         const wallNormal = new THREE.Vector3(wallHit.normal.x, wallHit.normal.y, wallHit.normal.z);
+         moveDir.projectOnPlane(wallNormal).normalize();
+         
+         if (moveDir.lengthSq() < 0.1 && stateRef.current !== 'SUMMONED') {
+            nextState = 'THINKING';
+            targetPosRef.current = null;
+            nextAnim = anims.idle;
+         }
+      }
 
-      // Simple Roomba logic: If we hit a wall, immediately give up and pick a new target!
-      if (isBlocked && stateRef.current !== 'SUMMONED') {
+      if (distToTarget < 1.0) {
         nextState = 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
-      } 
-      else if (distToTarget < 1.0) {
-        nextState = 'THINKING';
-        targetPosRef.current = null;
-        nextAnim = anims.idle;
-      } else {
-        const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+      } else if (targetPosRef.current) {
+        const angle = Math.atan2(moveDir.x, moveDir.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         const speed = (stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
-        npcPos.addScaledVector(dirToTarget, speed * delta);
+        npcPos.addScaledVector(moveDir, speed * delta);
         
         nextAnim = (stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
       }
