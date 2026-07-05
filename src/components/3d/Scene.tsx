@@ -82,8 +82,12 @@ export const Scene = () => {
         <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(30, 30, 10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-30, 30, -10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightMaleNPC startPosition={new THREE.Vector3(10, 30, 30)} maxWanderRadius={5} />
-        <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} dialogId="pirate_web_1" maxWanderRadius={5} />
-        <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} dialogId="pirate_web_1" maxWanderRadius={5} />
+        {/* DOCK WORKERS ROUTINE (WITH SITTING) */}
+        <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} startState="RESTING_SITTING" dialogId="pirate_web_1" />
+        <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} startState="WORKING_PORT" dialogId="pirate_web_1" />
+        <PirateMaleNPC startPosition={new THREE.Vector3(104, 30, 115)} startState="WORKING_PORT" />
+        <PirateFemaleNPC startPosition={new THREE.Vector3(102, 30, 118)} startState="WORKING_STORAGE" />
+        <PirateFemaleNPC startPosition={new THREE.Vector3(100, 30, 116)} startState="WORKING_STORAGE" />
         <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
         <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
         <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />

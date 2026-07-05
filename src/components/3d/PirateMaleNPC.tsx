@@ -8,12 +8,15 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 
+export type PirateState = 'RESTING_SITTING' | 'RESTING_STANDING' | 'WALKING_TO_PORT' | 'WORKING_PORT' | 'WALKING_TO_STORAGE' | 'WORKING_STORAGE' | 'WALKING_TO_WAYPOINT' | 'WORKING_WAYPOINT' | 'WALKING_TO_HOUSE' | 'INTERACTING' | 'ESCAPING';
+
 interface PirateMaleNPCProps {
   colorTint?: string;
   roleName?: string;
   startPosition?: THREE.Vector3;
   maxWanderRadius?: number;
   dialogId?: string;
+  startState?: PirateState;
 }
 
 export const PirateMaleNPC = ({ 
@@ -21,7 +24,8 @@ export const PirateMaleNPC = ({
   startPosition, 
   roleName = "Pirate Male",
   maxWanderRadius,
-  dialogId
+  dialogId,
+  startState = 'RESTING_SITTING'
 }: PirateMaleNPCProps) => {
   const { scene, animations } = useGLTF('./models/NPCs/Pirate_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
@@ -71,7 +75,6 @@ export const PirateMaleNPC = ({
 
   const { actions } = useAnimations(animations, modelRef);
 
-  // Dynamic animation resolver (Fixes missing animations)
   const anims = useMemo(() => {
     const getAnim = (names: string[]) => {
       for (const n of names) {
@@ -83,20 +86,21 @@ export const PirateMaleNPC = ({
     
     return { 
       idle: getAnim(['idle_weapon', 'idle', 'characterarmature|idle']), 
-      walk: getAnim(['walk_carry', 'walk', 'characterarmature|walk_carry', 'characterarmature|walk']), 
+      walk: getAnim(['walk', 'characterarmature|walk']), 
+      walk_carry: getAnim(['walk_carry', 'characterarmature|walk_carry', 'walk', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
-      wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
+      wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']),
+      work: getAnim(['pickup', 'pick_up', 'punch', 'attack']),
+      sit: getAnim(['sitdown', 'sit_down', 'sit', 'idle']),
+      stand: getAnim(['standup', 'stand_up', 'stand', 'idle'])
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WORKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<PirateState>(startState);
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
+  const debugTextRef = useRef<HTMLDivElement>(null);
   
-  const historyPositions = useRef<THREE.Vector3[]>([]);
-  const historyTimer = useRef(0);
-  const escapeTimer = useRef(0);
   const interactTimer = useRef(0);
-  const idleTimer = useRef(0);
   const failedTargetCount = useRef(0);
   const workTimer = useRef(0);
 
@@ -111,7 +115,8 @@ export const PirateMaleNPC = ({
     }
   }, [anims.idle, actions]);
 
-  const startupTimer = useRef(0);
+  const startupTimer = useRef(-Math.random() * 5.0);
+  const speedFactor = useMemo(() => 1.5 + Math.random() * 1.0, []);
 
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
@@ -121,132 +126,43 @@ export const PirateMaleNPC = ({
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
-    
     const distToPlayer = npcPos.distanceTo(globalPlayerState.position);
     if (distToPlayer < 3.5) {
       if (stateRef.current !== 'INTERACTING') {
         nextState = 'INTERACTING';
         interactTimer.current = 0;
-        targetPosRef.current = null; // Fix: Clear previous path on interrupt
         if (!isInteracting) setIsInteracting(true);
       }
     } else if (stateRef.current === 'INTERACTING') {
-      nextState = 'THINKING';
+      nextState = 'RESTING_SITTING'; // Fallback to resting
       if (isInteracting) setIsInteracting(false);
     }
     
-    if (stateRef.current === 'THINKING') {
-      nextAnim = anims.idle; // Fix: Always default to idle when thinking
-      idleTimer.current += delta;
-    } else {
-      idleTimer.current = 0;
-    }
-
-    
-
-    // --- OFF-SCREEN RESET ESCAPE PLAN ---
-    if (stateRef.current === 'ESCAPING') {
-       nextAnim = anims.idle;
-       
-       // Check if camera is looking at the NPC
-       const frustum = new THREE.Frustum();
-       const projScreenMatrix = new THREE.Matrix4();
-       projScreenMatrix.multiplyMatrices(rootState.camera.projectionMatrix, rootState.camera.matrixWorldInverse);
-       frustum.setFromProjectionMatrix(projScreenMatrix);
-       
-       if (!frustum.containsPoint(npcPos)) {
-          // Player is not looking! Safely reset!
-          if (startPosRef.current) {
-             npcPos.copy(startPosRef.current);
-          }
-          nextState = 'THINKING';
-          failedTargetCount.current = 0;
-       }
-       
-   
-    // SEA / FALL CATCHER: If they wander into the water or fall off the map
     if (npcPos.y < 0.8) {
-      if (startPosRef.current) {
-         npcPos.copy(startPosRef.current);
-      }
-      nextState = 'THINKING';
+      if (startPosRef.current) npcPos.copy(startPosRef.current);
+      nextState = 'RESTING_SITTING';
       targetPosRef.current = null;
     }
 
-    if (stateRef.current !== nextState) stateRef.current = nextState;
-       if (currentAnim.current !== nextAnim && actions[nextAnim]) {
-         actions[currentAnim.current]?.fadeOut(0.2);
-         actions[nextAnim]?.reset().fadeIn(0.2).play();
-         currentAnim.current = nextAnim;
-       }
-       return; // Skip all other logic while waiting to reset
-    }
-
-    // Normal wandering: immediately try to find a target!
-    
-    
-    // Normal wandering: immediately try to find a target!
-    
-    if (stateRef.current === 'WORKING') {
-        workTimer.current += delta;
-        nextAnim = anims.work || anims.idle;
-        if (workTimer.current > 3.0) {
-            nextState = 'THINKING';
-            workTimer.current = 0;
-        }
-    }
-    
-    if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-        
-        // 40% chance to work instead of wander
-        if (Math.random() < 0.4 && anims.work) {
-            nextState = 'WORKING';
-            workTimer.current = 0;
-            targetPosRef.current = null;
-            
-            if (stateRef.current !== nextState) stateRef.current = nextState;
-            if (currentAnim.current !== nextAnim && actions[nextAnim]) {
-              actions[currentAnim.current]?.fadeOut(0.2);
-              actions[nextAnim]?.reset().fadeIn(0.2).play();
-              currentAnim.current = nextAnim;
+    // Dynamic Target Helper via Bounding Box (handles baked coordinates perfectly)
+    const getTargetPos = (namePart: string, offsetDir: THREE.Vector3) => {
+        let foundNode: THREE.Object3D | null = null;
+        rootState.scene.traverse((child) => {
+            if (!foundNode && child.name && child.name.toLowerCase().includes(namePart.toLowerCase())) {
+                foundNode = child;
             }
-            return;
+        });
+        if (foundNode) {
+            const box = new THREE.Box3().setFromObject(foundNode);
+            if (!box.isEmpty()) {
+                const center = new THREE.Vector3();
+                box.getCenter(center);
+                return center.add(offsetDir.clone().multiplyScalar(2.0)); // 2.0m offset
+            }
         }
-    
-        const dist = 3.0 + Math.random() * 6.0; // Shorter walk distances on dock 
-        
-        let pickTargetX = 0;
-        let pickTargetZ = 0;
-        let needsToGoHome = false;
-        
-        if (maxWanderRadius && startPosRef.current) {
-          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
-          if (distFromStart > maxWanderRadius * 0.8) {
-             needsToGoHome = true;
-             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
-             dirToStart.y = 0;
-             if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
-             pickTargetX = npcPos.x + dirToStart.x * dist;
-             pickTargetZ = npcPos.z + dirToStart.z * dist;
-          }
-        }
-        
-        if (!needsToGoHome) {
-          const angle = Math.random() * Math.PI * 2;
-          pickTargetX = npcPos.x + Math.cos(angle) * dist;
-          pickTargetZ = npcPos.z + Math.sin(angle) * dist;
-        }
-        
-        const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
-        const ray = new RAPIER.Ray(testPos, downDir);
-        const hit = world.castRay(ray, 200, true);
-        
-        if (hit && hit.timeOfImpact < 200) {
-          targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
-          nextState = 'WALKING';
-        }
-    } 
-    
+        return null;
+    };
+
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
       const dirToPlayer = new THREE.Vector3().subVectors(globalPlayerState.position, npcPos);
@@ -257,13 +173,50 @@ export const PirateMaleNPC = ({
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
       }
+      nextAnim = (interactTimer.current < 2.0 && anims.wave) ? anims.wave : anims.idle;
       
-      if (interactTimer.current < 2.0 && anims.wave) {
-        nextAnim = anims.wave;
-      } else {
+    } else if (stateRef.current === 'RESTING_SITTING') {
+        nextAnim = anims.sit;
+        workTimer.current += delta;
+        if (workTimer.current > (5.0 + Math.random() * 15.0)) {
+            nextState = 'RESTING_STANDING';
+            workTimer.current = 0;
+        }
+    } else if (stateRef.current === 'RESTING_STANDING') {
+        nextAnim = anims.stand;
+        workTimer.current += delta;
+        // Wait 1.5 seconds to finish standing up before walking
+        if (workTimer.current > 1.5) {
+            targetPosRef.current = new THREE.Vector3(113.3 + (Math.random() * 2 - 1), 30.0, 124.3 + (Math.random() * 2 - 1)); // Port with jitter
+            nextState = 'WALKING_TO_PORT';
+            workTimer.current = 0;
+        }
+    } else if (stateRef.current === 'WORKING_PORT') {
+        nextAnim = anims.work || anims.idle;
+        workTimer.current += delta;
+        if (workTimer.current > (5.0 + Math.random() * 15.0)) {
+            targetPosRef.current = new THREE.Vector3(110.0 + (Math.random() * 2 - 1), 30.0, 111.0 + (Math.random() * 2 - 1)); // Storage with jitter
+            nextState = 'WALKING_TO_STORAGE';
+            workTimer.current = 0;
+        }
+    } else if (stateRef.current === 'WORKING_STORAGE') {
+        nextAnim = anims.work || anims.idle;
+        workTimer.current += delta;
+        if (workTimer.current > (5.0 + Math.random() * 15.0)) {
+            // WAYPOINT WITH RANDOM JITTER
+            targetPosRef.current = new THREE.Vector3(101.0 + (Math.random() * 2 - 1), 30.0, 119.0 + (Math.random() * 2 - 1));
+            nextState = 'WALKING_TO_WAYPOINT';
+            workTimer.current = 0;
+        }
+    } else if (stateRef.current === 'WORKING_WAYPOINT') {
         nextAnim = anims.idle;
-      }
-    } else if ((stateRef.current === 'WALKING' || stateRef.current === 'SUMMONED') && targetPosRef.current) {
+        workTimer.current += delta;
+        if (workTimer.current > (5.0 + Math.random() * 10.0)) {
+            targetPosRef.current = new THREE.Vector3(97.0 + (Math.random() * 2 - 1), 30.0, 104.0 + (Math.random() * 2 - 1));
+            nextState = 'WALKING_TO_HOUSE';
+            workTimer.current = 0;
+        }
+    } else if (stateRef.current.startsWith('WALKING_TO_') && targetPosRef.current) {
       const dirToTarget = new THREE.Vector3().subVectors(targetPosRef.current, npcPos);
       dirToTarget.y = 0; 
       const distToTarget = dirToTarget.length();
@@ -272,10 +225,6 @@ export const PirateMaleNPC = ({
         dirToTarget.normalize();
       }
 
-      
-      
-      
-      // --- WIDE-SHOULDER ROOMBA PATHFINDING ---
       const shoulderWidth = 0.35;
       const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.6, npcPos.z);
       const leftShoulder = new THREE.Vector3(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
@@ -285,58 +234,124 @@ export const PirateMaleNPC = ({
       const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.0, true);
       const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.0, true);
       
-      // Determine if a hit is a steep wall (normal.y < 0.7). Hills/stairs (>= 0.7) are ignored!
-      const isWall = (hit) => hit && hit.timeOfImpact < 1.0 && hit.normal && hit.normal.y < 0.7;
-      const isBlocked = isWall(fHit) || isWall(lHit) || isWall(rHit);
+      const isWall = (hit: any) => hit && hit.timeOfImpact < 2.0 && hit.normal && hit.normal.y < 0.7;
       
-      if (isBlocked && stateRef.current !== 'SUMMONED') {
-        // Roomba logic: Immediately stop and pick a new target!
-        nextState = 'THINKING';
-        targetPosRef.current = null;
-        nextAnim = anims.idle;
+      let moveDir = dirToTarget.clone();
+      let isBlocked = false;
+      
+      if (isWall(fHit) || isWall(lHit) || isWall(rHit)) {
+        isBlocked = true;
+        let bestHit = fHit;
+        if (!isWall(bestHit)) bestHit = lHit;
+        if (!isWall(bestHit)) bestHit = rHit;
         
-        // Count consecutive failures to detect if we are trapped
+        const hitNormal = new THREE.Vector3(bestHit.normal.x, 0, bestHit.normal.z).normalize();
+        
+        // Find tangents to walk along the wall
+        const tangent1 = new THREE.Vector3(hitNormal.z, 0, -hitNormal.x);
+        const tangent2 = new THREE.Vector3(-hitNormal.z, 0, hitNormal.x);
+        
+        // Pick the tangent that takes us closest to the target
+        if (tangent1.dot(dirToTarget) > tangent2.dot(dirToTarget)) {
+           moveDir.copy(tangent1);
+        } else {
+           moveDir.copy(tangent2);
+        }
+        
+        // Push away from the wall to prevent clipping
+        const pushFactor = Math.max(0.5, 2.0 - bestHit.timeOfImpact);
+        moveDir.addScaledVector(hitNormal, pushFactor).normalize();
+      }
+      
+      if (isBlocked) {
         failedTargetCount.current += 1;
-        if (failedTargetCount.current > 4) {
-           nextState = 'ESCAPING';
+        if (failedTargetCount.current > 180) { // Wait 3 seconds before giving up and teleporting
+           if (targetPosRef.current) {
+               npcPos.copy(targetPosRef.current);
+               npcPos.y = 30.0; 
+           }
+           failedTargetCount.current = 0;
+           if (stateRef.current === 'WALKING_TO_PORT') nextState = 'WORKING_PORT';
+           else if (stateRef.current === 'WALKING_TO_STORAGE') nextState = 'WORKING_STORAGE';
+           else if (stateRef.current === 'WALKING_TO_HOUSE') nextState = 'RESTING_SITTING';
+           else if (stateRef.current === 'WALKING_TO_WAYPOINT') nextState = 'WORKING_WAYPOINT';
+           else if (stateRef.current === 'WALKING_TO_WAYPOINT') nextState = 'WORKING_WAYPOINT';
+           targetPosRef.current = null;
+           workTimer.current = 0;
+        } else {
+           // We are dodging! 
+           const angle = Math.atan2(moveDir.x, moveDir.z);
+           targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+           containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+           npcPos.addScaledVector(moveDir, speedFactor * delta);
+           
+           if (stateRef.current === 'WALKING_TO_STORAGE') {
+               nextAnim = anims.walk_carry || anims.walk;
+           } else {
+               nextAnim = anims.walk;
+           }
         }
       } else if (distToTarget < 1.0) {
-        nextState = 'THINKING';
+        if (stateRef.current === 'WALKING_TO_PORT') nextState = 'WORKING_PORT';
+        else if (stateRef.current === 'WALKING_TO_STORAGE') nextState = 'WORKING_STORAGE';
+        else if (stateRef.current === 'WALKING_TO_HOUSE') nextState = 'RESTING_SITTING';
+           else if (stateRef.current === 'WALKING_TO_WAYPOINT') nextState = 'WORKING_WAYPOINT';
+        
         targetPosRef.current = null;
-        nextAnim = anims.idle;
-        failedTargetCount.current = 0; // Reset failures on success!
+        workTimer.current = 0;
+        failedTargetCount.current = 0; 
       } else {
-        const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+        const angle = Math.atan2(moveDir.x, moveDir.z);
         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
-        const speed = (stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
-        npcPos.addScaledVector(dirToTarget, speed * delta);
+        npcPos.addScaledVector(moveDir, speedFactor * delta);
         
-        nextAnim = (stateRef.current === 'SUMMONED') ? anims.run : anims.walk;
+        if (stateRef.current === 'WALKING_TO_STORAGE') {
+            nextAnim = anims.walk_carry || anims.walk;
+        } else {
+            nextAnim = anims.walk;
+        }
+        failedTargetCount.current = 0;
       }
     }
-    // GRAVITY & GROUND SNAPPING (Runs every frame for EVERY NPC)
-    // Cast from slightly above the NPC to prevent them from teleporting onto tree canopies above them!
-    const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 2.0, npcPos.z);
+
+    // GRAVITY & GROUND SNAPPING
+    const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.5, npcPos.z);
     const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
     const snapHit = world.castRay(snapRay, 50.0, true);
     
     if (snapHit && snapHit.timeOfImpact < 50.0) {
       const hitY = snapRayOrigin.y - snapHit.timeOfImpact;
-      // CRITICAL FIX: Clamp the lerp t-value to 1.0 to prevent massive overshoot on lag spikes
       npcPos.y = THREE.MathUtils.lerp(npcPos.y, hitY, Math.min(1, 15 * delta));
     }
 
     if (stateRef.current !== nextState) stateRef.current = nextState;
     if (currentAnim.current !== nextAnim && actions[nextAnim]) {
       actions[currentAnim.current]?.fadeOut(0.2);
-      actions[nextAnim]?.reset().fadeIn(0.2).play();
+      
+      const action = actions[nextAnim];
+      if (action) {
+         action.reset().fadeIn(0.2);
+         if (nextState === 'RESTING_SITTING' || nextState === 'RESTING_STANDING') {
+            action.setLoop(THREE.LoopOnce, 1);
+            action.clampWhenFinished = true;
+         } else {
+            action.setLoop(THREE.LoopRepeat, Infinity);
+            action.clampWhenFinished = false;
+         }
+         action.play();
+      }
       currentAnim.current = nextAnim;
+    }
+
+    // Update Debug UI
+    if (debugTextRef.current) {
+        debugTextRef.current.innerText = `${stateRef.current} | Target: ${targetPosRef.current ? Math.round(targetPosRef.current.x) + ',' + Math.round(targetPosRef.current.z) : 'NONE'}`;
     }
   });
 
-  const greetings = useMemo(() => ["What are ye lookin' at?", "Outta my way!", "I don't have time for you!"], []);
+  const greetings = useMemo(() => ["Arrr matey!", "Busy workin' here!", "Cargo won't move itself!"], []);
   const currentGreeting = useRef(greetings[0]);
   useEffect(() => {
     if (isInteracting) currentGreeting.current = greetings[Math.floor(Math.random() * greetings.length)];
@@ -350,9 +365,8 @@ export const PirateMaleNPC = ({
         </group>
       </group>
       
-      {/* Debug Name Tag */}
       <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
-        <div className="bg-black/60 text-white/90 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
+        <div ref={debugTextRef} className="bg-black/60 text-yellow-300 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
           Pirate_Male
         </div>
       </Html>
