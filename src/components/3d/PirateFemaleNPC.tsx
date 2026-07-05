@@ -83,13 +83,13 @@ export const PirateFemaleNPC = ({
     
     return { 
       idle: getAnim(['idle_weapon', 'idle', 'characterarmature|idle']), 
-      walk: getAnim(['walk', 'characterarmature|walk']), 
+      walk: getAnim(['walk_carry', 'walk', 'characterarmature|walk_carry', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
       wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WORKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -98,6 +98,7 @@ export const PirateFemaleNPC = ({
   const interactTimer = useRef(0);
   const idleTimer = useRef(0);
   const failedTargetCount = useRef(0);
+  const workTimer = useRef(0);
 
   const currentAnim = useRef('');
   const targetQuaternion = useRef(new THREE.Quaternion());
@@ -185,8 +186,34 @@ export const PirateFemaleNPC = ({
     
     
     // Normal wandering: immediately try to find a target!
+    
+    if (stateRef.current === 'WORKING') {
+        workTimer.current += delta;
+        nextAnim = anims.work || anims.idle;
+        if (workTimer.current > 3.0) {
+            nextState = 'THINKING';
+            workTimer.current = 0;
+        }
+    }
+    
     if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-        const dist = 5.0 + Math.random() * 10.0; 
+        
+        // 40% chance to work instead of wander
+        if (Math.random() < 0.4 && anims.work) {
+            nextState = 'WORKING';
+            workTimer.current = 0;
+            targetPosRef.current = null;
+            
+            if (stateRef.current !== nextState) stateRef.current = nextState;
+            if (currentAnim.current !== nextAnim && actions[nextAnim]) {
+              actions[currentAnim.current]?.fadeOut(0.2);
+              actions[nextAnim]?.reset().fadeIn(0.2).play();
+              currentAnim.current = nextAnim;
+            }
+            return;
+        }
+    
+        const dist = 3.0 + Math.random() * 6.0; // Shorter walk distances on dock 
         
         let pickTargetX = 0;
         let pickTargetZ = 0;

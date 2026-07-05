@@ -82,8 +82,8 @@ export const Scene = () => {
         <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(30, 30, 10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-30, 30, -10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightMaleNPC startPosition={new THREE.Vector3(10, 30, 30)} maxWanderRadius={5} />
-        <PirateFemaleNPC startPosition={new THREE.Vector3(-10, 30, -30)} dialogId="pirate_web_1" maxWanderRadius={5} />
-        <PirateMaleNPC startPosition={new THREE.Vector3(0, 30, 40)} dialogId="pirate_web_1" maxWanderRadius={5} />
+        <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} dialogId="pirate_web_1" maxWanderRadius={5} />
+        <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} dialogId="pirate_web_1" maxWanderRadius={5} />
         <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
         <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
         <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
