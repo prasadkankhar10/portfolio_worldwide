@@ -63,7 +63,7 @@ export const Scene = () => {
         {hasStarted && <Character />}
         
         {/* AI NPCs */}
-        <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(5, 3.1, 10)} />
+        <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(101, 30, -76)} />
         
         <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" maxWanderRadius={5} />
         <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" maxWanderRadius={5} />
@@ -91,8 +91,8 @@ export const Scene = () => {
         <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
         <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
         <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
-        <WitchNPC startPosition={new THREE.Vector3(-20, 30, -20)} dialogId="witch_creative_1" maxWanderRadius={5} />
-        <WizardNPC startPosition={new THREE.Vector3(0, 30, 15)} dialogId="wizard_intro_1" maxWanderRadius={5} />
+        <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
+        <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} />
       </Physics>
 
       {/* Free Camera Mode */}

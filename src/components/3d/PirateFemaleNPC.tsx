@@ -98,8 +98,6 @@ export const PirateFemaleNPC = ({
 
   const stateRef = useRef<PirateState>(startState);
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
-  const debugTextRef = useRef<HTMLDivElement>(null);
-  
   const interactTimer = useRef(0);
   const failedTargetCount = useRef(0);
   const workTimer = useRef(0);
@@ -345,10 +343,7 @@ export const PirateFemaleNPC = ({
       currentAnim.current = nextAnim;
     }
 
-    // Update Debug UI
-    if (debugTextRef.current) {
-        debugTextRef.current.innerText = `${stateRef.current} | Target: ${targetPosRef.current ? Math.round(targetPosRef.current.x) + ',' + Math.round(targetPosRef.current.z) : 'NONE'}`;
-    }
+
   });
 
   const greetings = useMemo(() => ["Arrr matey!", "Busy workin' here!", "Cargo won't move itself!"], []);
@@ -365,12 +360,6 @@ export const PirateFemaleNPC = ({
         </group>
       </group>
       
-      <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
-        <div ref={debugTextRef} className="bg-black/60 text-yellow-300 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
-          Pirate_Female
-        </div>
-      </Html>
-
       {/* Interaction Dialog */}
       {isInteracting && (
         <Html position={[0, 3.5, 0]} center zIndexRange={[100, 0]}>

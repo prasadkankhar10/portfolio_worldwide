@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
+import { SpellEffect } from './SpellEffect';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 
@@ -30,6 +31,8 @@ export const WizardNPC = ({
   const { world } = useRapier(); 
   
   const [isInteracting, setIsInteracting] = useState(false);
+  const [isPracticing, setIsPracticing] = useState(false);
+  const activeSpell = useRef({ type: 'arcane' as any, color: '#9d4edd', duration: 3.0, scaleMultiplier: 1.0 });
   const [hasShownDialog, setHasShownDialog] = useState(false);
   const startPosRef = useRef<THREE.Vector3 | null>(null);
   
@@ -85,11 +88,12 @@ export const WizardNPC = ({
       idle: getAnim(['idle_weapon', 'idle', 'characterarmature|idle']), 
       walk: getAnim(['walk', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
+      spell: getAnim(['shoot_onehanded', 'spell', 'victory', 'attack']),
       wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -134,11 +138,11 @@ export const WizardNPC = ({
       if (isInteracting) setIsInteracting(false);
     }
     
+    if (nextState === 'PRACTICING' && !isPracticing) setIsPracticing(true);
+    if (nextState !== 'PRACTICING' && isPracticing) setIsPracticing(false);
+    
     if (stateRef.current === 'THINKING') {
       nextAnim = anims.idle; // Fix: Always default to idle when thinking
-      idleTimer.current += delta;
-    } else {
-      idleTimer.current = 0;
     }
 
     
@@ -186,31 +190,34 @@ export const WizardNPC = ({
     
     // Normal wandering: immediately try to find a target!
     if (stateRef.current === 'THINKING' && !targetPosRef.current) {
-        const dist = 5.0 + Math.random() * 10.0; 
-        
-        let pickTargetX = 0;
-        let pickTargetZ = 0;
-        let needsToGoHome = false;
-        
-        if (maxWanderRadius && startPosRef.current) {
-          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
-          if (distFromStart > maxWanderRadius * 0.8) {
-             needsToGoHome = true;
-             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
-             dirToStart.y = 0;
-             if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
-             pickTargetX = npcPos.x + dirToStart.x * dist;
-             pickTargetZ = npcPos.z + dirToStart.z * dist;
-          }
-        }
-        
-        if (!needsToGoHome) {
-          const angle = Math.random() * Math.PI * 2;
-          pickTargetX = npcPos.x + Math.cos(angle) * dist;
-          pickTargetZ = npcPos.z + Math.sin(angle) * dist;
-        }
-        
-        const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
+        if (!idleTimer.current) idleTimer.current = 0;
+        idleTimer.current += delta;
+        if (idleTimer.current > (3.0 + Math.random() * 5.0)) {
+           if (Math.random() < 0.4) {
+              nextState = 'PRACTICING';
+              idleTimer.current = 0;
+              if (Math.random() < 0.1) {
+                 activeSpell.current = { type: 'ultimate_arcane', color: '#ff00ff', duration: 6.0, scaleMultiplier: 3.0 };
+              } else {
+                 const spells = [
+                    { type: 'arcane', color: '#9d4edd' },
+                    { type: 'fire', color: '#ff2200' },
+                    { type: 'void', color: '#330066' },
+                    { type: 'water', color: '#00aaff' }
+                 ];
+                 const pick = spells[Math.floor(Math.random() * spells.length)];
+                 activeSpell.current = { ...pick, duration: 3.0, scaleMultiplier: 1.0 };
+              }
+           } else {
+            const centerX = 101;
+            const centerZ = -76;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 10.0; // Stay within 10 units of center
+            
+            const pickTargetX = centerX + Math.cos(angle) * dist;
+            const pickTargetZ = centerZ + Math.sin(angle) * dist;
+            
+            const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
         const ray = new RAPIER.Ray(testPos, downDir);
         const hit = world.castRay(ray, 200, true);
         
@@ -218,6 +225,24 @@ export const WizardNPC = ({
           targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
           nextState = 'WALKING';
         }
+          idleTimer.current = 0;
+        } // close else block
+        } // close timer block
+    } else if (stateRef.current === 'PRACTICING') {
+         nextAnim = anims.spell || anims.wave || anims.idle;
+         idleTimer.current += delta;
+         const targetVec = new THREE.Vector3(101, npcPos.y, -76);
+         const dirToTarget = new THREE.Vector3().subVectors(targetVec, npcPos);
+         if (dirToTarget.lengthSq() > 0.1) {
+            dirToTarget.normalize();
+            const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+            targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
+         }
+         if (idleTimer.current > activeSpell.current.duration) {
+            nextState = 'THINKING';
+            idleTimer.current = 0;
+         }
     } 
     
     if (stateRef.current === 'INTERACTING') {
@@ -319,6 +344,7 @@ export const WizardNPC = ({
     <group ref={containerRef} scale={0.58}>
       <group ref={modelRef} name={roleName}>
         <group ref={meshGroupRef}>
+          {isPracticing && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
           <primitive object={clone} />
         </group>
       </group>

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
+import { SpellEffect } from './SpellEffect';
 import { globalPlayerState } from './Character';
 
 interface ClericNPCProps {
@@ -28,6 +29,8 @@ export const ClericNPC = ({
   
   // React state for the dialog box (only triggers ONCE when approached)
   const [isInteracting, setIsInteracting] = useState(false);
+  const [isPracticing, setIsPracticing] = useState(false);
+  const activeSpell = useRef({ type: 'holy' as any, color: '#ffd700', duration: 3.0, scaleMultiplier: 1.0 });
   
   // 1. CLONING SYSTEM
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -64,7 +67,7 @@ export const ClericNPC = ({
   }, []);
 
   // 3. AI RAYCAST WANDERER BRAIN
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'ESCAPING' | 'INTERACTING'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'ESCAPING' | 'INTERACTING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   // Stuck Detection Variables (History Tracker)
@@ -72,6 +75,7 @@ export const ClericNPC = ({
   const historyTimer = useRef(0);
   const escapeTimer = useRef(0);
   const interactTimer = useRef(0);
+  const idleTimer = useRef(0);
 
   // Initialize with dynamic idle animation safely
   const currentAnim = useRef('');
@@ -113,6 +117,10 @@ export const ClericNPC = ({
       nextState = 'THINKING';
       if (isInteracting) setIsInteracting(false);
     }
+    
+    // Sync React State for SpellEffect
+    if (nextState === 'PRACTICING' && !isPracticing) setIsPracticing(true);
+    if (nextState !== 'PRACTICING' && isPracticing) setIsPracticing(false);
 
     // --- STUCK / PACING DETECTION SYSTEM (HISTORY TRACKER) ---
     if (stateRef.current === 'WALKING' || stateRef.current === 'ESCAPING') {
@@ -152,14 +160,36 @@ export const ClericNPC = ({
 
     // --- AI THINKING PHASE ---
     if (stateRef.current === 'THINKING') {
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 5.0 + Math.random() * 15.0; 
+      nextAnim = anims.idle;
+      if (!idleTimer.current) idleTimer.current = 0;
+      idleTimer.current += delta;
       
-      const testPos = new THREE.Vector3(
-        npcPos.x + Math.cos(angle) * dist,
-        100, // Cast from high up to find valid ground
-        npcPos.z + Math.sin(angle) * dist
-      );
+      if (idleTimer.current > (3.0 + Math.random() * 5.0)) {
+         if (Math.random() < 0.4) {
+            nextState = 'PRACTICING';
+            idleTimer.current = 0;
+            if (Math.random() < 0.1) {
+               activeSpell.current = { type: 'ultimate_holy', color: '#ffffff', duration: 6.0, scaleMultiplier: 3.0 };
+            } else {
+               const spells = [
+                  { type: 'holy', color: '#ffd700' },
+                  { type: 'water', color: '#00bfff' },
+                  { type: 'nature', color: '#77ff00' }
+               ];
+               const pick = spells[Math.floor(Math.random() * spells.length)];
+               activeSpell.current = { ...pick, duration: 3.0, scaleMultiplier: 1.0 };
+            }
+         } else {
+            const centerX = 101;
+            const centerZ = -76;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 10.0; // Stay within 10 units of center
+            
+            const testPos = new THREE.Vector3(
+               centerX + Math.cos(angle) * dist,
+               100,
+               centerZ + Math.sin(angle) * dist
+            );
 
       // 1. DOWNWARD RAYCAST (RAPIER)
       const ray = new RAPIER.Ray(testPos, downDir);
@@ -170,7 +200,26 @@ export const ClericNPC = ({
         targetPosRef.current = hitPoint;
         nextState = 'WALKING';
       }
-    } 
+      idleTimer.current = 0;
+         }
+      }
+    } else if (stateRef.current === 'PRACTICING') {
+         nextAnim = anims.spell || anims.wave || anims.idle;
+         if (!idleTimer.current) idleTimer.current = 0;
+         idleTimer.current += delta;
+         const targetVec = new THREE.Vector3(101, npcPos.y, -76);
+         const dirToTarget = new THREE.Vector3().subVectors(targetVec, npcPos);
+         if (dirToTarget.lengthSq() > 0.1) {
+            dirToTarget.normalize();
+            const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+            targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
+         }
+         if (idleTimer.current > activeSpell.current.duration) {
+            nextState = 'THINKING';
+            idleTimer.current = 0;
+         }
+    }
     
     // --- AI INTERACTING PHASE ---
     if (stateRef.current === 'INTERACTING') {
@@ -247,9 +296,9 @@ export const ClericNPC = ({
         // 3. TERRAIN SNAPPING (RAPIER)
         const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 2.0, npcPos.z);
         const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
-        const snapHit = world.castRay(snapRay, 4.0, true);
+        const snapHit = world.castRay(snapRay, 50.0, true);
         
-        if (snapHit && snapHit.timeOfImpact < 4.0) {
+        if (snapHit && snapHit.timeOfImpact < 50.0) {
           const hitY = snapRayOrigin.y - snapHit.timeOfImpact;
           npcPos.y = THREE.MathUtils.lerp(npcPos.y, hitY, 10 * delta);
         }
@@ -288,6 +337,7 @@ export const ClericNPC = ({
 
   return (
     <group ref={containerRef} scale={scale}>
+      {isPracticing && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
       <primitive ref={modelRef} object={clone} />
 
       {/* DIALOG BOX (Only renders when player is nearby and NPC is stopped) */}
