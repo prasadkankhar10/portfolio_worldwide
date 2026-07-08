@@ -125,10 +125,10 @@ export const Environment = () => {
     const down = new THREE.Vector3(0, -1, 0);
     const forestCenterX = -85;
     const forestCenterZ = -93;
-    const forestRadius = 40;
-    const denseSpacing = 3.0; // Tighter spacing for a thick forest
+    const forestRadius = 50; // Increased radius slightly to accommodate more trees
+    const denseSpacing = 2.5; // Even tighter spacing for an ultra-thick forest
 
-    for (let i = 0; i < 300; i++) { // Try 300 times to populate the area
+    for (let i = 0; i < 1500; i++) { // Try 1500 times to densely populate the area
       const angle = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random()) * forestRadius;
       const x = forestCenterX + Math.cos(angle) * r;
@@ -137,8 +137,8 @@ export const Environment = () => {
       raycaster.set(new THREE.Vector3(x, 150, z), down);
       const intersects = raycaster.intersectObject(clonedScene, true);
       
-      // Filter out hits that are too low (water) or hitting invisible boxes
-      const validHit = intersects.find(hit => hit.object.visible && hit.point.y > 0.5 && !hit.object.name.includes('spawn'));
+      // Filter out hits that are too low (water) or hitting invisible boxes, AND make sure it's not above y=3
+      const validHit = intersects.find(hit => hit.object.visible && hit.point.y > 0.5 && hit.point.y <= 3.0 && !hit.object.name.includes('spawn'));
       
       if (validHit) {
         const position = validHit.point.clone();
