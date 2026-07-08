@@ -120,57 +120,6 @@ export const Environment = () => {
       }
     });
 
-    // --- PROCEDURAL DENSE FOREST AT x=-85, z=-93 ---
-    const raycaster = new THREE.Raycaster();
-    const down = new THREE.Vector3(0, -1, 0);
-    const forestCenterX = -85;
-    const forestCenterZ = -93;
-    const forestRadius = 50; // Increased radius slightly to accommodate more trees
-    const denseSpacing = 2.5; // Even tighter spacing for an ultra-thick forest
-
-    for (let i = 0; i < 1500; i++) { // Try 1500 times to densely populate the area
-      const angle = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random()) * forestRadius;
-      const x = forestCenterX + Math.cos(angle) * r;
-      const z = forestCenterZ + Math.sin(angle) * r;
-
-      raycaster.set(new THREE.Vector3(x, 150, z), down);
-      const intersects = raycaster.intersectObject(clonedScene, true);
-      
-      // Filter out hits that are too low (water) or hitting invisible boxes, AND make sure it's not above y=3
-      const validHit = intersects.find(hit => hit.object.visible && hit.point.y > 0.5 && hit.point.y <= 3.0 && !hit.object.name.includes('spawn'));
-      
-      if (validHit) {
-        const position = validHit.point.clone();
-        
-        let isTooClose = false;
-        // Only check against nearby trees to speed it up, or just check all (it's fast enough)
-        for (const existingPos of acceptedPositions) {
-          if (position.distanceTo(existingPos) < denseSpacing) {
-            isTooClose = true;
-            break;
-          }
-        }
-
-        if (!isTooClose) {
-          acceptedPositions.push(position.clone());
-
-          const rotation = new THREE.Quaternion();
-          const randomRotation = Math.random() * Math.PI * 2;
-          rotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), randomRotation);
-
-          const scale = new THREE.Vector3();
-          const randomScale = 0.8 + Math.random() * 0.6; // Slightly more varied sizes for natural look
-          scale.set(randomScale, randomScale, randomScale);
-          
-          const spawnMatrix = new THREE.Matrix4();
-          spawnMatrix.compose(position, rotation, scale);
-          
-          matrices.push(spawnMatrix);
-        }
-      }
-    }
-
     return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound };
   }, [clonedScene, treeSpacing]);
 
