@@ -77,7 +77,10 @@ export const Environment = () => {
       }
 
       // Find the hidden cubes (handles Blender naming and typos)
-      if (name.includes('tree_swapn') || name.includes('tree_spawn') || name.includes('treespawn')) {
+      const isNormalTree = name.includes('tree_swapn') || name.includes('tree_spawn') || name.includes('treespawn');
+      const isDenseTree = name.includes('1treetree');
+      
+      if (isNormalTree || isDenseTree) {
         const position = new THREE.Vector3();
         const rotation = new THREE.Quaternion();
         const scale = new THREE.Vector3();
@@ -85,9 +88,12 @@ export const Environment = () => {
         child.matrixWorld.decompose(position, rotation, scale);
         
         // --- SPATIAL DISTANCE FILTER ---
+        // Dense trees have a much tighter spacing requirement to allow for thick forests
+        const requiredSpacing = isDenseTree ? 2.5 : treeSpacing;
+        
         let isTooClose = false;
         for (const existingPos of acceptedPositions) {
-          if (position.distanceTo(existingPos) < treeSpacing) {
+          if (position.distanceTo(existingPos) < requiredSpacing) {
             isTooClose = true;
             break;
           }
