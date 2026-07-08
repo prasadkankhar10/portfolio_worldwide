@@ -46,6 +46,11 @@ interface GameStore {
   setFarmPlots: (plots: THREE.Vector3[]) => void;
   depositPlots: THREE.Vector3[];
   setDepositPlots: (plots: THREE.Vector3[]) => void;
+  // Ritual Event
+  activeRitual: boolean;
+  setActiveRitual: (active: boolean) => void;
+  ritualState: 'idle' | 'gathering' | 'channeling' | 'climax';
+  setRitualState: (state: 'idle' | 'gathering' | 'channeling' | 'climax') => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -82,6 +87,11 @@ export const useGameStore = create<GameStore>((set) => ({
   setFarmPlots: (plots) => set({ farmPlots: plots }),
   depositPlots: [],
   setDepositPlots: (plots) => set({ depositPlots: plots }),
+  
+  activeRitual: false,
+  setActiveRitual: (active) => set({ activeRitual: active }),
+  ritualState: 'idle',
+  setRitualState: (state) => set({ ritualState: state }),
   
   virtualJoystick: { x: 0, y: 0 },
   setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),

@@ -28,6 +28,7 @@ import { VikingFemaleNPC } from './VikingFemaleNPC';
 import { VikingMaleNPC } from './VikingMaleNPC';
 import { WitchNPC } from './WitchNPC';
 import { WizardNPC } from './WizardNPC';
+import { RitualCenter } from './RitualCenter';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
 
@@ -93,6 +94,7 @@ export const Scene = () => {
         <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
         <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
         <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} />
+        <RitualCenter />
       </Physics>
 
       {/* Free Camera Mode */}

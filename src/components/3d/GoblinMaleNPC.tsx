@@ -89,7 +89,7 @@ export const GoblinMaleNPC = ({
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED' | 'ESCAPING' | 'WALKING_TO_WAYPOINT'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);

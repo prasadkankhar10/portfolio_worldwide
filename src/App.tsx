@@ -54,6 +54,17 @@ function App() {
         }
         toggleTracker();
       }
+      if (e.key.toLowerCase() === 'y') {
+        const store = useGameStore.getState();
+        if (!store.activeRitual) {
+          store.setActiveRitual(true);
+          store.setRitualState('gathering');
+        } else {
+          // Pressing Y again cancels it for testing
+          store.setActiveRitual(false);
+          store.setRitualState('idle');
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);

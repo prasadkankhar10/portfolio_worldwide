@@ -33,6 +33,9 @@ export const WitchNPC = ({
   const [isInteracting, setIsInteracting] = useState(false);
   const [isPracticing, setIsPracticing] = useState(false);
   const activeSpell = useRef({ type: 'nature' as any, color: '#38b000', duration: 3.0, scaleMultiplier: 1.0 });
+  
+  const activeRitual = useGameStore((state) => state.activeRitual);
+  const ritualState = useGameStore((state) => state.ritualState);
   const [hasShownDialog, setHasShownDialog] = useState(false);
   const startPosRef = useRef<THREE.Vector3 | null>(null);
   
@@ -93,7 +96,7 @@ export const WitchNPC = ({
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'INTERACTING' | 'SUMMONED'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'INTERACTING' | 'SUMMONED' | 'RITUAL' | 'ESCAPING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -183,6 +186,42 @@ export const WitchNPC = ({
          currentAnim.current = nextAnim;
        }
        return; // Skip all other logic while waiting to reset
+    }
+
+    // --- RITUAL OVERRIDE ---
+    if (activeRitual) {
+       nextState = 'RITUAL';
+       const ritualTarget = new THREE.Vector3(68.5, npcPos.y, -75);
+       const dirToTarget = new THREE.Vector3().subVectors(ritualTarget, npcPos);
+       
+       if (ritualState === 'gathering') {
+          if (dirToTarget.lengthSq() > 0.1) {
+             nextAnim = anims.walk || anims.run || anims.idle;
+             dirToTarget.normalize();
+             containerRef.current.position.add(dirToTarget.clone().multiplyScalar(3 * delta));
+             const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+          } else {
+             nextAnim = anims.idle;
+             // Turn to face center
+             const centerVec = new THREE.Vector3(72, npcPos.y, -77);
+             const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
+             const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+          }
+       } else if (ritualState === 'channeling' || ritualState === 'climax') {
+          nextAnim = anims.spell || anims.wave || anims.idle;
+          const centerVec = new THREE.Vector3(72, npcPos.y, -77);
+          const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
+          const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+       }
+    } else if (stateRef.current === 'RITUAL') {
+       // Ritual ended, go back to normal
+       nextState = 'THINKING';
     }
 
     // Normal wandering: immediately try to find a target!
@@ -343,7 +382,10 @@ export const WitchNPC = ({
     <group ref={containerRef} scale={0.58}>
       <group ref={modelRef} name={roleName}>
         <group ref={meshGroupRef}>
-          {isPracticing && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+          {isPracticing && !activeRitual && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+          {(activeRitual && (ritualState === 'channeling' || ritualState === 'climax')) && (
+            <SpellEffect color="#00ff00" duration={8.0} type="nature" scaleMultiplier={1.5} />
+          )}
           <primitive object={clone} />
         </group>
       </group>

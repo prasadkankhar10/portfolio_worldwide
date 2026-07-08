@@ -2,11 +2,12 @@ import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { SkeletonUtils } from 'three-stdlib';
+import * as SkeletonUtils from 'three-stdlib/utils/SkeletonUtils';
 import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { SpellEffect } from './SpellEffect';
 import { globalPlayerState } from './Character';
+import { useGameStore } from '../../store/useGameStore';
 
 interface ClericNPCProps {
   colorTint?: string;
@@ -31,6 +32,9 @@ export const ClericNPC = ({
   const [isInteracting, setIsInteracting] = useState(false);
   const [isPracticing, setIsPracticing] = useState(false);
   const activeSpell = useRef({ type: 'holy' as any, color: '#ffd700', duration: 3.0, scaleMultiplier: 1.0 });
+  
+  const activeRitual = useGameStore((state) => state.activeRitual);
+  const ritualState = useGameStore((state) => state.ritualState);
   
   // 1. CLONING SYSTEM
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -67,7 +71,7 @@ export const ClericNPC = ({
   }, []);
 
   // 3. AI RAYCAST WANDERER BRAIN
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'ESCAPING' | 'INTERACTING'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'INTERACTING' | 'SUMMONED' | 'RITUAL' | 'ESCAPING'>('THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   // Stuck Detection Variables (History Tracker)
@@ -156,6 +160,42 @@ export const ClericNPC = ({
       }
     } else {
       historyPositions.current = []; // Reset history if thinking
+    }
+
+    // --- RITUAL OVERRIDE ---
+    if (activeRitual) {
+       nextState = 'RITUAL';
+       const ritualTarget = new THREE.Vector3(75.5, npcPos.y, -75);
+       const dirToTarget = new THREE.Vector3().subVectors(ritualTarget, npcPos);
+       
+       if (ritualState === 'gathering') {
+          if (dirToTarget.lengthSq() > 0.1) {
+             nextAnim = anims.walk || anims.run || anims.idle;
+             dirToTarget.normalize();
+             containerRef.current.position.add(dirToTarget.clone().multiplyScalar(3 * delta));
+             const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
+             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+          } else {
+             nextAnim = anims.idle;
+             // Turn to face center
+             const centerVec = new THREE.Vector3(72, npcPos.y, -77);
+             const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
+             const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+          }
+       } else if (ritualState === 'channeling' || ritualState === 'climax') {
+          nextAnim = anims.spell || anims.wave || anims.idle;
+          const centerVec = new THREE.Vector3(72, npcPos.y, -77);
+          const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
+          const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+       }
+    } else if (stateRef.current === 'RITUAL') {
+       // Ritual ended, go back to normal
+       nextState = 'THINKING';
     }
 
     // --- AI THINKING PHASE ---
@@ -337,7 +377,10 @@ export const ClericNPC = ({
 
   return (
     <group ref={containerRef} scale={scale}>
-      {isPracticing && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+      {isPracticing && !activeRitual && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+      {(activeRitual && (ritualState === 'channeling' || ritualState === 'climax')) && (
+        <SpellEffect color="#ffd700" duration={8.0} type="holy" scaleMultiplier={1.5} />
+      )}
       <primitive ref={modelRef} object={clone} />
 
       {/* DIALOG BOX (Only renders when player is nearby and NPC is stopped) */}
