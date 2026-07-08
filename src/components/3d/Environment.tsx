@@ -88,8 +88,8 @@ export const Environment = () => {
         child.matrixWorld.decompose(position, rotation, scale);
         
         // --- SPATIAL DISTANCE FILTER ---
-        // Dense trees have a much tighter spacing requirement to allow for thick forests
-        const requiredSpacing = isDenseTree ? 2.5 : treeSpacing;
+        // Dense trees have an ultra-tight spacing requirement to allow for extremely thick forests
+        const requiredSpacing = isDenseTree ? 0.1 : treeSpacing;
         
         let isTooClose = false;
         for (const existingPos of acceptedPositions) {
