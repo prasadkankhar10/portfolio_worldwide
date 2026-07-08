@@ -32,7 +32,7 @@ export const WitchNPC = ({
   
   const [isInteracting, setIsInteracting] = useState(false);
   const [isPracticing, setIsPracticing] = useState(false);
-  const activeSpell = useRef({ type: 'nature' as any, color: '#38b000', duration: 3.0, scaleMultiplier: 1.0 });
+  const [activeSpell, setActiveSpell] = useState({ type: 'nature' as any, color: '#38b000', duration: 3.0, scaleMultiplier: 1.0 });
   
   const activeRitual = useGameStore((state) => state.activeRitual);
   const ritualState = useGameStore((state) => state.ritualState);
@@ -42,6 +42,7 @@ export const WitchNPC = ({
   const setActiveDialog = useGameStore(state => state.setActiveDialog);
   const activeDialogNpcId = useGameStore(state => state.activeDialogNpcId);
   const setActiveOutlineMesh = useGameStore(state => state.setActiveOutlineMesh);
+  // eslint-disable-next-line react-hooks/purity
   const npcId = useMemo(() => Math.random().toString(), []);
 
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -236,7 +237,7 @@ export const WitchNPC = ({
               nextState = 'PRACTICING';
               idleTimer.current = 0;
               if (Math.random() < 0.1) {
-                 activeSpell.current = { type: 'ultimate_dark', color: '#00ff00', duration: 6.0, scaleMultiplier: 3.0 };
+                 setActiveSpell({ type: 'ultimate_dark', color: '#00ff00', duration: 6.0, scaleMultiplier: 3.0 });
               } else {
                  const spells = [
                     { type: 'nature', color: '#38b000' },
@@ -244,7 +245,7 @@ export const WitchNPC = ({
                     { type: 'fire', color: '#ff3300' }
                  ];
                  const pick = spells[Math.floor(Math.random() * spells.length)];
-                 activeSpell.current = { ...pick, duration: 3.0, scaleMultiplier: 1.0 };
+                 setActiveSpell({ ...pick, duration: 3.0, scaleMultiplier: 1.0 });
               }
            } else {
             const centerX = 101;
@@ -277,7 +278,7 @@ export const WitchNPC = ({
             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
             containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
          }
-         if (idleTimer.current > activeSpell.current.duration) {
+         if (idleTimer.current > activeSpell.duration) {
             nextState = 'THINKING';
             idleTimer.current = 0;
          }
@@ -373,16 +374,17 @@ export const WitchNPC = ({
   });
 
   const greetings = useMemo(() => ["The magical winds are strong today.", "I sense a great destiny in you.", "Want to see a magic trick?", "Hello!"], []);
-  const currentGreeting = useRef(greetings[0]);
-  useEffect(() => {
-    if (isInteracting) currentGreeting.current = greetings[Math.floor(Math.random() * greetings.length)];
+  const currentGreeting = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    if (isInteracting) return greetings[Math.floor(Math.random() * greetings.length)];
+    return greetings[0];
   }, [isInteracting, greetings]);
 
   return (
     <group ref={containerRef} scale={0.58}>
       <group ref={modelRef} name={roleName}>
         <group ref={meshGroupRef}>
-          {isPracticing && !activeRitual && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+          {isPracticing && !activeRitual && <SpellEffect color={activeSpell.color} duration={activeSpell.duration} type={activeSpell.type} scaleMultiplier={activeSpell.scaleMultiplier} />}
           {(activeRitual && (ritualState === 'channeling' || ritualState === 'climax')) && (
             <SpellEffect color="#00ff00" duration={8.0} type="nature" scaleMultiplier={1.5} />
           )}
@@ -402,7 +404,7 @@ export const WitchNPC = ({
         <Html position={[0, 3.5, 0]} center zIndexRange={[100, 0]}>
           <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border-b-4 border-emerald-500 w-64 transform transition-all animate-in zoom-in duration-200 pointer-events-none">
             <p className="text-emerald-600 font-black text-sm mb-1 uppercase tracking-wider">{roleName}</p>
-            <p className="text-slate-700 text-sm font-medium leading-relaxed">"{currentGreeting.current}"</p>
+            <p className="text-slate-700 text-sm font-medium leading-relaxed">"{currentGreeting}"</p>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-emerald-500 transform rotate-45"></div>
           </div>
         </Html>

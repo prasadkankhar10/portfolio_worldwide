@@ -2,7 +2,7 @@ import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import * as SkeletonUtils from 'three-stdlib/utils/SkeletonUtils';
+import { SkeletonUtils } from 'three-stdlib';
 import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { SpellEffect } from './SpellEffect';
@@ -31,13 +31,15 @@ export const ClericNPC = ({
   // React state for the dialog box (only triggers ONCE when approached)
   const [isInteracting, setIsInteracting] = useState(false);
   const [isPracticing, setIsPracticing] = useState(false);
-  const activeSpell = useRef({ type: 'holy' as any, color: '#ffd700', duration: 3.0, scaleMultiplier: 1.0 });
+  const [activeSpell, setActiveSpell] = useState({ type: 'holy' as any, color: '#ffd700', duration: 3.0, scaleMultiplier: 1.0 });
   
   const activeRitual = useGameStore((state) => state.activeRitual);
   const ritualState = useGameStore((state) => state.ritualState);
   
   // 1. CLONING SYSTEM
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useMemo(() => {
     if (colorTint) {
       clone.traverse((node: any) => {
@@ -208,17 +210,17 @@ export const ClericNPC = ({
          if (Math.random() < 0.4) {
             nextState = 'PRACTICING';
             idleTimer.current = 0;
-            if (Math.random() < 0.1) {
-               activeSpell.current = { type: 'ultimate_holy', color: '#ffffff', duration: 6.0, scaleMultiplier: 3.0 };
-            } else {
-               const spells = [
-                  { type: 'holy', color: '#ffd700' },
-                  { type: 'water', color: '#00bfff' },
-                  { type: 'nature', color: '#77ff00' }
-               ];
-               const pick = spells[Math.floor(Math.random() * spells.length)];
-               activeSpell.current = { ...pick, duration: 3.0, scaleMultiplier: 1.0 };
-            }
+             if (Math.random() < 0.1) {
+                setActiveSpell({ type: 'ultimate_holy', color: '#ffffff', duration: 6.0, scaleMultiplier: 3.0 });
+             } else {
+                const spells = [
+                   { type: 'holy', color: '#ffd700' },
+                   { type: 'water', color: '#00bfff' },
+                   { type: 'nature', color: '#77ff00' }
+                ];
+                const pick = spells[Math.floor(Math.random() * spells.length)];
+                setActiveSpell({ ...pick, duration: 3.0, scaleMultiplier: 1.0 });
+             }
          } else {
             const centerX = 101;
             const centerZ = -76;
@@ -368,16 +370,15 @@ export const ClericNPC = ({
   ], []);
 
   // Pick a random greeting when interacting starts
-  const currentGreeting = useRef(greetings[0]);
-  useEffect(() => {
-    if (isInteracting) {
-      currentGreeting.current = greetings[Math.floor(Math.random() * greetings.length)];
-    }
+  const currentGreeting = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    if (isInteracting) return greetings[Math.floor(Math.random() * greetings.length)];
+    return greetings[0];
   }, [isInteracting, greetings]);
 
   return (
     <group ref={containerRef} scale={scale}>
-      {isPracticing && !activeRitual && <SpellEffect color={activeSpell.current.color} duration={activeSpell.current.duration} type={activeSpell.current.type} scaleMultiplier={activeSpell.current.scaleMultiplier} />}
+      {isPracticing && !activeRitual && <SpellEffect color={activeSpell.color} duration={activeSpell.duration} type={activeSpell.type} scaleMultiplier={activeSpell.scaleMultiplier} />}
       {(activeRitual && (ritualState === 'channeling' || ritualState === 'climax')) && (
         <SpellEffect color="#ffd700" duration={8.0} type="holy" scaleMultiplier={1.5} />
       )}
@@ -390,7 +391,7 @@ export const ClericNPC = ({
           <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border-b-4 border-amber-500 w-64 transform transition-all animate-in zoom-in duration-200 pointer-events-none">
             <p className="text-amber-600 font-black text-sm mb-1 uppercase tracking-wider">{roleName}</p>
             <p className="text-slate-700 text-sm font-medium leading-relaxed">
-              "{currentGreeting.current}"
+              "{currentGreeting}"
             </p>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-amber-500 transform rotate-45"></div>
           </div>
