@@ -115,24 +115,6 @@ export const GoblinMaleNPC = ({
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
-  const failedTargetCount = useRef(0);
-
-  const currentAnim = useRef('');
-  const targetQuaternion = useRef(new THREE.Quaternion());
-  const downDir = useMemo(() => new THREE.Vector3(0, -1, 0), []);
-
-  useEffect(() => {
-    if (anims.idle && !currentAnim.current) {
-      currentAnim.current = anims.idle;
-      actions[anims.idle]?.reset().fadeIn(0.2).play();
-    }
-  }, [anims.idle, actions]);
-
-  const startupTimer = useRef(0);
-
-  useFrame((rootState, delta) => {
-    if (!containerRef.current || !currentAnim.current) return;
-    if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
     let nextAnim = currentAnim.current;
@@ -155,7 +137,7 @@ export const GoblinMaleNPC = ({
     }
     
     if (stateRef.current === 'THINKING') {
-      nextAnim = anims.idle; // Always default to idle when thinking
+      nextAnim = anims.idle;
       idleTimer.current += delta;
     } else {
       idleTimer.current = 0;
@@ -262,7 +244,7 @@ export const GoblinMaleNPC = ({
         // Count consecutive failures to detect if we are trapped
         failedTargetCount.current += 1;
         if (failedTargetCount.current > 4) {
-           nextState = 'THINKING'; // Fallback to thinking instead of escaping
+           nextState = 'THINKING';
         }
       } else if (distToTarget < 1.0) {
         nextState = 'THINKING';
