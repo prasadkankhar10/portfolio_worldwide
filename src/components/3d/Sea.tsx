@@ -7,7 +7,7 @@ export const Sea: React.FC = () => {
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   
   // Load the model and extract the 'sea' node
-  const { nodes } = useGLTF('./models/island_model.glb') as any;
+  const { nodes } = useGLTF('./models/island1_model.glb') as any;
   const seaNode = nodes['sea']; 
   
   // Load the normal map for realistic ripples
@@ -75,5 +75,5 @@ export const Sea: React.FC = () => {
   );
 };
 
-useGLTF.preload('./models/island_model.glb');
+useGLTF.preload('./models/island1_model.glb');
 useTexture.preload('./textures/water_normal.jpg');
