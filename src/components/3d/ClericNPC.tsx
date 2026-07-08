@@ -112,6 +112,14 @@ export const ClericNPC = ({
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
+    // --- SAFETY TELEPORT (Fall protection) ---
+    if (npcPos.y < 1.0) {
+      npcPos.set(startPosition?.x ?? 101, 3.2, startPosition?.z ?? -76);
+      nextState = 'THINKING';
+      targetPosRef.current = null;
+      historyPositions.current = [];
+    }
+
     // --- PROXIMITY SENSOR (PLAYER INTERACTION) ---
     const distToPlayer = npcPos.distanceTo(globalPlayerState.position);
     if (distToPlayer < 3.5) {
