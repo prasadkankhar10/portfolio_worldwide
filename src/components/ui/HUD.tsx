@@ -5,6 +5,7 @@ import { Leva } from 'leva';
 export const HUD = () => {
   const gameState = useGameStore((state) => state.gameState);
   const setGameState = useGameStore((state) => state.setGameState);
+  const isMobile = useGameStore((state) => state.isMobile);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
@@ -42,9 +43,9 @@ export const HUD = () => {
   if (gameState !== 'playing') return null;
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col justify-between" style={{ pointerEvents: isLocked ? 'none' : 'auto' }}>
+    <div className="absolute inset-0 z-30 flex flex-col justify-between" style={{ pointerEvents: (isLocked || isMobile) ? 'none' : 'auto' }}>
       
-      {!isLocked && !debugMenuOpen && (
+      {!isLocked && !debugMenuOpen && !isMobile && (
         <div 
           className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center cursor-pointer z-50"
           onClick={requestLock}
@@ -56,7 +57,7 @@ export const HUD = () => {
         </div>
       )}
       
-      {!isLocked && debugMenuOpen && (
+      {!isLocked && debugMenuOpen && !isMobile && (
         <div 
           className="absolute inset-0 cursor-pointer z-0"
           onClick={requestLock}
@@ -67,33 +68,35 @@ export const HUD = () => {
 
       {/* Removed Crosshair as per user request */}
 
-      <div className="p-6 flex flex-col gap-2">
-        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-            <span className="text-amber-500 font-bold">W A S D</span> Move
-          </span>
+      {!isMobile && (
+        <div className="p-6 flex flex-col gap-2">
+          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+              <span className="text-amber-500 font-bold">W A S D</span> Move
+            </span>
+          </div>
+          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+              <span className="text-amber-500 font-bold">Shift</span> Run
+            </span>
+          </div>
+          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+              <span className="text-amber-500 font-bold">Scroll</span> Zoom
+            </span>
+          </div>
+          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+              <span className="text-amber-500 font-bold">M</span> Map / Journal
+            </span>
+          </div>
+          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
+            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
+              <span className="text-amber-500 font-bold">` (Backtick)</span> Debug Menu
+            </span>
+          </div>
         </div>
-        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-            <span className="text-amber-500 font-bold">Shift</span> Run
-          </span>
-        </div>
-        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-            <span className="text-amber-500 font-bold">Scroll</span> Zoom
-          </span>
-        </div>
-        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-            <span className="text-amber-500 font-bold">M</span> Map / Journal
-          </span>
-        </div>
-        <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-          <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-            <span className="text-amber-500 font-bold">` (Backtick)</span> Debug Menu
-          </span>
-        </div>
-      </div>
+      )}
 
       <div className="absolute top-20 right-6 pointer-events-auto z-50" style={{ display: debugMenuOpen ? 'block' : 'none' }}>
         {/* Leva handles its own styling but we wrap it to control positioning and visibility manually just in case */}
