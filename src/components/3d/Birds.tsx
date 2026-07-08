@@ -49,10 +49,10 @@ export const Birds = ({ count = 50 }) => {
   const birds = useMemo(() => {
     const temp = [];
     for (let i = 0; i < count; i++) {
-      const rand = Math.random();
-      let colorStr = '#ffffff'; 
-      if (rand < 0.33) colorStr = '#1a1a1a'; 
-      else if (rand < 0.66) colorStr = '#7b858f'; 
+      const flockId = Math.floor(Math.random() * 3); // Assign to one of 3 flocks
+      let colorStr = '#ffffff'; // Flock 0: Seagulls (White)
+      if (flockId === 1) colorStr = '#1a1a1a'; // Flock 1: Crows (Black)
+      else if (flockId === 2) colorStr = '#7b858f'; // Flock 2: Pigeons (Grey)
       
       temp.push({
         position: new THREE.Vector3(
@@ -73,7 +73,7 @@ export const Birds = ({ count = 50 }) => {
         flapPhase: Math.random() * Math.PI * 2,
         yOffset: Math.random() * Math.PI * 2, 
         color: new THREE.Color(colorStr),
-        flockId: Math.floor(Math.random() * 3), // Assign to one of 3 flocks
+        flockId: flockId,
         // Burst & Glide State
         isGliding: false,
         burstTimer: Math.random() * 3.0,
