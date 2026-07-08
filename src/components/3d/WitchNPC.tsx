@@ -323,7 +323,7 @@ export const WitchNPC = ({
       const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.0, true);
       
       // Determine if a hit is a steep wall (normal.y < 0.7). Hills/stairs (>= 0.7) are ignored!
-      const isWall = (hit) => hit && hit.timeOfImpact < 1.0 && hit.normal && hit.normal.y < 0.7;
+      const isWall = (hit: any) => hit && hit.timeOfImpact < 1.0 && hit.normal && hit.normal.y < 0.7;
       const isBlocked = isWall(fHit) || isWall(lHit) || isWall(rHit);
       
       if (isBlocked && stateRef.current !== 'SUMMONED') {

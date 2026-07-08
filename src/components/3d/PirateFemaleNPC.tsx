@@ -243,7 +243,7 @@ export const PirateFemaleNPC = ({
         if (!isWall(bestHit)) bestHit = lHit;
         if (!isWall(bestHit)) bestHit = rHit;
         
-        const hitNormal = new THREE.Vector3(bestHit.normal.x, 0, bestHit.normal.z).normalize();
+        const hitNormal = new THREE.Vector3(bestHit!.normal.x, 0, bestHit!.normal.z).normalize();
         
         // Find tangents to walk along the wall
         const tangent1 = new THREE.Vector3(hitNormal.z, 0, -hitNormal.x);
@@ -257,7 +257,7 @@ export const PirateFemaleNPC = ({
         }
         
         // Push away from the wall to prevent clipping
-        const pushFactor = Math.max(0.5, 2.0 - bestHit.timeOfImpact);
+        const pushFactor = Math.max(0.5, 2.0 - bestHit!.timeOfImpact);
         moveDir.addScaledVector(hitNormal, pushFactor).normalize();
       }
       
@@ -272,7 +272,6 @@ export const PirateFemaleNPC = ({
            if (stateRef.current === 'WALKING_TO_PORT') nextState = 'WORKING_PORT';
            else if (stateRef.current === 'WALKING_TO_STORAGE') nextState = 'WORKING_STORAGE';
            else if (stateRef.current === 'WALKING_TO_HOUSE') nextState = 'RESTING_SITTING';
-           else if (stateRef.current === 'WALKING_TO_WAYPOINT') nextState = 'WORKING_WAYPOINT';
            else if (stateRef.current === 'WALKING_TO_WAYPOINT') nextState = 'WORKING_WAYPOINT';
            targetPosRef.current = null;
            workTimer.current = 0;

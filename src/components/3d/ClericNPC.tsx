@@ -69,6 +69,7 @@ export const ClericNPC = ({
       walk: 'Walk',
       run: 'Run',
       wave: 'Spell1', // We use Spell1 as a fun greeting wave for the cleric
+      spell: 'Spell1', // Use it for casting too
     };
   }, []);
 
