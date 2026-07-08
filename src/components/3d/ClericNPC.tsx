@@ -257,7 +257,7 @@ export const ClericNPC = ({
             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
             containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
          }
-         if (idleTimer.current > activeSpell.current.duration) {
+         if (idleTimer.current > activeSpell.duration) {
             nextState = 'THINKING';
             idleTimer.current = 0;
          }
