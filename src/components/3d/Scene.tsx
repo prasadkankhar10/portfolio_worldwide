@@ -78,8 +78,10 @@ export const Scene = () => {
         <CowboyMaleNPC startPosition={new THREE.Vector3(82, 30, 62)} dialogId="cowboy_events_1" maxWanderRadius={5} />
         <CowboyMaleNPC startPosition={new THREE.Vector3(86, 30, 54)} dialogId="cowboy_events_1" maxWanderRadius={5} />
         <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" maxWanderRadius={5} />
-        <GoblinFemaleNPC startPosition={new THREE.Vector3(-5, 30, -25)} dialogId="goblin_game_1" maxWanderRadius={5} />
-        <GoblinMaleNPC startPosition={new THREE.Vector3(0, 30, -30)} dialogId="goblin_game_1" maxWanderRadius={5} />
+        <GoblinFemaleNPC startPosition={new THREE.Vector3(-85, 30, -93)} dialogId="goblin_forest_1" maxWanderRadius={4} />
+        <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
+        <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
+        <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
         <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(30, 30, 10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-30, 30, -10)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightMaleNPC startPosition={new THREE.Vector3(10, 30, 30)} maxWanderRadius={5} />

@@ -115,41 +115,38 @@ export const GoblinFemaleNPC = ({
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
+  const failedTargetCount = useRef(0);
+
+  const currentAnim = useRef('');
+  const targetQuaternion = useRef(new THREE.Quaternion());
+  const downDir = useMemo(() => new THREE.Vector3(0, -1, 0), []);
+
+  useEffect(() => {
+    if (anims.idle && !currentAnim.current) {
+      currentAnim.current = anims.idle;
+      actions[anims.idle]?.reset().fadeIn(0.2).play();
+    }
+  }, [anims.idle, actions]);
+
+  const startupTimer = useRef(0);
+
+  useFrame((rootState, delta) => {
+    if (!containerRef.current || !currentAnim.current) return;
+    if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
     
-    // --- SKITTISH BEHAVIOR ---
+    // --- INTERACTION BEHAVIOR (Friendly) ---
     const distToPlayer = npcPos.distanceTo(globalPlayerState.position);
     
-    if (distToPlayer < 6.0 && stateRef.current !== 'ESCAPING') {
-      nextState = 'ESCAPING';
-      escapeTimer.current = 0;
-      targetPosRef.current = null; // Clear path
-      if (isInteracting) setIsInteracting(false);
-      
-      const dirFromPlayer = new THREE.Vector3().subVectors(npcPos, globalPlayerState.position);
-      dirFromPlayer.y = 0;
-      if (dirFromPlayer.lengthSq() > 0.001) dirFromPlayer.normalize();
-      
-      const testPos = new THREE.Vector3(
-        npcPos.x + dirFromPlayer.x * 15.0,
-        100,
-        npcPos.z + dirFromPlayer.z * 15.0
-      );
-      
-      const ray = new RAPIER.Ray(testPos, downDir);
-      const hit = world.castRay(ray, 200, true);
-      if (hit) {
-        targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
-      }
-    } else if (distToPlayer < 3.5 && stateRef.current !== 'ESCAPING') {
+    if (distToPlayer < 3.5) {
       if (stateRef.current !== 'INTERACTING') {
         nextState = 'INTERACTING';
         interactTimer.current = 0;
-        targetPosRef.current = null; // Fix: Clear previous walking target so they don't get stuck!
+        targetPosRef.current = null;
         if (!isInteracting) setIsInteracting(true);
       }
     } else if (stateRef.current === 'INTERACTING') {
@@ -158,7 +155,7 @@ export const GoblinFemaleNPC = ({
     }
     
     if (stateRef.current === 'THINKING') {
-      nextAnim = anims.idle; // Fix: Always default to idle when thinking
+      nextAnim = anims.idle; // Always default to idle when thinking
       idleTimer.current += delta;
     } else {
       idleTimer.current = 0;
@@ -166,26 +163,6 @@ export const GoblinFemaleNPC = ({
 
     
 
-    // --- OFF-SCREEN RESET ESCAPE PLAN ---
-    if (stateRef.current === 'ESCAPING') {
-       nextAnim = anims.idle;
-       
-       // Check if camera is looking at the NPC
-       const frustum = new THREE.Frustum();
-       const projScreenMatrix = new THREE.Matrix4();
-       projScreenMatrix.multiplyMatrices(rootState.camera.projectionMatrix, rootState.camera.matrixWorldInverse);
-       frustum.setFromProjectionMatrix(projScreenMatrix);
-       
-       if (!frustum.containsPoint(npcPos)) {
-          // Player is not looking! Safely reset!
-          if (startPosRef.current) {
-             npcPos.copy(startPosRef.current);
-          }
-          nextState = 'THINKING';
-          failedTargetCount.current = 0;
-       }
-       
-   
     // SEA / FALL CATCHER: If they wander into the water or fall off the map
     if (npcPos.y < 0.8) {
       if (startPosRef.current) {
@@ -193,15 +170,6 @@ export const GoblinFemaleNPC = ({
       }
       nextState = 'THINKING';
       targetPosRef.current = null;
-    }
-
-    if (stateRef.current !== nextState) stateRef.current = nextState;
-       if (currentAnim.current !== nextAnim && actions[nextAnim]) {
-         actions[currentAnim.current]?.fadeOut(0.2);
-         actions[nextAnim]?.reset().fadeIn(0.2).play();
-         currentAnim.current = nextAnim;
-       }
-       return; // Skip all other logic while waiting to reset
     }
 
     // Normal wandering: immediately try to find a target!
@@ -294,7 +262,7 @@ export const GoblinFemaleNPC = ({
         // Count consecutive failures to detect if we are trapped
         failedTargetCount.current += 1;
         if (failedTargetCount.current > 4) {
-           nextState = 'ESCAPING';
+           nextState = 'THINKING'; // Fallback to thinking instead of escaping
         }
       } else if (distToTarget < 1.0) {
         nextState = 'THINKING';
@@ -332,7 +300,7 @@ export const GoblinFemaleNPC = ({
     }
   });
 
-  const greetings = useMemo(() => ["Eek! Stay away!", "Don't hurt me!", "I didn't steal anything!"], []);
+  const greetings = useMemo(() => ["Hello friend!", "Welcome to our forest!", "We used to be scared, but now we like it here.", "Did you see the new trees we planted?"], []);
   const currentGreeting = useRef(greetings[0]);
   useEffect(() => {
     if (isInteracting) currentGreeting.current = greetings[Math.floor(Math.random() * greetings.length)];
