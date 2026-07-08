@@ -73,6 +73,7 @@ export const Birds = ({ count = 50 }) => {
         flapPhase: Math.random() * Math.PI * 2,
         yOffset: Math.random() * Math.PI * 2, 
         color: new THREE.Color(colorStr),
+        flockId: Math.floor(Math.random() * 3), // Assign to one of 3 flocks
         // Burst & Glide State
         isGliding: false,
         burstTimer: Math.random() * 3.0,
@@ -149,10 +150,36 @@ export const Birds = ({ count = 50 }) => {
     return { bodyGeo, tailGeo, leftWingGeo, rightWingGeo };
   }, []);
 
+  // Shared wandering targets for distinct flocks
+  const flocks = useMemo(() => {
+    return [
+      { target: new THREE.Vector3(0, 100, 0), velocity: new THREE.Vector3(1, 0, 0).normalize() },
+      { target: new THREE.Vector3(100, 80, 100), velocity: new THREE.Vector3(0, 0, 1).normalize() },
+      { target: new THREE.Vector3(-100, 120, -100), velocity: new THREE.Vector3(-1, 0, -1).normalize() },
+    ];
+  }, []);
+
   useFrame((state, delta) => {
     if (!bodyRef.current || !tailRef.current || !leftWingRef.current || !rightWingRef.current) return;
     
     const time = state.clock.elapsedTime;
+    
+    // Update flock leaders
+    flocks.forEach(flock => {
+       if (Math.random() < 0.02) {
+          flock.velocity.add(new THREE.Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*0.5, (Math.random()-0.5)*2)).normalize();
+       }
+       flock.target.addScaledVector(flock.velocity, 0.4);
+       
+       // Soft boundary constraints
+       if (flock.target.x > 300) flock.velocity.x -= 0.05;
+       if (flock.target.x < -300) flock.velocity.x += 0.05;
+       if (flock.target.z > 300) flock.velocity.z -= 0.05;
+       if (flock.target.z < -300) flock.velocity.z += 0.05;
+       if (flock.target.y > 150) flock.velocity.y -= 0.05;
+       if (flock.target.y < 50) flock.velocity.y += 0.05;
+       flock.velocity.normalize();
+    });
     
     birds.forEach((bird, i) => {
       // --- STATE MACHINE (Burst & Glide) ---
@@ -168,15 +195,8 @@ export const Birds = ({ count = 50 }) => {
       if (bird.velocity.y < -0.3) bird.isGliding = false;
       
       // --- WAYPOINT & BOIDS ---
-      if (bird.position.distanceTo(bird.target) < 30) {
-        bird.target.set(
-          (Math.random() - 0.5) * 600,
-          40 + Math.random() * 100,
-          (Math.random() - 0.5) * 600
-        );
-      }
-      
-      _dir.subVectors(bird.target, bird.position).normalize();
+      // Steer towards shared flock target
+      _dir.subVectors(flocks[bird.flockId].target, bird.position).normalize().multiplyScalar(0.4);
       
       let numFlockmates = 0;
       _separation.set(0,0,0);
@@ -184,7 +204,7 @@ export const Birds = ({ count = 50 }) => {
       _cohesion.set(0,0,0);
       
       birds.forEach((other, j) => {
-        if (i !== j) {
+        if (i !== j && bird.flockId === other.flockId) { // Only flock with own group
           const dist = bird.position.distanceTo(other.position);
           if (dist < 40) {
             _alignment.add(other.velocity);
@@ -201,9 +221,9 @@ export const Birds = ({ count = 50 }) => {
       if (numFlockmates > 0) {
         _alignment.divideScalar(numFlockmates).normalize();
         _cohesion.divideScalar(numFlockmates).sub(bird.position).normalize();
-        _dir.addScaledVector(_alignment, 0.6);
-        _dir.addScaledVector(_cohesion, 0.4);
-        _dir.addScaledVector(_separation, 1.8); 
+        _dir.addScaledVector(_alignment, 1.2); // Strong alignment for tight groups
+        _dir.addScaledVector(_cohesion, 1.0);  // Strong cohesion
+        _dir.addScaledVector(_separation, 1.5); // Push away gently if too close
       }
       
       // --- PLAYER SCATTERING ---
