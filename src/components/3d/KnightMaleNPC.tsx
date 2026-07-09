@@ -2,6 +2,7 @@ import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
+import { SpellEffect } from './SpellEffect';
 import { SkeletonUtils } from 'three-stdlib';
 import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
@@ -29,6 +30,8 @@ export const KnightMaleNPC = ({
   sparringRole = "NONE"}: KnightMaleNPCProps) => {
   const { scene, animations } = useGLTF('./models/NPCs/Knight_Male.glb');
   const containerRef = useRef<THREE.Group>(null);
+  const spellEffectGroupRef = useRef<THREE.Group>(null);
+  const swordEffectGroupRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
   const meshGroupRef = useRef<THREE.Group>(null);
   const { world } = useRapier(); 
@@ -162,42 +165,72 @@ export const KnightMaleNPC = ({
          
          // Rotate to face the center of the sparring area
          const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
-         const dirToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
-         dirToCenter.y = 0;
-         if (dirToCenter.lengthSq() > 0.001) {
+         const vecToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
+         vecToCenter.y = 0;
+         
+         const distToCenter = vecToCenter.length();
+         const dirToCenter = vecToCenter.clone();
+         if (distToCenter > 0.001) {
            dirToCenter.normalize();
            const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
            targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
            containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
          }
          
-         // 4-stage Sword + Magic Duel cycle
-         const cycle = idleTimer.current % 4.0;
+         // 4-stage Sword + Magic Duel cycle (8 seconds total, 2 seconds per stage)
+         const cycle = idleTimer.current % 8.0;
+         let targetDist = 2.0; // default distance from center
          
          if (sparringRole === 'ATTACKER') {
-           if (cycle < 1.0) {
+           if (cycle < 2.0) {
              nextAnim = anims.swordSlash || anims.idle;
-           } else if (cycle >= 1.0 && cycle < 2.0) {
-             nextAnim = (cycle > 1.2 && cycle < 1.8) ? (anims.roll || anims.idle) : anims.idle;
-           } else if (cycle >= 2.0 && cycle < 3.0) {
+             targetDist = 1.0;
+           } else if (cycle >= 2.0 && cycle < 4.0) {
+             nextAnim = (cycle > 2.4 && cycle < 3.6) ? (anims.roll || anims.idle) : anims.idle;
+             if (cycle > 2.4 && cycle < 3.6) targetDist = 3.5;
+           } else if (cycle >= 4.0 && cycle < 6.0) {
              nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            } else {
-             nextAnim = (cycle > 3.2 && cycle < 3.8) ? (anims.roll || anims.idle) : anims.idle;
+             nextAnim = (cycle > 6.4 && cycle < 7.6) ? (anims.roll || anims.idle) : anims.idle;
+             if (cycle > 6.4 && cycle < 7.6) targetDist = 3.5;
            }
          } else if (sparringRole === 'DEFENDER') {
-           if (cycle < 1.0) {
-             nextAnim = (cycle > 0.2 && cycle < 0.8) ? (anims.roll || anims.idle) : anims.idle;
-           } else if (cycle >= 1.0 && cycle < 2.0) {
+           if (cycle < 2.0) {
+             nextAnim = (cycle > 0.4 && cycle < 1.6) ? (anims.roll || anims.idle) : anims.idle;
+             if (cycle > 0.4 && cycle < 1.6) targetDist = 3.5;
+           } else if (cycle >= 2.0 && cycle < 4.0) {
              nextAnim = anims.swordSlash || anims.idle;
-           } else if (cycle >= 2.0 && cycle < 3.0) {
-             nextAnim = (cycle > 2.2 && cycle < 2.8) ? (anims.roll || anims.idle) : anims.idle;
+             targetDist = 1.0;
+           } else if (cycle >= 4.0 && cycle < 6.0) {
+             nextAnim = (cycle > 4.4 && cycle < 5.6) ? (anims.roll || anims.idle) : anims.idle;
+             if (cycle > 4.4 && cycle < 5.6) targetDist = 3.5;
            } else {
              nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            }
          } else {
            nextAnim = anims.idle;
          }
+         
+         // Apply physical movement for dodging / lunging
+         if (distToCenter > 0.001) {
+             // To place the NPC `targetDist` away from center, facing the center
+             const targetPosition = centerPoint.clone().add(dirToCenter.clone().multiplyScalar(-targetDist));
+             targetPosition.y = startPosRef.current ? startPosRef.current.y : 3.0;
+             npcPos.lerp(targetPosition, delta * 5.0);
+         }
        }
+     }
+     
+     // Update Spell Effect visibility
+     if (spellEffectGroupRef.current) {
+         const isShooting = (sparringRole === 'ATTACKER' && (idleTimer.current % 8.0) >= 4.0 && (idleTimer.current % 8.0) < 6.0) || 
+                            (sparringRole === 'DEFENDER' && (idleTimer.current % 8.0) >= 6.0 && (idleTimer.current % 8.0) < 8.0);
+         spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isShooting;
+     }
+     if (swordEffectGroupRef.current) {
+         const isSwording = (sparringRole === 'ATTACKER' && (idleTimer.current % 8.0) < 2.0) || 
+                            (sparringRole === 'DEFENDER' && (idleTimer.current % 8.0) >= 2.0 && (idleTimer.current % 8.0) < 4.0);
+         swordEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isSwording;
      }
      
      // --- PATROL BEHAVIOR ---
@@ -431,6 +464,13 @@ export const KnightMaleNPC = ({
           <primitive object={clone} />
         </group>
       </group>
+      <group ref={spellEffectGroupRef} position={[0, 1.5, 1.5]} visible={false}>
+         <SpellEffect type={sparringRole === 'ATTACKER' ? 'fire' : 'arcane'} duration={2.0} scaleMultiplier={0.6} />
+      </group>
+      <group ref={swordEffectGroupRef} position={[0, 1.0, 1.5]} rotation={[0, Math.PI/2, 0]} visible={false}>
+         <SpellEffect type="void" duration={2.0} scaleMultiplier={1.0} />
+      </group>
+      
       
       {/* Debug Name Tag */}
       <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
