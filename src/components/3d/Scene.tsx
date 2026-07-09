@@ -82,6 +82,8 @@ export const Scene = () => {
         <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
         <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
         <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
+        <ElfNPC startPosition={new THREE.Vector3(-62, 3, 74)} maxWanderRadius={5} dialogId="world_guide_1" />
+        <WizardNPC startPosition={new THREE.Vector3(-58, 3, 76)} maxWanderRadius={5} dialogId="wizard_quest_1" />
         <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-58, 3, 74)} dialogId="knight_academics_1" maxWanderRadius={5} />
         <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-60, 3, 72)} dialogId="knight_academics_1" startState="SPARRING" sparringRole="ATTACKER" maxWanderRadius={5} />
         <KnightMaleNPC startPosition={new THREE.Vector3(-60, 3, 76)} startState="SPARRING" sparringRole="DEFENDER" maxWanderRadius={5} />

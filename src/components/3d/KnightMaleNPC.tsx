@@ -160,9 +160,7 @@ export const KnightMaleNPC = ({
        } else {
          idleTimer.current += delta;
          
-         // Rotate to face the center of the sparring area (assumed to be their start position or a bit forward)
-         // Since they spawn opposite each other, they can just look at each other's start positions if we had them.
-         // Let's just have them look at x = -60, z = 74 !
+         // Rotate to face the center of the sparring area
          const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
          const dirToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
          dirToCenter.y = 0;
@@ -173,31 +171,35 @@ export const KnightMaleNPC = ({
            containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
          }
          
-         // Simple alternating logic based on idleTimer
-         // A full cycle is 2.0 seconds
-         const cycle = idleTimer.current % 2.0;
+         // 4-stage Sword + Magic Duel cycle
+         const cycle = idleTimer.current % 4.0;
          
          if (sparringRole === 'ATTACKER') {
            if (cycle < 1.0) {
+             nextAnim = anims.swordSlash || anims.idle;
+           } else if (cycle >= 1.0 && cycle < 2.0) {
+             nextAnim = (cycle > 1.2 && cycle < 1.8) ? (anims.roll || anims.idle) : anims.idle;
+           } else if (cycle >= 2.0 && cycle < 3.0) {
              nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            } else {
-             nextAnim = anims.idle;
+             nextAnim = (cycle > 3.2 && cycle < 3.8) ? (anims.roll || anims.idle) : anims.idle;
            }
          } else if (sparringRole === 'DEFENDER') {
-           if (cycle >= 1.0) {
-             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
+           if (cycle < 1.0) {
+             nextAnim = (cycle > 0.2 && cycle < 0.8) ? (anims.roll || anims.idle) : anims.idle;
+           } else if (cycle >= 1.0 && cycle < 2.0) {
+             nextAnim = anims.swordSlash || anims.idle;
+           } else if (cycle >= 2.0 && cycle < 3.0) {
+             nextAnim = (cycle > 2.2 && cycle < 2.8) ? (anims.roll || anims.idle) : anims.idle;
            } else {
-             nextAnim = anims.idle;
+             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            }
          } else {
            nextAnim = anims.idle;
          }
        }
      }
-
      
-
-    
      // --- PATROL BEHAVIOR ---
      const distToPlayer = npcPos.distanceTo(globalPlayerState.position);
      if (distToPlayer < 3.5 && stateRef.current !== 'SUMMONED') {
@@ -244,7 +246,7 @@ export const KnightMaleNPC = ({
     if (stateRef.current === 'THINKING') {
       nextAnim = anims.idle; // Fix: Always default to idle when thinking
       idleTimer.current += delta;
-    } else {
+    } else if (stateRef.current !== 'SPARRING') {
       idleTimer.current = 0;
     }
 
