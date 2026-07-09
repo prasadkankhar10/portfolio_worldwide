@@ -163,19 +163,19 @@ export const KnightGoldenMaleNPC = ({
        } else {
          idleTimer.current += delta;
          
-         // Rotate to face the center of the sparring area
          const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
-         const vecToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
-         vecToCenter.y = 0;
          
-         const distToCenter = vecToCenter.length();
-         const dirToCenter = vecToCenter.clone();
-         if (distToCenter > 0.001) {
-           dirToCenter.normalize();
-           const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
-           targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-           containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
-         }
+         // Use starting position to establish a FIXED lane for the duel
+         // This prevents orbital rotation when dodging sideways
+         const basePos = startPosRef.current || npcPos;
+         const fixedVecToCenter = new THREE.Vector3().subVectors(centerPoint, basePos);
+         fixedVecToCenter.y = 0;
+         const fixedDirToCenter = fixedVecToCenter.lengthSq() > 0.001 ? fixedVecToCenter.normalize() : new THREE.Vector3(0,0,1);
+         
+         // Always face forward along the fixed lane
+         const angle = Math.atan2(fixedDirToCenter.x, fixedDirToCenter.z);
+         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
          
          // 4-stage Sword + Magic Duel cycle (8 seconds total, 2 seconds per stage)
          const cycle = idleTimer.current % 8.0;
@@ -212,15 +212,13 @@ export const KnightGoldenMaleNPC = ({
            nextAnim = anims.idle;
          }
          
-         // Apply physical movement for dodging / lunging
-         if (distToCenter > 0.001) {
-             const rightDir = new THREE.Vector3(dirToCenter.z, 0, -dirToCenter.x).normalize();
-             const targetPosition = centerPoint.clone()
-                 .add(dirToCenter.clone().multiplyScalar(-targetDist))
-                 .add(rightDir.clone().multiplyScalar(sidewaysOffset));
-             targetPosition.y = startPosRef.current ? startPosRef.current.y : 3.0;
-             npcPos.lerp(targetPosition, delta * 5.0);
-         }
+         // Apply physical movement for dodging / lunging using fixed axes
+         const rightDir = new THREE.Vector3(fixedDirToCenter.z, 0, -fixedDirToCenter.x).normalize();
+         const targetPosition = centerPoint.clone()
+             .add(fixedDirToCenter.clone().multiplyScalar(-targetDist))
+             .add(rightDir.clone().multiplyScalar(sidewaysOffset));
+         targetPosition.y = startPosRef.current ? startPosRef.current.y : 3.0;
+         npcPos.lerp(targetPosition, delta * 5.0);
        }
      }
      
