@@ -180,6 +180,7 @@ export const KnightMaleNPC = ({
          // 4-stage Sword + Magic Duel cycle (8 seconds total, 2 seconds per stage)
          const cycle = idleTimer.current % 8.0;
          let targetDist = 2.0; // default distance from center
+         let sidewaysOffset = 0.0;
          
          if (sparringRole === 'ATTACKER') {
            if (cycle < 2.0) {
@@ -187,23 +188,23 @@ export const KnightMaleNPC = ({
              targetDist = 1.0;
            } else if (cycle >= 2.0 && cycle < 4.0) {
              nextAnim = (cycle > 2.4 && cycle < 3.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 2.4 && cycle < 3.6) targetDist = 3.5;
+             if (cycle > 2.4 && cycle < 3.6) sidewaysOffset = 2.0;
            } else if (cycle >= 4.0 && cycle < 6.0) {
              nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            } else {
              nextAnim = (cycle > 6.4 && cycle < 7.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 6.4 && cycle < 7.6) targetDist = 3.5;
+             if (cycle > 6.4 && cycle < 7.6) sidewaysOffset = 2.0;
            }
          } else if (sparringRole === 'DEFENDER') {
            if (cycle < 2.0) {
              nextAnim = (cycle > 0.4 && cycle < 1.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 0.4 && cycle < 1.6) targetDist = 3.5;
+             if (cycle > 0.4 && cycle < 1.6) sidewaysOffset = 2.0;
            } else if (cycle >= 2.0 && cycle < 4.0) {
              nextAnim = anims.swordSlash || anims.idle;
              targetDist = 1.0;
            } else if (cycle >= 4.0 && cycle < 6.0) {
              nextAnim = (cycle > 4.4 && cycle < 5.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 4.4 && cycle < 5.6) targetDist = 3.5;
+             if (cycle > 4.4 && cycle < 5.6) sidewaysOffset = 2.0;
            } else {
              nextAnim = anims.shoot || anims.swordSlash || anims.idle;
            }
@@ -213,23 +214,40 @@ export const KnightMaleNPC = ({
          
          // Apply physical movement for dodging / lunging
          if (distToCenter > 0.001) {
-             // To place the NPC `targetDist` away from center, facing the center
-             const targetPosition = centerPoint.clone().add(dirToCenter.clone().multiplyScalar(-targetDist));
+             const rightDir = new THREE.Vector3(dirToCenter.z, 0, -dirToCenter.x).normalize();
+             const targetPosition = centerPoint.clone()
+                 .add(dirToCenter.clone().multiplyScalar(-targetDist))
+                 .add(rightDir.clone().multiplyScalar(sidewaysOffset));
              targetPosition.y = startPosRef.current ? startPosRef.current.y : 3.0;
              npcPos.lerp(targetPosition, delta * 5.0);
          }
        }
      }
      
-     // Update Spell Effect visibility
+     // Update Spell Effect visibility & projectile motion
      if (spellEffectGroupRef.current) {
-         const isShooting = (sparringRole === 'ATTACKER' && (idleTimer.current % 8.0) >= 4.0 && (idleTimer.current % 8.0) < 6.0) || 
-                            (sparringRole === 'DEFENDER' && (idleTimer.current % 8.0) >= 6.0 && (idleTimer.current % 8.0) < 8.0);
+         let isShooting = false;
+         let shootProgress = 0;
+         const currentCycle = idleTimer.current % 8.0;
+         
+         if (sparringRole === 'ATTACKER' && currentCycle >= 4.0 && currentCycle < 6.0) {
+             isShooting = true;
+             shootProgress = (currentCycle - 4.0) / 2.0;
+         } else if (sparringRole === 'DEFENDER' && currentCycle >= 6.0 && currentCycle < 8.0) {
+             isShooting = true;
+             shootProgress = (currentCycle - 6.0) / 2.0;
+         }
+         
          spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isShooting;
+         if (isShooting) {
+             // Projectile moves forward in local Z axis from 1.0 to 12.0
+             spellEffectGroupRef.current.position.z = 1.0 + (shootProgress * 11.0);
+         }
      }
      if (swordEffectGroupRef.current) {
-         const isSwording = (sparringRole === 'ATTACKER' && (idleTimer.current % 8.0) < 2.0) || 
-                            (sparringRole === 'DEFENDER' && (idleTimer.current % 8.0) >= 2.0 && (idleTimer.current % 8.0) < 4.0);
+         const currentCycle = idleTimer.current % 8.0;
+         const isSwording = (sparringRole === 'ATTACKER' && currentCycle < 2.0) || 
+                            (sparringRole === 'DEFENDER' && currentCycle >= 2.0 && currentCycle < 4.0);
          swordEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isSwording;
      }
      
