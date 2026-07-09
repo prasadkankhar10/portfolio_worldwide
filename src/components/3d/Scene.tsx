@@ -82,9 +82,9 @@ export const Scene = () => {
         <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
         <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
         <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
-        <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-82, 30, 90)} dialogId="knight_academics_1" maxWanderRadius={5} />
-        <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-80, 30, 92)} dialogId="knight_academics_1" maxWanderRadius={5} />
-        <KnightMaleNPC startPosition={new THREE.Vector3(-84, 30, 88)} maxWanderRadius={5} />
+        <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-58, 3, 74)} dialogId="knight_academics_1" maxWanderRadius={5} />
+        <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-60, 3, 72)} dialogId="knight_academics_1" startState="SPARRING" sparringRole="ATTACKER" maxWanderRadius={5} />
+        <KnightMaleNPC startPosition={new THREE.Vector3(-60, 3, 76)} startState="SPARRING" sparringRole="DEFENDER" maxWanderRadius={5} />
         {/* DOCK WORKERS ROUTINE (WITH SITTING) */}
         <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} startState="RESTING_SITTING" dialogId="pirate_web_1" />
         <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} startState="WORKING_PORT" dialogId="pirate_web_1" />

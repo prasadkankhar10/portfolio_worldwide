@@ -14,6 +14,8 @@ interface KnightGoldenFemaleNPCProps {
   startPosition?: THREE.Vector3;
   maxWanderRadius?: number;
   dialogId?: string;
+  startState?: 'THINKING' | 'SPARRING';
+  sparringRole?: 'ATTACKER' | 'DEFENDER' | 'NONE';
 }
 
 export const KnightGoldenFemaleNPC = ({ 
@@ -22,7 +24,9 @@ export const KnightGoldenFemaleNPC = ({
   roleName = "Knight Golden Female",
   maxWanderRadius,
   dialogId
-}: KnightGoldenFemaleNPCProps) => {
+,
+  startState = "THINKING",
+  sparringRole = "NONE"}: KnightGoldenFemaleNPCProps) => {
   const { scene, animations } = useGLTF('./models/NPCs/Knight_Golden_Female.glb');
   const containerRef = useRef<THREE.Group>(null);
   const modelRef = useRef<THREE.Group>(null);
@@ -85,11 +89,14 @@ export const KnightGoldenFemaleNPC = ({
       idle: getAnim(['idle_weapon', 'idle', 'characterarmature|idle']), 
       walk: getAnim(['walk', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
+      swordSlash: getAnim(['swordslash', 'attack', 'punch']),
+      roll: getAnim(['roll', 'recievehit']),
+      shoot: getAnim(['shoot_onehanded']),
       wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED' | 'ESCAPING' | 'WALKING_TO_WAYPOINT'>('THINKING');
+  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED' | 'ESCAPING' | 'WALKING_TO_WAYPOINT' | 'SPARRING'>(startState);
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -142,6 +149,54 @@ export const KnightGoldenFemaleNPC = ({
         if (!isInteracting) setIsInteracting(true);
       }
     }
+     // --- SPARRING BEHAVIOR ---
+     if (stateRef.current === 'SPARRING') {
+       const distToPlayerSparring = npcPos.distanceTo(globalPlayerState.position);
+       if (distToPlayerSparring < 3.5) {
+         nextState = 'INTERACTING';
+         interactTimer.current = 0;
+         targetPosRef.current = null;
+         if (!isInteracting) setIsInteracting(true);
+       } else {
+         idleTimer.current += delta;
+         
+         // Rotate to face the center of the sparring area (assumed to be their start position or a bit forward)
+         // Since they spawn opposite each other, they can just look at each other's start positions if we had them.
+         // Let's just have them look at x = -60, z = 74 !
+         const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
+         const dirToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
+         dirToCenter.y = 0;
+         if (dirToCenter.lengthSq() > 0.001) {
+           dirToCenter.normalize();
+           const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+           targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+           containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+         }
+         
+         // Simple alternating logic based on idleTimer
+         // A full cycle is 2.0 seconds
+         const cycle = idleTimer.current % 2.0;
+         
+         if (sparringRole === 'ATTACKER') {
+           if (cycle < 1.0) {
+             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
+           } else {
+             nextAnim = anims.idle;
+           }
+         } else if (sparringRole === 'DEFENDER') {
+           if (cycle >= 1.0) {
+             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
+           } else {
+             nextAnim = anims.idle;
+           }
+         } else {
+           nextAnim = anims.idle;
+         }
+       }
+     }
+
+     
+
     
      // --- PATROL BEHAVIOR ---
      const distToPlayer = npcPos.distanceTo(globalPlayerState.position);
@@ -153,7 +208,7 @@ export const KnightGoldenFemaleNPC = ({
          if (!isInteracting) setIsInteracting(true);
        }
      } else if (stateRef.current === 'INTERACTING') {
-       nextState = 'THINKING';
+       nextState = startState === 'SPARRING' ? 'SPARRING' : 'THINKING';
        if (isInteracting) setIsInteracting(false);
      }
      
