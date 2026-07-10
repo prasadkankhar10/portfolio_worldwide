@@ -94,6 +94,7 @@ export const KnightGoldenFemaleNPC = ({
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
       swordSlash: getAnim(['swordslash', 'attack', 'punch']),
       roll: getAnim(['roll']),
+      jump: getAnim(['jump']),
       hit: getAnim(['recievehit', 'hit']),
       shoot: getAnim(['shoot_onehanded']),
       wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
@@ -216,12 +217,12 @@ export const KnightGoldenFemaleNPC = ({
                  if (t > 0.6 && t < 1.0) targetDist = 2.5; // Knockback
                  else targetDist = 2.0;
              } else {
-                 // Dodge!
-                 nextAnim = (t > 0.4 && t < 1.4) ? (anims.roll || anims.idle) : anims.idle;
-                 if (t > 0.4 && t < 1.0) {
-                     sidewaysOffset = 2.0; // Sidestep
-                     // Add a physical arc to the leap
-                     jumpHeight = Math.sin(((t - 0.4) / 0.6) * Math.PI) * 1.5; 
+                 // Dodge! -> Jump straight up!
+                 nextAnim = (t > 0.4 && t < 1.4) ? (anims.jump || anims.idle) : anims.idle;
+                 if (t > 0.4 && t < 1.4) {
+                     sidewaysOffset = 0.0; // Stay in lane
+                     // Massive physical arc straight up
+                     jumpHeight = Math.sin(((t - 0.4) / 1.0) * Math.PI) * 3.0; 
                  }
              }
          }
