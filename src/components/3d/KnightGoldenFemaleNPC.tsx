@@ -15,7 +15,7 @@ interface KnightGoldenFemaleNPCProps {
   startPosition?: THREE.Vector3;
   maxWanderRadius?: number;
   dialogId?: string;
-  startState?: 'THINKING' | 'SPARRING';
+  startState?: string;
   sparringRole?: 'ATTACKER' | 'DEFENDER' | 'NONE';
 }
 
@@ -101,7 +101,7 @@ export const KnightGoldenFemaleNPC = ({
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'INTERACTING' | 'SUMMONED' | 'ESCAPING' | 'WALKING_TO_WAYPOINT' | 'SPARRING'>(startState);
+  const stateRef = useRef<string>(startState || 'THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -293,7 +293,7 @@ export const KnightGoldenFemaleNPC = ({
          if (!isInteracting) setIsInteracting(true);
        }
      } else if (stateRef.current === 'INTERACTING') {
-       nextState = startState === 'SPARRING' ? 'SPARRING' : 'THINKING';
+       nextState = startState || 'THINKING';
        if (isInteracting) setIsInteracting(false);
      }
      
@@ -329,7 +329,7 @@ export const KnightGoldenFemaleNPC = ({
     if (stateRef.current === 'THINKING') {
       nextAnim = anims.idle; // Fix: Always default to idle when thinking
       idleTimer.current += delta;
-    } else if (stateRef.current !== 'SPARRING') {
+    } else if (stateRef.current !== 'SPARRING' && stateRef.current !== 'WATCHING') {
       idleTimer.current = 0;
     }
 
@@ -350,7 +350,7 @@ export const KnightGoldenFemaleNPC = ({
           if (startPosRef.current) {
              npcPos.copy(startPosRef.current);
           }
-          nextState = 'THINKING';
+          nextState = startState || 'THINKING';
           failedTargetCount.current = 0;
        }
        
@@ -360,7 +360,7 @@ export const KnightGoldenFemaleNPC = ({
       if (startPosRef.current) {
          npcPos.copy(startPosRef.current);
       }
-      nextState = 'THINKING';
+      nextState = startState || 'THINKING';
       targetPosRef.current = null;
     }
 
@@ -412,6 +412,61 @@ export const KnightGoldenFemaleNPC = ({
         }
     } 
     
+    // --- WATCHING / AUDIENCE BEHAVIOR ---
+    
+    if (stateRef.current === 'WATCHING') {
+    
+      const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
+    
+      const dirToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
+    
+      dirToCenter.y = 0;
+    
+      
+    
+      if (dirToCenter.lengthSq() > 0.001) {
+    
+        const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+    
+        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+    
+        containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
+    
+      }
+    
+      
+    
+      idleTimer.current += delta;
+    
+      const cycleTime = idleTimer.current % 8.0;
+    
+      const stageId = Math.floor(cycleTime / 2.0);
+    
+      const t = cycleTime % 2.0;
+    
+      
+    
+      const isHitTime = (t > 0.6 && t < 1.4);
+    
+      
+    
+      const cycleCount = Math.floor(idleTimer.current / 8.0);
+    
+      const idOffset = parseFloat(npcId) || Math.random();
+    
+      const cheerSeed = ((cycleCount * 17.3) + (stageId * 9.1) + idOffset) % 1.0;
+    
+      
+    
+      const isCheering = cheerSeed < 0.4 && isHitTime;
+    
+      
+    
+      nextAnim = isCheering ? (anims.wave || anims.idle) : anims.idle;
+    
+    }
+
+    
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
       const dirToPlayer = new THREE.Vector3().subVectors(globalPlayerState.position, npcPos);
@@ -456,7 +511,7 @@ export const KnightGoldenFemaleNPC = ({
       
       if (isBlocked && stateRef.current !== 'SUMMONED') {
         // Roomba logic: Immediately stop and pick a new target!
-        nextState = 'THINKING';
+        nextState = startState || 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
         
@@ -466,7 +521,7 @@ export const KnightGoldenFemaleNPC = ({
            nextState = 'ESCAPING';
         }
       } else if (distToTarget < 1.0) {
-        nextState = 'THINKING';
+        nextState = startState || 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
         failedTargetCount.current = 0; // Reset failures on success!

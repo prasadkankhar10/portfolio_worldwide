@@ -131,6 +131,8 @@ export const KnightGoldenMaleNPC = ({
     const npcPos = containerRef.current.position;
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
+    const distToCenterGlobal = new THREE.Vector3(-60, npcPos.y, 74).distanceTo(globalPlayerState.position);
+    const isDuelPausedGlobal = distToCenterGlobal < 6.0;
 
     
     const store = useGameStore.getState();
@@ -156,13 +158,29 @@ export const KnightGoldenMaleNPC = ({
     }
      // --- SPARRING BEHAVIOR ---
      if (stateRef.current === 'SPARRING') {
-       const distToPlayerSparring = npcPos.distanceTo(globalPlayerState.position);
-       if (distToPlayerSparring < 3.5) {
-         nextState = 'INTERACTING';
-         interactTimer.current = 0;
-         targetPosRef.current = null;
-         if (!isInteracting) setIsInteracting(true);
-       } else {
+        const distToPlayerSparring = npcPos.distanceTo(globalPlayerState.position);
+        const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
+        const distToCenter = centerPoint.distanceTo(globalPlayerState.position);
+        const isDuelInterrupted = isDuelPausedGlobal;
+        
+        if (distToPlayerSparring < 3.5) {
+          nextState = 'INTERACTING';
+          interactTimer.current = 0;
+          targetPosRef.current = null;
+          if (!isInteracting) setIsInteracting(true);
+        } else if (isDuelInterrupted) {
+          // Pause the duel: face the player and idle
+          const dirToPlayer = new THREE.Vector3().subVectors(globalPlayerState.position, npcPos);
+          dirToPlayer.y = 0;
+          if (dirToPlayer.lengthSq() > 0.001) {
+             dirToPlayer.normalize();
+             const angle = Math.atan2(dirToPlayer.x, dirToPlayer.z);
+             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
+          }
+          nextAnim = anims.idle;
+          // Do NOT advance idleTimer so the duel stays perfectly synced!
+        } else {
          idleTimer.current += delta;
          
          const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
@@ -268,7 +286,7 @@ export const KnightGoldenMaleNPC = ({
              }
          }
          
-         spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && showSpell;
+         spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && showSpell && !isDuelPausedGlobal;
      }
      if (swordEffectGroupRef.current) {
          const cycleTime = idleTimer.current % 8.0;
@@ -280,7 +298,7 @@ export const KnightGoldenMaleNPC = ({
          
          // Only show sword during the slash
          const isSwording = isMyTurnToAttack && attackType === 'SWORD' && t < 1.2;
-         swordEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isSwording;
+         swordEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isSwording && !isDuelPausedGlobal;
      }
      
      // --- PATROL BEHAVIOR ---

@@ -10,6 +10,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 
 interface WizardNPCProps {
+  startState?: string;
   colorTint?: string;
   roleName?: string;
   startPosition?: THREE.Vector3;
@@ -21,6 +22,7 @@ export const WizardNPC = ({
   colorTint, 
   startPosition, 
   roleName = "Wizard",
+  startState,
   maxWanderRadius,
   dialogId
 }: WizardNPCProps) => {
@@ -97,7 +99,7 @@ export const WizardNPC = ({
     };
   }, [animations]);
 
-  const stateRef = useRef<'THINKING' | 'WALKING' | 'PRACTICING' | 'INTERACTING' | 'SUMMONED' | 'RITUAL' | 'ESCAPING'>('THINKING');
+  const stateRef = useRef<string>(startState || 'THINKING');
   const targetPosRef = useRef<THREE.Vector3 | null>(null);
   
   const historyPositions = useRef<THREE.Vector3[]>([]);
@@ -138,7 +140,7 @@ export const WizardNPC = ({
         if (!isInteracting) setIsInteracting(true);
       }
     } else if (stateRef.current === 'INTERACTING') {
-      nextState = 'THINKING';
+      nextState = startState || 'THINKING';
       if (isInteracting) setIsInteracting(false);
     }
     
@@ -166,7 +168,7 @@ export const WizardNPC = ({
           if (startPosRef.current) {
              npcPos.copy(startPosRef.current);
           }
-          nextState = 'THINKING';
+          nextState = startState || 'THINKING';
           failedTargetCount.current = 0;
        }
        
@@ -176,7 +178,7 @@ export const WizardNPC = ({
       if (startPosRef.current) {
          npcPos.copy(startPosRef.current);
       }
-      nextState = 'THINKING';
+      nextState = startState || 'THINKING';
       targetPosRef.current = null;
     }
 
@@ -222,7 +224,7 @@ export const WizardNPC = ({
        }
     } else if (stateRef.current === 'RITUAL') {
        // Ritual ended, go back to normal
-       nextState = 'THINKING';
+       nextState = startState || 'THINKING';
     }
 
     // Normal wandering: immediately try to find a target!
@@ -280,10 +282,65 @@ export const WizardNPC = ({
             containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
          }
          if (idleTimer.current > activeSpell.duration) {
-            nextState = 'THINKING';
+            nextState = startState || 'THINKING';
             idleTimer.current = 0;
          }
     } 
+    
+    // --- WATCHING / AUDIENCE BEHAVIOR ---
+    
+    if (stateRef.current === 'WATCHING') {
+    
+      const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
+    
+      const dirToCenter = new THREE.Vector3().subVectors(centerPoint, npcPos);
+    
+      dirToCenter.y = 0;
+    
+      
+    
+      if (dirToCenter.lengthSq() > 0.001) {
+    
+        const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
+    
+        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+    
+        containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
+    
+      }
+    
+      
+    
+      idleTimer.current += delta;
+    
+      const cycleTime = idleTimer.current % 8.0;
+    
+      const stageId = Math.floor(cycleTime / 2.0);
+    
+      const t = cycleTime % 2.0;
+    
+      
+    
+      const isHitTime = (t > 0.6 && t < 1.4);
+    
+      
+    
+      const cycleCount = Math.floor(idleTimer.current / 8.0);
+    
+      const idOffset = parseFloat(npcId) || Math.random();
+    
+      const cheerSeed = ((cycleCount * 17.3) + (stageId * 9.1) + idOffset) % 1.0;
+    
+      
+    
+      const isCheering = cheerSeed < 0.4 && isHitTime;
+    
+      
+    
+      nextAnim = isCheering ? (anims.wave || anims.idle) : anims.idle;
+    
+    }
+
     
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
@@ -329,7 +386,7 @@ export const WizardNPC = ({
       
       if (isBlocked && stateRef.current !== 'SUMMONED') {
         // Roomba logic: Immediately stop and pick a new target!
-        nextState = 'THINKING';
+        nextState = startState || 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
         
@@ -339,7 +396,7 @@ export const WizardNPC = ({
            nextState = 'ESCAPING';
         }
       } else if (distToTarget < 1.0) {
-        nextState = 'THINKING';
+        nextState = startState || 'THINKING';
         targetPosRef.current = null;
         nextAnim = anims.idle;
         failedTargetCount.current = 0; // Reset failures on success!
