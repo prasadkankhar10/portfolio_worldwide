@@ -93,7 +93,8 @@ export const KnightGoldenFemaleNPC = ({
       walk: getAnim(['walk', 'characterarmature|walk']), 
       run: getAnim(['run', 'characterarmature|run', 'fastrun', 'sprint']), 
       swordSlash: getAnim(['swordslash', 'attack', 'punch']),
-      roll: getAnim(['roll', 'recievehit']),
+      roll: getAnim(['roll']),
+      hit: getAnim(['recievehit', 'hit']),
       shoot: getAnim(['shoot_onehanded']),
       wave: getAnim(['victory', 'wave', 'spell', 'characterarmature|wave', 'attack', 'cheer']) 
     };
@@ -166,7 +167,6 @@ export const KnightGoldenFemaleNPC = ({
          const centerPoint = new THREE.Vector3(-60, npcPos.y, 74);
          
          // Use starting position to establish a FIXED lane for the duel
-         // This prevents orbital rotation when dodging sideways
          const basePos = startPosRef.current || npcPos;
          const fixedVecToCenter = new THREE.Vector3().subVectors(centerPoint, basePos);
          fixedVecToCenter.y = 0;
@@ -177,75 +177,108 @@ export const KnightGoldenFemaleNPC = ({
          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
          containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
          
-         // 4-stage Sword + Magic Duel cycle (8 seconds total, 2 seconds per stage)
-         const cycle = idleTimer.current % 8.0;
-         let targetDist = 2.0; // default distance from center
-         let sidewaysOffset = 0.0;
+         // Event-Driven, Animation-Synced Math Clock
+         const totalCycle = 8.0;
+         const cycleTime = idleTimer.current % totalCycle;
+         const stageId = Math.floor(cycleTime / 2.0); // 0, 1, 2, 3
+         const t = cycleTime % 2.0; // 0.0 to 2.0
          
-         if (sparringRole === 'ATTACKER') {
-           if (cycle < 2.0) {
-             nextAnim = anims.swordSlash || anims.idle;
-             targetDist = 1.0;
-           } else if (cycle >= 2.0 && cycle < 4.0) {
-             nextAnim = (cycle > 2.4 && cycle < 3.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 2.4 && cycle < 3.6) sidewaysOffset = 2.0;
-           } else if (cycle >= 4.0 && cycle < 6.0) {
-             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
-           } else {
-             nextAnim = (cycle > 6.4 && cycle < 7.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 6.4 && cycle < 7.6) sidewaysOffset = 2.0;
-           }
-         } else if (sparringRole === 'DEFENDER') {
-           if (cycle < 2.0) {
-             nextAnim = (cycle > 0.4 && cycle < 1.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 0.4 && cycle < 1.6) sidewaysOffset = 2.0;
-           } else if (cycle >= 2.0 && cycle < 4.0) {
-             nextAnim = anims.swordSlash || anims.idle;
-             targetDist = 1.0;
-           } else if (cycle >= 4.0 && cycle < 6.0) {
-             nextAnim = (cycle > 4.4 && cycle < 5.6) ? (anims.roll || anims.idle) : anims.idle;
-             if (cycle > 4.4 && cycle < 5.6) sidewaysOffset = 2.0;
-           } else {
-             nextAnim = anims.shoot || anims.swordSlash || anims.idle;
-           }
+         // Deterministic hit chance based on cycle count (30% chance to get hit)
+         const cycleCount = Math.floor(idleTimer.current / totalCycle);
+         const hitSeed = ((cycleCount * 13.7) + (stageId * 7.3)) % 1.0;
+         const isHit = hitSeed < 0.3;
+         
+         let targetDist = 2.0;
+         let sidewaysOffset = 0.0;
+         let jumpHeight = 0.0;
+         
+         const isMyTurnToAttack = (sparringRole === 'ATTACKER' && (stageId === 0 || stageId === 2)) || 
+                                  (sparringRole === 'DEFENDER' && (stageId === 1 || stageId === 3));
+         
+         const attackType = (stageId === 0 || stageId === 1) ? 'SWORD' : 'MAGIC';
+         
+         if (isMyTurnToAttack) {
+             if (attackType === 'SWORD') {
+                 nextAnim = (t < 1.2) ? (anims.swordSlash || anims.idle) : anims.idle;
+                 // Physical Burst Forward
+                 if (t > 0.4 && t < 0.8) targetDist = 0.8;
+                 else if (t >= 0.8) targetDist = 2.0;
+             } else { // MAGIC
+                 nextAnim = (t < 1.2) ? (anims.shoot || anims.swordSlash || anims.idle) : anims.idle;
+                 // Magic doesn't move forward
+                 targetDist = 2.0;
+             }
          } else {
-           nextAnim = anims.idle;
+             // My turn to defend
+             if (isHit) {
+                 // Take a hit! Wait until attack actually lands (t=0.6)
+                 nextAnim = (t > 0.6 && t < 1.4) ? (anims.hit || anims.idle) : anims.idle;
+                 if (t > 0.6 && t < 1.0) targetDist = 2.5; // Knockback
+                 else targetDist = 2.0;
+             } else {
+                 // Dodge!
+                 nextAnim = (t > 0.4 && t < 1.4) ? (anims.roll || anims.idle) : anims.idle;
+                 if (t > 0.4 && t < 1.0) {
+                     sidewaysOffset = 2.0; // Sidestep
+                     // Add a physical arc to the leap
+                     jumpHeight = Math.sin(((t - 0.4) / 0.6) * Math.PI) * 1.5; 
+                 }
+             }
          }
          
-         // Apply physical movement for dodging / lunging using fixed axes
+         // Apply physical movement using fixed axes
          const rightDir = new THREE.Vector3(fixedDirToCenter.z, 0, -fixedDirToCenter.x).normalize();
          const targetPosition = centerPoint.clone()
              .add(fixedDirToCenter.clone().multiplyScalar(-targetDist))
              .add(rightDir.clone().multiplyScalar(sidewaysOffset));
-         targetPosition.y = startPosRef.current ? startPosRef.current.y : 3.0;
-         npcPos.lerp(targetPosition, delta * 5.0);
+         targetPosition.y = (startPosRef.current ? startPosRef.current.y : 3.0) + jumpHeight;
+         
+         // Use a faster lerp for snappier, momentum-based movement
+         npcPos.lerp(targetPosition, delta * 12.0);
        }
      }
      
-     // Update Spell Effect visibility & projectile motion
+     // Update Visual Spell Effects (Swords and True Projectiles)
      if (spellEffectGroupRef.current) {
-         let isShooting = false;
-         let shootProgress = 0;
-         const currentCycle = idleTimer.current % 8.0;
+         const cycleTime = idleTimer.current % 8.0;
+         const stageId = Math.floor(cycleTime / 2.0);
+         const t = cycleTime % 2.0;
+         const isMyTurnToAttack = (sparringRole === 'ATTACKER' && (stageId === 0 || stageId === 2)) || 
+                                  (sparringRole === 'DEFENDER' && (stageId === 1 || stageId === 3));
+         const attackType = (stageId === 0 || stageId === 1) ? 'SWORD' : 'MAGIC';
          
-         if (sparringRole === 'ATTACKER' && currentCycle >= 4.0 && currentCycle < 6.0) {
-             isShooting = true;
-             shootProgress = (currentCycle - 4.0) / 2.0;
-         } else if (sparringRole === 'DEFENDER' && currentCycle >= 6.0 && currentCycle < 8.0) {
-             isShooting = true;
-             shootProgress = (currentCycle - 6.0) / 2.0;
+         let showSpell = false;
+         let isExploding = false;
+         
+         if (isMyTurnToAttack && attackType === 'MAGIC') {
+             if (t > 0.6 && t < 1.4) {
+                 showSpell = true;
+                 if (t < 1.1) {
+                     // Projectile Travel
+                     const travelProgress = (t - 0.6) / 0.5; // 0.0 to 1.0
+                     spellEffectGroupRef.current.position.z = 1.0 + (travelProgress * 10.0);
+                     spellEffectGroupRef.current.scale.setScalar(0.5);
+                 } else {
+                     // Explosion
+                     isExploding = true;
+                     spellEffectGroupRef.current.position.z = 11.0;
+                     spellEffectGroupRef.current.scale.setScalar(1.5);
+                 }
+             }
          }
          
-         spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isShooting;
-         if (isShooting) {
-             // Projectile moves forward in local Z axis from 1.0 to 12.0
-             spellEffectGroupRef.current.position.z = 1.0 + (shootProgress * 11.0);
-         }
+         spellEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && showSpell;
      }
      if (swordEffectGroupRef.current) {
-         const currentCycle = idleTimer.current % 8.0;
-         const isSwording = (sparringRole === 'ATTACKER' && currentCycle < 2.0) || 
-                            (sparringRole === 'DEFENDER' && currentCycle >= 2.0 && currentCycle < 4.0);
+         const cycleTime = idleTimer.current % 8.0;
+         const stageId = Math.floor(cycleTime / 2.0);
+         const t = cycleTime % 2.0;
+         const isMyTurnToAttack = (sparringRole === 'ATTACKER' && (stageId === 0 || stageId === 2)) || 
+                                  (sparringRole === 'DEFENDER' && (stageId === 1 || stageId === 3));
+         const attackType = (stageId === 0 || stageId === 1) ? 'SWORD' : 'MAGIC';
+         
+         // Only show sword during the slash
+         const isSwording = isMyTurnToAttack && attackType === 'SWORD' && t < 1.2;
          swordEffectGroupRef.current.visible = stateRef.current === 'SPARRING' && isSwording;
      }
      
