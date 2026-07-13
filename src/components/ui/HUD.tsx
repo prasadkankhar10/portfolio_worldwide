@@ -109,6 +109,7 @@ export const HUD = () => {
             <span className="text-red-400">X <span id="hud-x" className="text-white">0.0</span></span>
             <span className="text-green-400">Y <span id="hud-y" className="text-white">0.0</span></span>
             <span className="text-blue-400">Z <span id="hud-z" className="text-white">0.0</span></span>
+            <span className="text-amber-400 ml-2 border-l border-white/20 pl-4">Facing <span id="hud-dir" className="text-white">N</span></span>
           </p>
         </div>
       </div>

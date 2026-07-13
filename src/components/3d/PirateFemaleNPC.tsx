@@ -7,8 +7,10 @@ import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
+import { useNpcRegistry } from '../../hooks/useNpcRegistry';
+import { NpcChatBubble } from './NpcChatBubble';
 
-export type PirateState = 'RESTING_SITTING' | 'RESTING_STANDING' | 'WALKING_TO_PORT' | 'WORKING_PORT' | 'WALKING_TO_STORAGE' | 'WORKING_STORAGE' | 'WALKING_TO_WAYPOINT' | 'WORKING_WAYPOINT' | 'WALKING_TO_HOUSE' | 'INTERACTING' | 'ESCAPING';
+export type PirateState = 'RESTING_SITTING' | 'RESTING_STANDING' | 'WALKING_TO_PORT' | 'WORKING_PORT' | 'WALKING_TO_STORAGE' | 'WORKING_STORAGE' | 'WALKING_TO_WAYPOINT' | 'WORKING_WAYPOINT' | 'WALKING_TO_HOUSE' | 'INTERACTING' | 'ESCAPING' | 'CHATTING';
 
 interface PirateFemaleNPCProps {
   colorTint?: string;
@@ -41,6 +43,8 @@ export const PirateFemaleNPC = ({
   const activeDialogNpcId = useGameStore(state => state.activeDialogNpcId);
   const setActiveOutlineMesh = useGameStore(state => state.setActiveOutlineMesh);
   const npcId = useMemo(() => Math.random().toString(), []);
+  const store = useGameStore();
+  
 
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   
@@ -116,6 +120,7 @@ export const PirateFemaleNPC = ({
   const startupTimer = useRef(-Math.random() * 5.0);
   const speedFactor = useMemo(() => 1.5 + Math.random() * 1.0, []);
 
+  useNpcRegistry(npcId, 'PIRATE_FEMALE', containerRef, stateRef, 'PIRATES');
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
@@ -173,6 +178,19 @@ export const PirateFemaleNPC = ({
       }
       nextAnim = (interactTimer.current < 2.0 && anims.wave) ? anims.wave : anims.idle;
       
+    } else if (stateRef.current === 'CHATTING') {
+      const targetPos = store.npcChatTargets[npcId];
+      if (targetPos) {
+        const dir = new THREE.Vector3().subVectors(targetPos, npcPos);
+        dir.y = 0;
+        if (dir.lengthSq() > 0.001) {
+          dir.normalize();
+          const angle = Math.atan2(dir.x, dir.z);
+          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
+        }
+      }
+      if (anims.idle) nextAnim = anims.idle;
     } else if (stateRef.current === 'RESTING_SITTING') {
         nextAnim = anims.sit;
         workTimer.current += delta;
@@ -353,6 +371,7 @@ export const PirateFemaleNPC = ({
 
   return (
     <group ref={containerRef} scale={0.58}>
+      <NpcChatBubble npcId={npcId} />
       <group ref={modelRef} name={roleName}>
         <group ref={meshGroupRef}>
           <primitive object={clone} />

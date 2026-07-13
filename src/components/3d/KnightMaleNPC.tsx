@@ -8,6 +8,8 @@ import { useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
+import { useNpcRegistry } from '../../hooks/useNpcRegistry';
+import { NpcChatBubble } from './NpcChatBubble';
 
 interface KnightMaleNPCProps {
   colorTint?: string;
@@ -44,6 +46,8 @@ export const KnightMaleNPC = ({
   const activeDialogNpcId = useGameStore(state => state.activeDialogNpcId);
   const setActiveOutlineMesh = useGameStore(state => state.setActiveOutlineMesh);
   const npcId = useMemo(() => Math.random().toString(), []);
+  const store = useGameStore();
+  
 
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   
@@ -124,6 +128,7 @@ export const KnightMaleNPC = ({
 
   const startupTimer = useRef(0);
 
+  useNpcRegistry(npcId, 'KNIGHT_BLUE', containerRef, stateRef, 'DUEL');
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
@@ -527,6 +532,7 @@ export const KnightMaleNPC = ({
 
   return (
     <group ref={containerRef} scale={0.58}>
+      <NpcChatBubble npcId={npcId} />
       <group ref={modelRef} name={roleName}>
         <group ref={meshGroupRef}>
           <primitive object={clone} />

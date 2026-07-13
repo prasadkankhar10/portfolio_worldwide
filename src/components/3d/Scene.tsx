@@ -27,7 +27,15 @@ import { VikingHelmetNPC } from './VikingHelmetNPC';
 import { VikingFemaleNPC } from './VikingFemaleNPC';
 import { VikingMaleNPC } from './VikingMaleNPC';
 import { WitchNPC } from './WitchNPC';
+
+import { VikingBlacksmithNPC } from './VikingBlacksmithNPC';
+import { CowboyShopNPC } from './CowboyShopNPC';
+import { CasualShopNPC } from './CasualShopNPC';
+import { WitchShopNPC } from './WitchShopNPC';
+import { GoblinFruitNPC } from './GoblinFruitNPC';
 import { WizardNPC } from './WizardNPC';
+import { MarketVisitorNPC } from './MarketVisitorNPC';
+import { NpcChatSystem } from './NpcChatSystem';
 import { RitualCenter } from './RitualCenter';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
@@ -58,11 +66,25 @@ export const Scene = () => {
       {/* HDRI Image-Based Lighting (Invisible) */}
       <DreiEnvironment preset="sunset" background={false} />
 
+      <NpcChatSystem />
       <Physics debug={false}>
+      {/* Marketplace NPCs */}
+      <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
+      <CowboyShopNPC position={[112.3, 3.0, 7.2]} rotation={[0, Math.PI, 0]} />
+      <CasualShopNPC position={[103.8, 3.0, -7.5]} rotation={[0, Math.PI/2, 0]} />
+      <WitchShopNPC position={[120.7, 3.0, -7.1]} rotation={[0, -Math.PI/2, 0]} />
+      <GoblinFruitNPC position={[125.6, 3.0, 7.4]} rotation={[0, -Math.PI/2, 0]} />
+
         <Environment />
         <Sea />
         {hasStarted && <Character />}
         
+        
+      {/* Market Visitors */}
+      <MarketVisitorNPC modelFile="Casual3_Male.glb" startPosition={[115, 3.0, 0]} />
+      <MarketVisitorNPC modelFile="Knight_Male.glb" startPosition={[112, 3.0, -3]} />
+      <MarketVisitorNPC modelFile="Cowboy_Female.glb" startPosition={[118, 3.0, 5]} />
+
         {/* AI NPCs */}
         <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(101, 30, -76)} />
         

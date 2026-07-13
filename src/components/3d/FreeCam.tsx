@@ -56,14 +56,24 @@ export const FreeCam = () => {
     state.camera.position.addScaledVector(direction, currentSpeed * delta);
     state.camera.quaternion.copy(quat);
 
-    // Update HUD Coordinates
+    // Update HUD Coordinates natively without React re-renders
     const xEl = document.getElementById('hud-x');
     const yEl = document.getElementById('hud-y');
     const zEl = document.getElementById('hud-z');
+    const dirEl = document.getElementById('hud-dir');
     if (xEl && yEl && zEl) {
       xEl.innerText = state.camera.position.x.toFixed(1);
       yEl.innerText = state.camera.position.y.toFixed(1);
       zEl.innerText = state.camera.position.z.toFixed(1);
+    }
+    if (dirEl && state.camera) {
+      const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(state.camera.quaternion);
+      const angle = Math.atan2(forwardVec.x, forwardVec.z);
+      let dir = 'N';
+      if (angle >= -Math.PI/4 && angle < Math.PI/4) dir = 'S';
+      else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) dir = 'E';
+      else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) dir = 'W';
+      dirEl.innerText = dir;
     }
   });
 

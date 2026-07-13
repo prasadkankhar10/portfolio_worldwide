@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import * as THREE from 'three';
 
+export interface RegisteredNPC {
+  id: string;
+  role: string;
+  position: THREE.Vector3;
+  state: string;
+  groupId?: string;
+}
+
 export type GameState = 'menu' | 'playing';
 export type PortfolioSection = 'none' | 'about' | 'projects' | 'contact';
 
@@ -51,6 +59,17 @@ interface GameStore {
   setActiveRitual: (active: boolean) => void;
   ritualState: 'idle' | 'gathering' | 'channeling' | 'climax';
   setRitualState: (state: 'idle' | 'gathering' | 'channeling' | 'climax') => void;
+  // NPC Chat System
+  npcRegistry: Record<string, RegisteredNPC>;
+  registerNpc: (npc: RegisteredNPC) => void;
+  updateNpcState: (id: string, position: THREE.Vector3, state: string) => void;
+  unregisterNpc: (id: string) => void;
+  npcSpeechBubbles: Record<string, string>;
+  setNpcSpeechBubble: (id: string, text: string | null) => void;
+  npcChatTargets: Record<string, THREE.Vector3>;
+  setNpcChatTarget: (id: string, target: THREE.Vector3 | null) => void;
+  occupiedShops: Record<string, boolean>;
+  setShopOccupied: (shopType: string, occupied: boolean) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -92,6 +111,55 @@ export const useGameStore = create<GameStore>((set) => ({
   setActiveRitual: (active) => set({ activeRitual: active }),
   ritualState: 'idle',
   setRitualState: (state) => set({ ritualState: state }),
+  
+  npcRegistry: {},
+  registerNpc: (npc) => set((state) => ({ npcRegistry: { ...state.npcRegistry, [npc.id]: npc } })),
+  updateNpcState: (id, position, npcState) => set((state) => {
+    const existing = state.npcRegistry[id];
+    if (!existing) return state;
+    return {
+      npcRegistry: {
+        ...state.npcRegistry,
+        [id]: { ...existing, position: position.clone(), state: npcState }
+      }
+    };
+  }),
+  unregisterNpc: (id) => set((state) => {
+    const newReg = { ...state.npcRegistry };
+    delete newReg[id];
+    return { npcRegistry: newReg };
+  }),
+  
+  npcSpeechBubbles: {},
+  setNpcSpeechBubble: (id, text) => set((state) => {
+    const newBubbles = { ...state.npcSpeechBubbles };
+    if (text === null) {
+      delete newBubbles[id];
+    } else {
+      newBubbles[id] = text;
+    }
+    return { npcSpeechBubbles: newBubbles };
+  }),
+  occupiedShops: {},
+  setShopOccupied: (shopType, occupied) => set((state) => {
+    const newOccupied = { ...state.occupiedShops };
+    if (occupied) {
+      newOccupied[shopType] = true;
+    } else {
+      delete newOccupied[shopType];
+    }
+    return { occupiedShops: newOccupied };
+  }),
+  npcChatTargets: {},
+  setNpcChatTarget: (id, target) => set((state) => {
+    const newTargets = { ...state.npcChatTargets };
+    if (target === null) {
+      delete newTargets[id];
+    } else {
+      newTargets[id] = target.clone();
+    }
+    return { npcChatTargets: newTargets };
+  }),
   
   virtualJoystick: { x: 0, y: 0 },
   setVirtualJoystick: (x, y) => set({ virtualJoystick: { x, y } }),

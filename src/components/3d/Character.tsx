@@ -157,10 +157,20 @@ export const Character = () => {
     const xEl = document.getElementById('hud-x');
     const yEl = document.getElementById('hud-y');
     const zEl = document.getElementById('hud-z');
+    const dirEl = document.getElementById('hud-dir');
     if (xEl && yEl && zEl) {
       xEl.innerText = charTranslation.x.toFixed(1);
       yEl.innerText = charTranslation.y.toFixed(1);
       zEl.innerText = charTranslation.z.toFixed(1);
+    }
+    if (dirEl && state.camera) {
+      const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(state.camera.quaternion);
+      const angle = Math.atan2(forwardVec.x, forwardVec.z);
+      let dir = 'N';
+      if (angle >= -Math.PI/4 && angle < Math.PI/4) dir = 'S';
+      else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) dir = 'E';
+      else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) dir = 'W';
+      dirEl.innerText = dir;
     }
     
     // Export real-time position for NPCs

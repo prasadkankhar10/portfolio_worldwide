@@ -257,5 +257,96 @@ export const dialogData: Record<string, DialogNode> = {
     id: 'world_guide_return_2',
     npcName: 'World Guide',
     text: "Remember, just press E near the well if you ever want me to run back over here!",
+  },
+  
+  // --- MARKETPLACE NPCs ---
+  blacksmith_talk_1: {
+    id: 'blacksmith_talk_1',
+    npcName: 'Viking Blacksmith',
+    text: "Welcome to the forge! Need some armor or weapons?",
+    nextId: 'blacksmith_talk_2'
+  },
+  blacksmith_talk_2: {
+    id: 'blacksmith_talk_2',
+    npcName: 'Viking Blacksmith',
+    text: "While you're looking around, let me tell you about Prasad's technical stack.",
+    nextId: 'blacksmith_talk_3'
+  },
+  blacksmith_talk_3: {
+    id: 'blacksmith_talk_3',
+    npcName: 'Viking Blacksmith',
+    text: "He forged his skills in C++, JavaScript, React, Node.js, and Firebase. A sturdy foundation!"
+  },
+
+  cowboy_shop_1: {
+    id: 'cowboy_shop_1',
+    npcName: 'Market Organizer',
+    text: "Howdy. Just checking the inventory and keeping the peace.",
+    nextId: 'cowboy_shop_2'
+  },
+  cowboy_shop_2: {
+    id: 'cowboy_shop_2',
+    npcName: 'Market Organizer',
+    text: "Speaking of organizing, Prasad is an expert in Community and Event Organization.",
+    nextId: 'cowboy_shop_3'
+  },
+  cowboy_shop_3: {
+    id: 'cowboy_shop_3',
+    npcName: 'Market Organizer',
+    text: "He even ran an AI & ML Career Guidance Session for over 220 students. Quite the sheriff!"
+  },
+
+  casual_shop_1: {
+    id: 'casual_shop_1',
+    npcName: 'Shield Vendor',
+    text: "Finest shields in the land right here!",
+    nextId: 'casual_shop_2'
+  },
+  casual_shop_2: {
+    id: 'casual_shop_2',
+    npcName: 'Shield Vendor',
+    text: "They are as sturdy and reliable as Prasad's backend architecture.",
+    nextId: 'casual_shop_3'
+  },
+  casual_shop_3: {
+    id: 'casual_shop_3',
+    npcName: 'Shield Vendor',
+    text: "He built robust systems for Nishtha and Sadhana. Now that's solid defense!"
+  },
+
+  witch_shop_1: {
+    id: 'witch_shop_1',
+    npcName: 'Potions & Produce',
+    text: "Fresh fruit and fine pottery! Crafted with care.",
+    nextId: 'witch_shop_2'
+  },
+  witch_shop_2: {
+    id: 'witch_shop_2',
+    npcName: 'Potions & Produce',
+    text: "Much like Prasad's UI/UX designs. He has a keen eye for Creative Expression.",
+    nextId: 'witch_shop_3'
+  },
+  witch_shop_3: {
+    id: 'witch_shop_3',
+    npcName: 'Potions & Produce',
+    text: "He builds systems that connect with people both logically and emotionally."
+  },
+
+  goblin_fruit_1: {
+    id: 'goblin_fruit_1',
+    npcName: 'Fruit Merchant',
+    text: "Hehe! Juicy fruits for sale!",
+    nextId: 'goblin_fruit_2'
+  },
+  goblin_fruit_2: {
+    id: 'goblin_fruit_2',
+    npcName: 'Fruit Merchant',
+    text: "Prasad made a game once about delivery called 'On the Way'.",
+    nextId: 'goblin_fruit_3'
+  },
+  goblin_fruit_3: {
+    id: 'goblin_fruit_3',
+    npcName: 'Fruit Merchant',
+    text: "Maybe I can use his game to deliver these fruits, hehe!"
   }
 };
