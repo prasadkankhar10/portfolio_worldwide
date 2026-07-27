@@ -9,15 +9,24 @@ import { useControls } from 'leva';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 
+const lampPresets: Record<string, { color: string, intensity: number }> = {
+  'Warm Vintage': { color: '#ffaa00', intensity: 2.5 },
+  'Neon Cyberpunk': { color: '#00ffff', intensity: 4.0 },
+  'Ghostly Blue': { color: '#88aaff', intensity: 2.0 },
+  'Magical Purple': { color: '#d58be8', intensity: 3.5 },
+  'Vampire Red': { color: '#ff0000', intensity: 5.0 },
+  'Emerald Magic': { color: '#00ff88', intensity: 3.0 },
+  'Pure White': { color: '#ffffff', intensity: 3.0 }
+};
+
 export const Environment = () => {
-  const { scene } = useGLTF('./models/island1_model.glb');
+  const { scene } = useGLTF('./models/island2_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
 
-  // Add interactive debug controls for Forest and Windmill
   const { treeSpacing } = useControls('Forest Generation', {
     treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' }
   });
@@ -26,12 +35,29 @@ export const Environment = () => {
     fanSpeed: { value: 2.0, min: 0, max: 10, step: 0.1, label: 'Fan Speed' }
   });
 
+  const [{ lampPreset, lampColor, lampIntensity }, setLamp] = useControls('Street Lamp', () => ({
+    lampPreset: {
+      options: Object.keys(lampPresets),
+      value: 'Warm Vintage',
+      onChange: (v) => {
+        if (v && lampPresets[v]) {
+          setLamp({ lampColor: lampPresets[v].color, lampIntensity: lampPresets[v].intensity });
+        }
+      }
+    },
+    lampColor: { value: '#ffaa00', label: 'Lamp Color' },
+    lampIntensity: { value: 2.5, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
+  })) as any; // Cast to any to avoid complex Leva conditional return types
+
+  const lightMeshRef = useRef<THREE.Mesh | null>(null);
+
   // Optimize tree placement - run ONLY when spacing changes
-  const { treeMatrices, extractedFarmPlots, extractedDepositPlots } = useMemo(() => {
+  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, streetLampPos } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
     const farmPlotsFound: THREE.Vector3[] = [];
     const depositPlotsFound: THREE.Vector3[] = [];
+    let foundLampPos: THREE.Vector3 | null = null;
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
@@ -58,6 +84,13 @@ export const Environment = () => {
       // Grab the well so we can make it interactive
       if (name.includes('well')) {
         wellMeshRef.current = child;
+      }
+      
+      // Grab the street lamp position and mesh
+      if (name === 'light1111') {
+        foundLampPos = new THREE.Vector3();
+        child.getWorldPosition(foundLampPos);
+        lightMeshRef.current = child;
       }
       
       // Find Farm Dirt nodes
@@ -126,12 +159,33 @@ export const Environment = () => {
       }
     });
 
-    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound };
+    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound, streetLampPos: foundLampPos };
   }, [clonedScene, treeSpacing]);
 
   const setFarmPlots = useGameStore(state => state.setFarmPlots);
   const setDepositPlots = useGameStore(state => state.setDepositPlots);
   
+  // Apply glowing emissive material to the light1111 mesh dynamically
+  useEffect(() => {
+    if (lightMeshRef.current) {
+      const mesh = lightMeshRef.current;
+      if (mesh.material) {
+        const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+        // Clone the material so we don't accidentally mutate other objects sharing it
+        if (!mesh.userData.materialCloned) {
+          mesh.material = material.clone();
+          mesh.userData.materialCloned = true;
+        }
+        
+        const activeMaterial = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+        if (activeMaterial && 'emissive' in activeMaterial) {
+          (activeMaterial as THREE.MeshStandardMaterial).emissive = new THREE.Color(lampColor);
+          (activeMaterial as THREE.MeshStandardMaterial).emissiveIntensity = lampIntensity;
+        }
+      }
+    }
+  }, [lampColor, lampIntensity]);
+
   useEffect(() => {
     if (extractedFarmPlots.length > 0) {
       setFarmPlots(extractedFarmPlots);
@@ -220,28 +274,17 @@ export const Environment = () => {
 
   return (
     <>
-      <ambientLight intensity={0.6} color="#4a5568" />
-
-      {/* The Directional Light matches the Sky sunPosition exactly */}
-      <directionalLight 
-        position={[500, 100, 200]} 
-        intensity={2.0} 
-        color="#ffcf99"
-        castShadow 
-        shadow-mapSize-width={1024} // Optimized from 2048 to save massive VRAM and fill-rate
-        shadow-mapSize-height={1024} 
-        shadow-camera-far={1000}
-        shadow-camera-left={-200}
-        shadow-camera-right={200}
-        shadow-camera-top={200}
-        shadow-camera-bottom={-200}
-        shadow-bias={-0.0001}
-        shadow-normalBias={0.05}
-      />
       <RigidBody type="fixed" colliders="trimesh">
         <primitive object={clonedScene} />
       </RigidBody>
       
+      {/* Render the Street Lamp PointLight (without the sphere mesh) */}
+      {streetLampPos && (
+        <group position={streetLampPos}>
+          <pointLight color={lampColor} intensity={lampIntensity} distance={20} castShadow />
+        </group>
+      )}
+
       {/* Render the hyper-optimized instanced trees */}
       {treeMatrices.length > 0 && <InstancedTrees spawnMatrices={treeMatrices} />}
     </>
@@ -249,4 +292,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('./models/island1_model.glb');
+useGLTF.preload('./models/island2_model.glb');

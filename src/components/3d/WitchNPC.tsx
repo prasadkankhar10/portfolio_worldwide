@@ -8,6 +8,7 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 import { SpellEffect } from './SpellEffect';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
+import { DistanceNameTag } from './DistanceNameTag';
 
 interface WitchNPCProps {
   colorTint?: string;
@@ -125,6 +126,12 @@ export const WitchNPC = ({
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
+    // Teleport to spawn if wandering too far (anti-fall/escape bounds)
+    if (startPosRef.current && npcPos.distanceTo(startPosRef.current) > 300) {
+      npcPos.copy(startPosRef.current);
+      if (typeof targetPosRef !== 'undefined' && targetPosRef) targetPosRef.current = null;
+    }
+
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
@@ -393,11 +400,7 @@ export const WitchNPC = ({
       </group>
       
       {/* Debug Name Tag */}
-      <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
-        <div className="bg-black/60 text-white/90 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
-          Witch
-        </div>
-      </Html>
+      <DistanceNameTag name="Witch" />
 
       {/* Interaction Dialog */}
       {isInteracting && (

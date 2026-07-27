@@ -10,6 +10,20 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
+import { DistanceNameTag } from './DistanceNameTag';
+
+// GC Optimization: Pre-allocate Vector3s outside of the render loop
+const _dirToStart = new THREE.Vector3();
+const _testPos = new THREE.Vector3();
+const _dirToPlayer = new THREE.Vector3();
+const _dirToTarget = new THREE.Vector3();
+const _forwardRayOrigin = new THREE.Vector3();
+const _leftShoulder = new THREE.Vector3();
+const _rightShoulder = new THREE.Vector3();
+const _snapRayOrigin = new THREE.Vector3();
+const _distVectorStart = new THREE.Vector2();
+const _distVectorEnd = new THREE.Vector2();
+
 
 interface KnightGoldenFemaleNPCProps {
   colorTint?: string;
@@ -134,6 +148,12 @@ export const KnightGoldenFemaleNPC = ({
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
+    // Teleport to spawn if wandering too far (anti-fall/escape bounds)
+    if (startPosRef.current && npcPos.distanceTo(startPosRef.current) > 300) {
+      npcPos.copy(startPosRef.current);
+      if (typeof targetPosRef !== 'undefined' && targetPosRef) targetPosRef.current = null;
+    }
+
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
@@ -311,9 +331,9 @@ export const KnightGoldenFemaleNPC = ({
         let pickTargetZ = npcPos.z + Math.cos(moveAngle) * 8.0;
         
         if (maxWanderRadius && startPosRef.current) {
-          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
+          const distFromStart = _distVectorStart.set(npcPos.x, npcPos.z).distanceTo(_distVectorEnd.set(startPosRef.current.x, startPosRef.current.z));
           if (distFromStart > maxWanderRadius * 0.8) {
-             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
+             const dirToStart = _dirToStart.subVectors(startPosRef.current, npcPos);
              dirToStart.y = 0;
              if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
              pickTargetX = npcPos.x + dirToStart.x * 8.0;
@@ -321,7 +341,7 @@ export const KnightGoldenFemaleNPC = ({
           }
         }
         
-        const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
+        const testPos = _testPos.set(pickTargetX, 100, pickTargetZ);
         
         const ray = new RAPIER.Ray(testPos, downDir);
         const hit = world.castRay(ray, 200, true);
@@ -403,10 +423,10 @@ export const KnightGoldenFemaleNPC = ({
         let needsToGoHome = false;
         
         if (maxWanderRadius && startPosRef.current) {
-          const distFromStart = new THREE.Vector2(npcPos.x, npcPos.z).distanceTo(new THREE.Vector2(startPosRef.current.x, startPosRef.current.z));
+          const distFromStart = _distVectorStart.set(npcPos.x, npcPos.z).distanceTo(_distVectorEnd.set(startPosRef.current.x, startPosRef.current.z));
           if (distFromStart > maxWanderRadius * 0.8) {
              needsToGoHome = true;
-             const dirToStart = new THREE.Vector3().subVectors(startPosRef.current, npcPos);
+             const dirToStart = _dirToStart.subVectors(startPosRef.current, npcPos);
              dirToStart.y = 0;
              if (dirToStart.lengthSq() > 0.001) dirToStart.normalize();
              pickTargetX = npcPos.x + dirToStart.x * dist;
@@ -420,7 +440,7 @@ export const KnightGoldenFemaleNPC = ({
           pickTargetZ = npcPos.z + Math.sin(angle) * dist;
         }
         
-        const testPos = new THREE.Vector3(pickTargetX, 100, pickTargetZ);
+        const testPos = _testPos.set(pickTargetX, 100, pickTargetZ);
         const ray = new RAPIER.Ray(testPos, downDir);
         const hit = world.castRay(ray, 200, true);
         
@@ -487,7 +507,7 @@ export const KnightGoldenFemaleNPC = ({
     
     if (stateRef.current === 'INTERACTING') {
       interactTimer.current += delta;
-      const dirToPlayer = new THREE.Vector3().subVectors(globalPlayerState.position, npcPos);
+      const dirToPlayer = _dirToPlayer.subVectors(globalPlayerState.position, npcPos);
       dirToPlayer.y = 0;
       if (dirToPlayer.lengthSq() > 0.001) {
         dirToPlayer.normalize();
@@ -502,7 +522,7 @@ export const KnightGoldenFemaleNPC = ({
         nextAnim = anims.idle;
       }
     } else if ((stateRef.current === 'WALKING' || stateRef.current === 'SUMMONED') && targetPosRef.current) {
-      const dirToTarget = new THREE.Vector3().subVectors(targetPosRef.current, npcPos);
+      const dirToTarget = _dirToTarget.subVectors(targetPosRef.current, npcPos);
       dirToTarget.y = 0; 
       const distToTarget = dirToTarget.length();
       
@@ -515,9 +535,9 @@ export const KnightGoldenFemaleNPC = ({
       
       // --- WIDE-SHOULDER ROOMBA PATHFINDING ---
       const shoulderWidth = 0.35;
-      const forwardRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.6, npcPos.z);
-      const leftShoulder = new THREE.Vector3(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
-      const rightShoulder = new THREE.Vector3(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
+      const forwardRayOrigin = _forwardRayOrigin.set(npcPos.x, npcPos.y + 0.6, npcPos.z);
+      const leftShoulder = _leftShoulder.set(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
+      const rightShoulder = _rightShoulder.set(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
       
       const fHit = world.castRayAndGetNormal(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.0, true);
       const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.0, true);
@@ -556,7 +576,7 @@ export const KnightGoldenFemaleNPC = ({
     }
     // GRAVITY & GROUND SNAPPING (Runs every frame for EVERY NPC)
     // Cast from slightly above the NPC to prevent them from teleporting onto tree canopies above them!
-    const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 2.0, npcPos.z);
+    const snapRayOrigin = _snapRayOrigin.set(npcPos.x, npcPos.y + 2.0, npcPos.z);
     const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
     const snapHit = world.castRay(snapRay, 50.0, true);
     
@@ -597,11 +617,7 @@ export const KnightGoldenFemaleNPC = ({
       
       
       {/* Debug Name Tag */}
-      <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
-        <div className="bg-black/60 text-white/90 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
-          Knight_Golden_Female
-        </div>
-      </Html>
+      <DistanceNameTag name="Knight_Golden_Female" />
 
       {/* Interaction Dialog */}
       {isInteracting && (

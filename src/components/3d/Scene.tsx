@@ -1,8 +1,10 @@
 import { Physics } from '@react-three/rapier';
 import { Environment as DreiEnvironment, Stats, Sky } from '@react-three/drei';
-import { EffectComposer, Outline, Selection } from '@react-three/postprocessing';
+import { EffectComposer, Outline, Selection, Bloom, Vignette } from '@react-three/postprocessing';
 import { Environment } from './Environment';
+import { AtmosphereManager } from './AtmosphereManager';
 import { Character } from './Character';
+import { CompanionOrb } from './CompanionOrb';
 import { Birds } from './Birds';
 import { Fireflies } from './Fireflies';
 import { FreeCamManager } from './FreeCam';
@@ -55,16 +57,16 @@ export const Scene = () => {
            hiddenEdgeColor={0xffffff} 
            edgeStrength={3} 
         />
+        <Bloom 
+          intensity={1.2} 
+          luminanceThreshold={0.85} 
+          luminanceSmoothing={0.1} 
+          mipmapBlur 
+        />
+        <Vignette eskil={false} offset={0.1} darkness={1.1} />
       </EffectComposer>
 
-      {/* Stylized Peach Sky Background */}
-      <color attach="background" args={['#ffb07c']} />
-      
-      {/* Fog to blend the edges of the island smoothly into the horizon */}
-      <fog attach="fog" args={['#ffb07c', 150, 600]} />
-
-      {/* HDRI Image-Based Lighting (Invisible) */}
-      <DreiEnvironment preset="sunset" background={false} />
+      <AtmosphereManager />
 
       <NpcChatSystem />
       <Physics debug={false}>
@@ -77,7 +79,12 @@ export const Scene = () => {
 
         <Environment />
         <Sea />
-        {hasStarted && <Character />}
+        {hasStarted && (
+          <>
+            <Character />
+            <CompanionOrb />
+          </>
+        )}
         
         
       {/* Market Visitors */}
@@ -119,7 +126,7 @@ export const Scene = () => {
         <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
         <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
         <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
-        <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} />
+        <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
         <RitualCenter />
       </Physics>
 

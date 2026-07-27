@@ -12,6 +12,7 @@ export const MobileControls: React.FC = () => {
   const activeOutlineMesh = useGameStore(state => state.activeOutlineMesh);
   const toggleTracker = useGameStore(state => state.toggleTracker);
   
+  const cameraTouchId = useRef<number | null>(null);
   const lastTouch = useRef<{x: number, y: number} | null>(null);
 
   if (!isMobile) return null;
@@ -23,19 +24,53 @@ export const MobileControls: React.FC = () => {
       <div 
         className="absolute top-0 right-0 w-1/2 h-full pointer-events-auto touch-none"
         onTouchStart={(e) => {
-          lastTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        }}
-        onTouchMove={(e) => {
-          if (lastTouch.current) {
-            const dx = e.touches[0].clientX - lastTouch.current.x;
-            const dy = e.touches[0].clientY - lastTouch.current.y;
-            setVirtualCameraDelta(dx, dy);
-            lastTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          // Only register a new touch if we aren't already tracking one
+          if (cameraTouchId.current === null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const touch = e.changedTouches[i];
+              cameraTouchId.current = touch.identifier;
+              lastTouch.current = { x: touch.clientX, y: touch.clientY };
+              break; // Track the first valid touch in this zone
+            }
           }
         }}
-        onTouchEnd={() => {
-          lastTouch.current = null;
-          setVirtualCameraDelta(0, 0);
+        onTouchMove={(e) => {
+          if (cameraTouchId.current !== null && lastTouch.current) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const touch = e.changedTouches[i];
+              if (touch.identifier === cameraTouchId.current) {
+                const dx = touch.clientX - lastTouch.current.x;
+                const dy = touch.clientY - lastTouch.current.y;
+                setVirtualCameraDelta(dx, dy);
+                lastTouch.current = { x: touch.clientX, y: touch.clientY };
+                break;
+              }
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (cameraTouchId.current !== null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === cameraTouchId.current) {
+                cameraTouchId.current = null;
+                lastTouch.current = null;
+                setVirtualCameraDelta(0, 0);
+                break;
+              }
+            }
+          }
+        }}
+        onTouchCancel={(e) => {
+          if (cameraTouchId.current !== null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === cameraTouchId.current) {
+                cameraTouchId.current = null;
+                lastTouch.current = null;
+                setVirtualCameraDelta(0, 0);
+                break;
+              }
+            }
+          }
         }}
       />
 

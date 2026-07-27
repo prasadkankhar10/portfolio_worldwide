@@ -9,7 +9,8 @@ import type { ControlsType } from '../../App';
 import { useGameStore } from '../../store/useGameStore';
 
 export const globalPlayerState = {
-  position: new THREE.Vector3()
+  position: new THREE.Vector3(),
+  quaternion: new THREE.Quaternion()
 };
 
 export const Character = () => {
@@ -56,7 +57,7 @@ export const Character = () => {
   useEffect(() => {
     scene.traverse((child: any) => {
       if (child.isMesh) {
-        child.castShadow = true;
+        child.castShadow = false; // Performance optimization: disable real-time NPC shadows
         child.receiveShadow = true;
       }
     });
@@ -173,8 +174,11 @@ export const Character = () => {
       dirEl.innerText = dir;
     }
     
-    // Export real-time position for NPCs
+    // Export real-time position and rotation for NPCs
     globalPlayerState.position.set(charTranslation.x, charTranslation.y, charTranslation.z);
+    if (characterRef.current) {
+      globalPlayerState.quaternion.copy(characterRef.current.quaternion);
+    }
 
     // 1. Calculate Movement relative to Camera Yaw
     const moveDirection = new THREE.Vector3();

@@ -298,3 +298,8 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
     </group>
   );
 }
+
+// Preload dynamic visitor models
+useGLTF.preload('./models/NPCs/Casual3_Male.glb');
+useGLTF.preload('./models/NPCs/Knight_Male.glb');
+useGLTF.preload('./models/NPCs/Cowboy_Female.glb');

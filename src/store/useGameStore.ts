@@ -13,6 +13,8 @@ export type GameState = 'menu' | 'playing';
 export type PortfolioSection = 'none' | 'about' | 'projects' | 'contact';
 
 interface GameStore {
+  currentAtmosphere: string;
+  setAtmosphere: (atmosphere: string) => void;
   isLoaded: boolean;
   setIsLoaded: (loaded: boolean) => void;
   gameState: GameState;
@@ -73,6 +75,8 @@ interface GameStore {
 }
 
 export const useGameStore = create<GameStore>((set) => ({
+  currentAtmosphere: 'Sunny Valley',
+  setAtmosphere: (atmosphere) => set({ currentAtmosphere: atmosphere }),
   isLoaded: false,
   setIsLoaded: (loaded) => set({ isLoaded: loaded }),
   

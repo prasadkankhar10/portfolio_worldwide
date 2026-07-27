@@ -126,6 +126,12 @@ export const PirateMaleNPC = ({
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
+    // Teleport to spawn if wandering too far (anti-fall/escape bounds)
+    if (startPosRef.current && npcPos.distanceTo(startPosRef.current) > 300) {
+      npcPos.copy(startPosRef.current);
+      if (typeof targetPosRef !== 'undefined' && targetPosRef) targetPosRef.current = null;
+    }
+
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 

@@ -10,6 +10,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
+import { DistanceNameTag } from './DistanceNameTag';
 
 interface WizardNPCProps {
   startState?: string;
@@ -18,6 +19,7 @@ interface WizardNPCProps {
   startPosition?: THREE.Vector3;
   maxWanderRadius?: number;
   dialogId?: string;
+  participatesInRitual?: boolean;
 }
 
 export const WizardNPC = ({ 
@@ -26,7 +28,8 @@ export const WizardNPC = ({
   roleName = "Wizard",
   startState,
   maxWanderRadius,
-  dialogId
+  dialogId,
+  participatesInRitual = false
 }: WizardNPCProps) => {
   const { scene, animations } = useGLTF('./models/NPCs/Wizard.glb');
   const containerRef = useRef<THREE.Group>(null);
@@ -132,6 +135,12 @@ export const WizardNPC = ({
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
     const npcPos = containerRef.current.position;
+    // Teleport to spawn if wandering too far (anti-fall/escape bounds)
+    if (startPosRef.current && npcPos.distanceTo(startPosRef.current) > 300) {
+      npcPos.copy(startPosRef.current);
+      if (typeof targetPosRef !== 'undefined' && targetPosRef) targetPosRef.current = null;
+    }
+
     let nextAnim = currentAnim.current;
     let nextState = stateRef.current;
 
@@ -197,7 +206,7 @@ export const WizardNPC = ({
     }
 
     // --- RITUAL OVERRIDE ---
-    if (activeRitual) {
+    if (activeRitual && participatesInRitual) {
        nextState = 'RITUAL';
        const ritualTarget = new THREE.Vector3(72, npcPos.y, -81);
        const dirToTarget = new THREE.Vector3().subVectors(ritualTarget, npcPos);
@@ -470,11 +479,7 @@ export const WizardNPC = ({
       </group>
       
       {/* Debug Name Tag */}
-      <Html position={[0, 4.0, 0]} center zIndexRange={[50, 0]}>
-        <div className="bg-black/60 text-white/90 text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap shadow-sm border border-white/10 pointer-events-none">
-          Wizard
-        </div>
-      </Html>
+      <DistanceNameTag name="Wizard" />
 
       {/* Interaction Dialog */}
       {isInteracting && (
