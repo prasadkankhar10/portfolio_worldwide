@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Joystick } from 'react-joystick-component';
 import { useGameStore } from '../../store/useGameStore';
-import { Hand, Map } from 'lucide-react';
+import { Hand, Map, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const MobileControls: React.FC = () => {
   const isMobile = useGameStore(state => state.isMobile);
@@ -14,6 +14,18 @@ export const MobileControls: React.FC = () => {
   
   const cameraTouchId = useRef<number | null>(null);
   const lastTouch = useRef<{x: number, y: number} | null>(null);
+  
+  const dpadState = useRef({ up: false, down: false, left: false, right: false });
+
+  const updateDPad = () => {
+    let x = 0;
+    let y = 0;
+    if (dpadState.current.up) y += 1;
+    if (dpadState.current.down) y -= 1;
+    if (dpadState.current.right) x += 1;
+    if (dpadState.current.left) x -= 1;
+    setVirtualJoystick(x, y);
+  };
 
   if (!isMobile) return null;
 
@@ -84,23 +96,43 @@ export const MobileControls: React.FC = () => {
         </button>
       </div>
 
-      {/* Left Joystick */}
-      <div className="absolute bottom-12 left-12 pointer-events-auto opacity-70 touch-none">
-        <Joystick 
-          size={120} 
-          sticky={false} 
-          baseColor="rgba(255,255,255,0.2)" 
-          stickColor="rgba(255,255,255,0.8)" 
-          move={(e) => {
-            // react-joystick-component gives x and y in pixels from center
-            // normalize to roughly -1 to 1 based on size/2
-            const max = 60; 
-            const nx = (e.x || 0) / max;
-            const ny = -((e.y || 0) / max); // Fixed: Inverted Y so pushing UP is positive
-            setVirtualJoystick(nx, ny);
-          }} 
-          stop={() => setVirtualJoystick(0, 0)} 
-        />
+      {/* Left D-Pad */}
+      <div className="absolute bottom-12 left-12 w-32 h-32 pointer-events-auto opacity-70 touch-none">
+        {/* UP */}
+        <button
+          className="absolute top-0 left-10 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          onTouchStart={() => { dpadState.current.up = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.up = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.up = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ><ChevronUp size={24} /></button>
+        
+        {/* DOWN */}
+        <button
+          className="absolute bottom-0 left-10 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          onTouchStart={() => { dpadState.current.down = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.down = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.down = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ><ChevronDown size={24} /></button>
+        
+        {/* LEFT */}
+        <button
+          className="absolute top-10 left-0 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          onTouchStart={() => { dpadState.current.left = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.left = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.left = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ><ChevronLeft size={24} /></button>
+        
+        {/* RIGHT */}
+        <button
+          className="absolute top-10 right-0 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          onTouchStart={() => { dpadState.current.right = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.right = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.right = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ><ChevronRight size={24} /></button>
       </div>
 
       {/* Right Action Buttons */}
