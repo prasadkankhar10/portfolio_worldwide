@@ -85,7 +85,7 @@ export const MobileControls: React.FC = () => {
       </div>
 
       {/* Left Joystick */}
-      <div className="absolute bottom-12 left-12 pointer-events-auto opacity-70">
+      <div className="absolute bottom-12 left-12 pointer-events-auto opacity-70 touch-none">
         <Joystick 
           size={120} 
           sticky={false} 
@@ -96,10 +96,7 @@ export const MobileControls: React.FC = () => {
             // normalize to roughly -1 to 1 based on size/2
             const max = 60; 
             const nx = (e.x || 0) / max;
-            const ny = (e.y || 0) / max;
-            // The stick pushes 'forward' when Y is positive in some coordinate systems,
-            // but typical screen coords: up is negative Y. 
-            // We'll pass it raw and flip in Character.tsx if needed.
+            const ny = -((e.y || 0) / max); // Fixed: Inverted Y so pushing UP is positive
             setVirtualJoystick(nx, ny);
           }} 
           stop={() => setVirtualJoystick(0, 0)} 

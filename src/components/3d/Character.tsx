@@ -78,7 +78,7 @@ export const Character = () => {
       // Ignore character mouse movement if free cam is active
       if (document.pointerLockElement && gameState === 'playing' && !isFreeCam) {
         yaw.current -= e.movementX * 0.002;
-        pitch.current -= e.movementY * 0.002;
+        pitch.current += e.movementY * 0.002; // Fixed: Moving mouse up looks up
         pitch.current = Math.max(minPitch, Math.min(maxPitch, pitch.current));
       }
     };
@@ -109,6 +109,7 @@ export const Character = () => {
     const { virtualJoystick, virtualButtons, virtualCameraDelta, setVirtualCameraDelta, isMobile } = useGameStore.getState();
     
     if (isMobile) {
+      // Fixed: Joystick Y was inverted. Now pushing up (positive Y in react-joystick) = forward
       forward = forward || virtualJoystick.y > 0.1;
       back = back || virtualJoystick.y < -0.1;
       right = right || virtualJoystick.x > 0.1;
@@ -118,8 +119,8 @@ export const Character = () => {
       
       // Apply virtual camera delta
       if (virtualCameraDelta.x !== 0 || virtualCameraDelta.y !== 0) {
-        yaw.current -= virtualCameraDelta.x * 0.005;
-        pitch.current -= virtualCameraDelta.y * 0.005;
+        yaw.current -= virtualCameraDelta.x * 0.005; // Swipe left = look left
+        pitch.current += virtualCameraDelta.y * 0.005; // Fixed: Swipe up = look up
         pitch.current = Math.max(minPitch, Math.min(maxPitch, pitch.current));
         // Reset delta after consumption
         setVirtualCameraDelta(0, 0);
