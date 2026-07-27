@@ -96,43 +96,83 @@ export const MobileControls: React.FC = () => {
         </button>
       </div>
 
-      {/* Left D-Pad */}
-      <div className="absolute bottom-12 left-12 w-32 h-32 pointer-events-auto opacity-70 touch-none">
+      {/* Left 8-Way D-Pad */}
+      <div className="absolute bottom-12 left-8 w-40 h-40 grid grid-cols-3 grid-rows-3 gap-1 pointer-events-auto opacity-70 touch-none">
+        
+        {/* Top-Left */}
+        <button
+          className="bg-white/10 border border-white/30 rounded-tl-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
+          onTouchStart={() => { dpadState.current.up = true; dpadState.current.left = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.up = false; dpadState.current.left = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.up = false; dpadState.current.left = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ></button>
+        
         {/* UP */}
         <button
-          className="absolute top-0 left-10 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          className="bg-white/20 border-2 border-white/50 rounded-t flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
           onTouchStart={() => { dpadState.current.up = true; updateDPad(); }}
           onTouchEnd={() => { dpadState.current.up = false; updateDPad(); }}
           onTouchCancel={() => { dpadState.current.up = false; updateDPad(); }}
           onContextMenu={(e) => e.preventDefault()}
         ><ChevronUp size={24} /></button>
-        
-        {/* DOWN */}
+
+        {/* Top-Right */}
         <button
-          className="absolute bottom-0 left-10 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
-          onTouchStart={() => { dpadState.current.down = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.down = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.down = false; updateDPad(); }}
+          className="bg-white/10 border border-white/30 rounded-tr-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
+          onTouchStart={() => { dpadState.current.up = true; dpadState.current.right = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.up = false; dpadState.current.right = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.up = false; dpadState.current.right = false; updateDPad(); }}
           onContextMenu={(e) => e.preventDefault()}
-        ><ChevronDown size={24} /></button>
+        ></button>
         
         {/* LEFT */}
         <button
-          className="absolute top-10 left-0 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          className="bg-white/20 border-2 border-white/50 rounded-l flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
           onTouchStart={() => { dpadState.current.left = true; updateDPad(); }}
           onTouchEnd={() => { dpadState.current.left = false; updateDPad(); }}
           onTouchCancel={() => { dpadState.current.left = false; updateDPad(); }}
           onContextMenu={(e) => e.preventDefault()}
         ><ChevronLeft size={24} /></button>
         
+        {/* Center (Empty) */}
+        <div className="bg-black/10 rounded-full shadow-inner"></div>
+
         {/* RIGHT */}
         <button
-          className="absolute top-10 right-0 w-12 h-12 bg-white/20 border-2 border-white/50 rounded flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          className="bg-white/20 border-2 border-white/50 rounded-r flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
           onTouchStart={() => { dpadState.current.right = true; updateDPad(); }}
           onTouchEnd={() => { dpadState.current.right = false; updateDPad(); }}
           onTouchCancel={() => { dpadState.current.right = false; updateDPad(); }}
           onContextMenu={(e) => e.preventDefault()}
         ><ChevronRight size={24} /></button>
+
+        {/* Bottom-Left */}
+        <button
+          className="bg-white/10 border border-white/30 rounded-bl-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
+          onTouchStart={() => { dpadState.current.down = true; dpadState.current.left = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.down = false; dpadState.current.left = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.down = false; dpadState.current.left = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ></button>
+        
+        {/* DOWN */}
+        <button
+          className="bg-white/20 border-2 border-white/50 rounded-b flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
+          onTouchStart={() => { dpadState.current.down = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.down = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.down = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ><ChevronDown size={24} /></button>
+
+        {/* Bottom-Right */}
+        <button
+          className="bg-white/10 border border-white/30 rounded-br-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
+          onTouchStart={() => { dpadState.current.down = true; dpadState.current.right = true; updateDPad(); }}
+          onTouchEnd={() => { dpadState.current.down = false; dpadState.current.right = false; updateDPad(); }}
+          onTouchCancel={() => { dpadState.current.down = false; dpadState.current.right = false; updateDPad(); }}
+          onContextMenu={(e) => e.preventDefault()}
+        ></button>
       </div>
 
       {/* Right Action Buttons */}
