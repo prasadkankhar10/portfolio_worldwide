@@ -15,16 +15,31 @@ export const MobileControls: React.FC = () => {
   const cameraTouchId = useRef<number | null>(null);
   const lastTouch = useRef<{x: number, y: number} | null>(null);
   
-  const dpadState = useRef({ up: false, down: false, left: false, right: false });
+  // D-Pad Touch Tracking
+  const dpadRef = useRef<HTMLDivElement>(null);
+  const dpadTouchId = useRef<number | null>(null);
+  const [activeDPad, setActiveDPad] = React.useState({ up: false, down: false, left: false, right: false });
 
-  const updateDPad = () => {
-    let x = 0;
-    let y = 0;
-    if (dpadState.current.up) y += 1;
-    if (dpadState.current.down) y -= 1;
-    if (dpadState.current.right) x += 1;
-    if (dpadState.current.left) x -= 1;
-    setVirtualJoystick(x, y);
+  const processDPadTouch = (touch: React.Touch) => {
+    if (!dpadRef.current) return;
+    const rect = dpadRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const dx = touch.clientX - centerX;
+    const dy = touch.clientY - centerY;
+    
+    const threshold = 20; // 20px deadzone in center
+    const up = dy < -threshold;
+    const down = dy > threshold;
+    const left = dx < -threshold;
+    const right = dx > threshold;
+    
+    setActiveDPad({ up, down, left, right });
+    setVirtualJoystick(
+      right ? 1 : left ? -1 : 0,
+      up ? 1 : down ? -1 : 0 // Up is positive for Character.tsx logic
+    );
   };
 
   if (!isMobile) return null;
@@ -97,82 +112,89 @@ export const MobileControls: React.FC = () => {
       </div>
 
       {/* Left 8-Way D-Pad */}
-      <div className="absolute bottom-12 left-8 w-40 h-40 grid grid-cols-3 grid-rows-3 gap-1 pointer-events-auto opacity-70 touch-none">
+      <div 
+        ref={dpadRef}
+        className="absolute bottom-12 left-8 w-40 h-40 grid grid-cols-3 grid-rows-3 gap-1 pointer-events-auto opacity-70 touch-none"
+        onTouchStart={(e) => {
+          if (dpadTouchId.current === null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              dpadTouchId.current = e.changedTouches[i].identifier;
+              processDPadTouch(e.changedTouches[i]);
+              break;
+            }
+          }
+        }}
+        onTouchMove={(e) => {
+          if (dpadTouchId.current !== null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === dpadTouchId.current) {
+                processDPadTouch(e.changedTouches[i]);
+                break;
+              }
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (dpadTouchId.current !== null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === dpadTouchId.current) {
+                dpadTouchId.current = null;
+                setActiveDPad({ up: false, down: false, left: false, right: false });
+                setVirtualJoystick(0, 0);
+                break;
+              }
+            }
+          }
+        }}
+        onTouchCancel={(e) => {
+          if (dpadTouchId.current !== null) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === dpadTouchId.current) {
+                dpadTouchId.current = null;
+                setActiveDPad({ up: false, down: false, left: false, right: false });
+                setVirtualJoystick(0, 0);
+                break;
+              }
+            }
+          }
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
         
         {/* Top-Left */}
-        <button
-          className="bg-white/10 border border-white/30 rounded-tl-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
-          onTouchStart={() => { dpadState.current.up = true; dpadState.current.left = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.up = false; dpadState.current.left = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.up = false; dpadState.current.left = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ></button>
+        <div className={`border border-white/30 rounded-tl-xl flex items-center justify-center text-white shadow-sm transition-colors ${activeDPad.up && activeDPad.left ? 'bg-white/40' : 'bg-white/10'}`}></div>
         
         {/* UP */}
-        <button
-          className="bg-white/20 border-2 border-white/50 rounded-t flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
-          onTouchStart={() => { dpadState.current.up = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.up = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.up = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ><ChevronUp size={24} /></button>
+        <div className={`border-2 border-white/50 rounded-t flex items-center justify-center text-white shadow-lg transition-colors ${activeDPad.up && !activeDPad.left && !activeDPad.right ? 'bg-white/40' : 'bg-white/20'}`}>
+          <ChevronUp size={24} />
+        </div>
 
         {/* Top-Right */}
-        <button
-          className="bg-white/10 border border-white/30 rounded-tr-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
-          onTouchStart={() => { dpadState.current.up = true; dpadState.current.right = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.up = false; dpadState.current.right = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.up = false; dpadState.current.right = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ></button>
+        <div className={`border border-white/30 rounded-tr-xl flex items-center justify-center text-white shadow-sm transition-colors ${activeDPad.up && activeDPad.right ? 'bg-white/40' : 'bg-white/10'}`}></div>
         
         {/* LEFT */}
-        <button
-          className="bg-white/20 border-2 border-white/50 rounded-l flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
-          onTouchStart={() => { dpadState.current.left = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.left = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.left = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ><ChevronLeft size={24} /></button>
+        <div className={`border-2 border-white/50 rounded-l flex items-center justify-center text-white shadow-lg transition-colors ${activeDPad.left && !activeDPad.up && !activeDPad.down ? 'bg-white/40' : 'bg-white/20'}`}>
+          <ChevronLeft size={24} />
+        </div>
         
         {/* Center (Empty) */}
         <div className="bg-black/10 rounded-full shadow-inner"></div>
 
         {/* RIGHT */}
-        <button
-          className="bg-white/20 border-2 border-white/50 rounded-r flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
-          onTouchStart={() => { dpadState.current.right = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.right = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.right = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ><ChevronRight size={24} /></button>
+        <div className={`border-2 border-white/50 rounded-r flex items-center justify-center text-white shadow-lg transition-colors ${activeDPad.right && !activeDPad.up && !activeDPad.down ? 'bg-white/40' : 'bg-white/20'}`}>
+          <ChevronRight size={24} />
+        </div>
 
         {/* Bottom-Left */}
-        <button
-          className="bg-white/10 border border-white/30 rounded-bl-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
-          onTouchStart={() => { dpadState.current.down = true; dpadState.current.left = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.down = false; dpadState.current.left = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.down = false; dpadState.current.left = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ></button>
+        <div className={`border border-white/30 rounded-bl-xl flex items-center justify-center text-white shadow-sm transition-colors ${activeDPad.down && activeDPad.left ? 'bg-white/40' : 'bg-white/10'}`}></div>
         
         {/* DOWN */}
-        <button
-          className="bg-white/20 border-2 border-white/50 rounded-b flex items-center justify-center text-white active:bg-white/40 touch-none shadow-lg"
-          onTouchStart={() => { dpadState.current.down = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.down = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.down = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ><ChevronDown size={24} /></button>
+        <div className={`border-2 border-white/50 rounded-b flex items-center justify-center text-white shadow-lg transition-colors ${activeDPad.down && !activeDPad.left && !activeDPad.right ? 'bg-white/40' : 'bg-white/20'}`}>
+          <ChevronDown size={24} />
+        </div>
 
         {/* Bottom-Right */}
-        <button
-          className="bg-white/10 border border-white/30 rounded-br-xl flex items-center justify-center text-white active:bg-white/40 touch-none shadow-sm"
-          onTouchStart={() => { dpadState.current.down = true; dpadState.current.right = true; updateDPad(); }}
-          onTouchEnd={() => { dpadState.current.down = false; dpadState.current.right = false; updateDPad(); }}
-          onTouchCancel={() => { dpadState.current.down = false; dpadState.current.right = false; updateDPad(); }}
-          onContextMenu={(e) => e.preventDefault()}
-        ></button>
+        <div className={`border border-white/30 rounded-br-xl flex items-center justify-center text-white shadow-sm transition-colors ${activeDPad.down && activeDPad.right ? 'bg-white/40' : 'bg-white/10'}`}></div>
       </div>
 
       {/* Right Action Buttons */}
