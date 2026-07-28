@@ -171,9 +171,25 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
   const currentLineIndex = useRef(0);
   const chatTargetId = useRef<string | null>(null);
 
-  useFrame((state, delta) => {
+  useFrame((rootState, delta) => {
     if (!containerRef.current) return;
     const npcPos = containerRef.current.position;
+    // --- SHADOW CULLING ---
+    const distToCam = rootState.camera.position.distanceTo(npcPos);
+    const shouldCastShadow = distToCam < 35; 
+    if (clone.userData.isShadowCulled !== shouldCastShadow) {
+      clone.userData.isShadowCulled = shouldCastShadow;
+      clone.traverse((child: any) => {
+        if (child.isMesh) {
+          child.castShadow = shouldCastShadow;
+          // receiveShadow is kept true so they still look grounded when far away
+          if (child.receiveShadow === undefined || child.receiveShadow === false) {
+             child.receiveShadow = true;
+          }
+        }
+      });
+    }
+
     let nextAnim = 'Idle';
 
     if (stateRef.current === 'THINKING') {
