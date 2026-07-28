@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { InstancedTrees } from './InstancedTrees';
+import { InstancedLamps } from './InstancedLamps';
 import { useControls } from 'leva';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
@@ -20,7 +21,7 @@ const lampPresets: Record<string, { color: string, intensity: number }> = {
 };
 
 export const Environment = () => {
-  const { scene } = useGLTF('./models/island2_model.glb');
+  const { scene } = useGLTF('./models/island3_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
@@ -49,15 +50,13 @@ export const Environment = () => {
     lampIntensity: { value: 2.5, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
   })) as any; // Cast to any to avoid complex Leva conditional return types
 
-  const lightMeshRef = useRef<THREE.Mesh | null>(null);
-
   // Optimize tree placement - run ONLY when spacing changes
-  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, streetLampPos } = useMemo(() => {
+  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, lampMatrices } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
     const farmPlotsFound: THREE.Vector3[] = [];
     const depositPlotsFound: THREE.Vector3[] = [];
-    let foundLampPos: THREE.Vector3 | null = null;
+    const lampSpawnMatrices: THREE.Matrix4[] = [];
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
@@ -86,11 +85,22 @@ export const Environment = () => {
         wellMeshRef.current = child;
       }
       
-      // Grab the street lamp position and mesh
-      if (name === 'light1111') {
-        foundLampPos = new THREE.Vector3();
-        child.getWorldPosition(foundLampPos);
-        lightMeshRef.current = child;
+      // Find lamp_spawn placeholders
+      if (name.includes('lamp_spawn')) {
+        const position = new THREE.Vector3();
+        const rotation = new THREE.Quaternion();
+        const scale = new THREE.Vector3();
+        
+        child.matrixWorld.decompose(position, rotation, scale);
+        
+        const spawnMatrix = new THREE.Matrix4();
+        spawnMatrix.compose(position, rotation, scale);
+        lampSpawnMatrices.push(spawnMatrix);
+        
+        // Remove placeholder cube
+        setTimeout(() => {
+          if (child.parent) child.parent.remove(child);
+        }, 0);
       }
       
       // Find Farm Dirt nodes
@@ -159,32 +169,11 @@ export const Environment = () => {
       }
     });
 
-    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound, streetLampPos: foundLampPos };
+    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound, lampMatrices: lampSpawnMatrices };
   }, [clonedScene, treeSpacing]);
 
   const setFarmPlots = useGameStore(state => state.setFarmPlots);
   const setDepositPlots = useGameStore(state => state.setDepositPlots);
-  
-  // Apply glowing emissive material to the light1111 mesh dynamically
-  useEffect(() => {
-    if (lightMeshRef.current) {
-      const mesh = lightMeshRef.current;
-      if (mesh.material) {
-        const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-        // Clone the material so we don't accidentally mutate other objects sharing it
-        if (!mesh.userData.materialCloned) {
-          mesh.material = material.clone();
-          mesh.userData.materialCloned = true;
-        }
-        
-        const activeMaterial = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-        if (activeMaterial && 'emissive' in activeMaterial) {
-          (activeMaterial as THREE.MeshStandardMaterial).emissive = new THREE.Color(lampColor);
-          (activeMaterial as THREE.MeshStandardMaterial).emissiveIntensity = lampIntensity;
-        }
-      }
-    }
-  }, [lampColor, lampIntensity]);
 
   useEffect(() => {
     if (extractedFarmPlots.length > 0) {
@@ -278,12 +267,8 @@ export const Environment = () => {
         <primitive object={clonedScene} />
       </RigidBody>
       
-      {/* Render the Street Lamp PointLight (without the sphere mesh) */}
-      {streetLampPos && (
-        <group position={streetLampPos}>
-          <pointLight color={lampColor} intensity={lampIntensity} distance={20} castShadow />
-        </group>
-      )}
+      {/* Render 100+ Instanced Lamps dynamically culled */}
+      {lampMatrices.length > 0 && <InstancedLamps spawnMatrices={lampMatrices} />}
 
       {/* Render the hyper-optimized instanced trees */}
       {treeMatrices.length > 0 && <InstancedTrees spawnMatrices={treeMatrices} />}
@@ -292,4 +277,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('./models/island2_model.glb');
+useGLTF.preload('./models/island3_model.glb');
