@@ -199,8 +199,8 @@ export const AtmosphereManager = () => {
         intensity={preset.sunIntensity * brightness} 
         color={preset.sunColor}
         castShadow 
-        shadow-mapSize-width={1024} 
-        shadow-mapSize-height={1024} 
+        shadow-mapSize-width={512} 
+        shadow-mapSize-height={512} 
         shadow-camera-far={1000}
         shadow-camera-left={-200}
         shadow-camera-right={200}

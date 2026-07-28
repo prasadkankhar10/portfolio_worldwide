@@ -91,6 +91,7 @@ function App() {
           shadows
           camera={{ position: [0, 5, 10], fov: 60 }}
           gl={{ antialias: true }}
+          dpr={[1, 1.5]}
         >
           <Suspense fallback={null}>
             <Scene />

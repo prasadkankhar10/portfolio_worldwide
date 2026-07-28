@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import { Physics } from '@react-three/rapier';
 import { Environment as DreiEnvironment, Stats, Sky } from '@react-three/drei';
 import { EffectComposer, Outline, Selection, Bloom, Vignette } from '@react-three/postprocessing';
@@ -9,34 +10,34 @@ import { Birds } from './Birds';
 import { Fireflies } from './Fireflies';
 import { FreeCamManager } from './FreeCam';
 import { Sea } from './Sea';
-import { ClericNPC } from './ClericNPC';
-import { BlueSoldierFemaleNPC } from './BlueSoldierFemaleNPC';
-import { BlueSoldierMaleNPC } from './BlueSoldierMaleNPC';
-import { Casual3FemaleNPC } from './Casual3FemaleNPC';
-import { Casual3MaleNPC } from './Casual3MaleNPC';
-import { CowboyFemaleNPC } from './CowboyFemaleNPC';
-import { CowboyHairNPC } from './CowboyHairNPC';
-import { CowboyMaleNPC } from './CowboyMaleNPC';
-import { ElfNPC } from './ElfNPC';
-import { GoblinFemaleNPC } from './GoblinFemaleNPC';
-import { GoblinMaleNPC } from './GoblinMaleNPC';
-import { KnightGoldenFemaleNPC } from './KnightGoldenFemaleNPC';
-import { KnightGoldenMaleNPC } from './KnightGoldenMaleNPC';
-import { KnightMaleNPC } from './KnightMaleNPC';
-import { PirateFemaleNPC } from './PirateFemaleNPC';
-import { PirateMaleNPC } from './PirateMaleNPC';
-import { VikingHelmetNPC } from './VikingHelmetNPC';
-import { VikingFemaleNPC } from './VikingFemaleNPC';
-import { VikingMaleNPC } from './VikingMaleNPC';
-import { WitchNPC } from './WitchNPC';
+const ClericNPC = React.lazy(() => import('./ClericNPC').then(m => ({ default: m.ClericNPC })));
+const BlueSoldierFemaleNPC = React.lazy(() => import('./BlueSoldierFemaleNPC').then(m => ({ default: m.BlueSoldierFemaleNPC })));
+const BlueSoldierMaleNPC = React.lazy(() => import('./BlueSoldierMaleNPC').then(m => ({ default: m.BlueSoldierMaleNPC })));
+const Casual3FemaleNPC = React.lazy(() => import('./Casual3FemaleNPC').then(m => ({ default: m.Casual3FemaleNPC })));
+const Casual3MaleNPC = React.lazy(() => import('./Casual3MaleNPC').then(m => ({ default: m.Casual3MaleNPC })));
+const CowboyFemaleNPC = React.lazy(() => import('./CowboyFemaleNPC').then(m => ({ default: m.CowboyFemaleNPC })));
+const CowboyHairNPC = React.lazy(() => import('./CowboyHairNPC').then(m => ({ default: m.CowboyHairNPC })));
+const CowboyMaleNPC = React.lazy(() => import('./CowboyMaleNPC').then(m => ({ default: m.CowboyMaleNPC })));
+const ElfNPC = React.lazy(() => import('./ElfNPC').then(m => ({ default: m.ElfNPC })));
+const GoblinFemaleNPC = React.lazy(() => import('./GoblinFemaleNPC').then(m => ({ default: m.GoblinFemaleNPC })));
+const GoblinMaleNPC = React.lazy(() => import('./GoblinMaleNPC').then(m => ({ default: m.GoblinMaleNPC })));
+const KnightGoldenFemaleNPC = React.lazy(() => import('./KnightGoldenFemaleNPC').then(m => ({ default: m.KnightGoldenFemaleNPC })));
+const KnightGoldenMaleNPC = React.lazy(() => import('./KnightGoldenMaleNPC').then(m => ({ default: m.KnightGoldenMaleNPC })));
+const KnightMaleNPC = React.lazy(() => import('./KnightMaleNPC').then(m => ({ default: m.KnightMaleNPC })));
+const PirateFemaleNPC = React.lazy(() => import('./PirateFemaleNPC').then(m => ({ default: m.PirateFemaleNPC })));
+const PirateMaleNPC = React.lazy(() => import('./PirateMaleNPC').then(m => ({ default: m.PirateMaleNPC })));
+const VikingHelmetNPC = React.lazy(() => import('./VikingHelmetNPC').then(m => ({ default: m.VikingHelmetNPC })));
+const VikingFemaleNPC = React.lazy(() => import('./VikingFemaleNPC').then(m => ({ default: m.VikingFemaleNPC })));
+const VikingMaleNPC = React.lazy(() => import('./VikingMaleNPC').then(m => ({ default: m.VikingMaleNPC })));
+const WitchNPC = React.lazy(() => import('./WitchNPC').then(m => ({ default: m.WitchNPC })));
 
-import { VikingBlacksmithNPC } from './VikingBlacksmithNPC';
-import { CowboyShopNPC } from './CowboyShopNPC';
-import { CasualShopNPC } from './CasualShopNPC';
-import { WitchShopNPC } from './WitchShopNPC';
-import { GoblinFruitNPC } from './GoblinFruitNPC';
-import { WizardNPC } from './WizardNPC';
-import { MarketVisitorNPC } from './MarketVisitorNPC';
+const VikingBlacksmithNPC = React.lazy(() => import('./VikingBlacksmithNPC').then(m => ({ default: m.VikingBlacksmithNPC })));
+const CowboyShopNPC = React.lazy(() => import('./CowboyShopNPC').then(m => ({ default: m.CowboyShopNPC })));
+const CasualShopNPC = React.lazy(() => import('./CasualShopNPC').then(m => ({ default: m.CasualShopNPC })));
+const WitchShopNPC = React.lazy(() => import('./WitchShopNPC').then(m => ({ default: m.WitchShopNPC })));
+const GoblinFruitNPC = React.lazy(() => import('./GoblinFruitNPC').then(m => ({ default: m.GoblinFruitNPC })));
+const WizardNPC = React.lazy(() => import('./WizardNPC').then(m => ({ default: m.WizardNPC })));
+const MarketVisitorNPC = React.lazy(() => import('./MarketVisitorNPC').then(m => ({ default: m.MarketVisitorNPC })));
 import { NpcChatSystem } from './NpcChatSystem';
 import { RitualCenter } from './RitualCenter';
 import * as THREE from 'three';
@@ -70,6 +71,7 @@ export const Scene = () => {
 
       <NpcChatSystem />
       <Physics debug={false}>
+      <Suspense fallback={null}>
       {/* Marketplace NPCs */}
       <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
       <CowboyShopNPC position={[112.3, 3.0, 7.2]} rotation={[0, Math.PI, 0]} />
@@ -128,6 +130,7 @@ export const Scene = () => {
         <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
         <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
         <RitualCenter />
+      </Suspense>
       </Physics>
 
       {/* Free Camera Mode */}
