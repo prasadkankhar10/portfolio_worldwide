@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { InstancedTrees } from './InstancedTrees';
+import { DynamicLamps } from './DynamicLamps';
 import { useControls } from 'leva';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
@@ -27,8 +28,9 @@ export const Environment = () => {
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
 
-  const { treeSpacing } = useControls('Forest Generation', {
-    treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' }
+  const { treeSpacing, treeExclusionRadius } = useControls('Forest Generation', {
+    treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' },
+    treeExclusionRadius: { value: 2, min: 0, max: 10, step: 0.1, label: 'Exclusion Radius' }
   });
 
   const { fanSpeed } = useControls('Windmill', {
@@ -52,12 +54,12 @@ export const Environment = () => {
   const lightMeshRef = useRef<THREE.Mesh | null>(null);
 
   // Optimize tree placement - run ONLY when spacing changes
-  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, streetLampPos } = useMemo(() => {
+  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, lampPositions } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
     const farmPlotsFound: THREE.Vector3[] = [];
     const depositPlotsFound: THREE.Vector3[] = [];
-    let foundLampPos: THREE.Vector3 | null = null;
+    const lampPlotsFound: THREE.Vector3[] = [];
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
@@ -86,11 +88,21 @@ export const Environment = () => {
         wellMeshRef.current = child;
       }
       
-      // Grab the street lamp position and mesh
-      if (name === 'light1111') {
-        foundLampPos = new THREE.Vector3();
-        child.getWorldPosition(foundLampPos);
-        lightMeshRef.current = child;
+      // Extract ALL street lamps for the Dynamic Light Culling System
+      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern')) {
+        const position = new THREE.Vector3();
+        child.getWorldPosition(position);
+        
+        // Massive optimization: Give the physical lamp bulb a glowing emissive material.
+        // This looks like light is glowing, but costs zero performance!
+        if (child.material) {
+           child.material = child.material.clone();
+           child.material.emissive = new THREE.Color(lampColor);
+           child.material.emissiveIntensity = 3.0; // Glow brightly
+        }
+
+        lampPlotsFound.push(position.clone());
+        lightMeshRef.current = child; // Keep reference to one of them just in case
       }
       
       // Find Farm Dirt nodes
@@ -159,8 +171,13 @@ export const Environment = () => {
       }
     });
 
-    return { treeMatrices: matrices, extractedFarmPlots: farmPlotsFound, extractedDepositPlots: depositPlotsFound, streetLampPos: foundLampPos };
-  }, [clonedScene, treeSpacing]);
+    return { 
+      treeMatrices: matrices, 
+      extractedFarmPlots: farmPlotsFound, 
+      extractedDepositPlots: depositPlotsFound, 
+      lampPositions: lampPlotsFound 
+    };
+  }, [clonedScene, treeSpacing, treeExclusionRadius, lampColor]);
 
   const setFarmPlots = useGameStore(state => state.setFarmPlots);
   const setDepositPlots = useGameStore(state => state.setDepositPlots);
@@ -278,11 +295,13 @@ export const Environment = () => {
         <primitive object={clonedScene} />
       </RigidBody>
       
-      {/* Render the Street Lamp PointLight (without the sphere mesh) */}
-      {streetLampPos && (
-        <group position={streetLampPos}>
-          <pointLight color={lampColor} intensity={lampIntensity} distance={20} castShadow />
-        </group>
+      {/* Dynamic Light Culling System for 100+ Lamps */}
+      {lampPositions.length > 0 && (
+         <DynamicLamps 
+            lampPositions={lampPositions} 
+            lampColor={lampColor} 
+            lampIntensity={lampIntensity} 
+         />
       )}
 
       {/* Render the hyper-optimized instanced trees */}
