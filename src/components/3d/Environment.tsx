@@ -21,7 +21,7 @@ const lampPresets: Record<string, { color: string, intensity: number }> = {
 };
 
 export const Environment = () => {
-  const { scene } = useGLTF('./models/island3_model.glb');
+  const { scene } = useGLTF('./models/island2_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
@@ -91,7 +91,7 @@ export const Environment = () => {
       
       // Extract ALL street lamps for the Dynamic Light Culling System
       // We check both the object's name AND the material's name!
-      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern') || materialName.includes('light1111') || materialName.includes('lamp')) {
+      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern') || materialName.includes('lamp_material')) {
         const position = new THREE.Vector3();
         child.getWorldPosition(position);
         
@@ -313,4 +313,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('./models/island3_model.glb');
+useGLTF.preload('./models/island2_model.glb');
