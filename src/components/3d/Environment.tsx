@@ -72,6 +72,7 @@ export const Environment = () => {
       }
 
       const name = child.name.toLowerCase();
+      const materialName = child.material?.name?.toLowerCase() || '';
       
       // Hide the default sea mesh since we are rendering a custom animated one in Sea.tsx
       if (name === 'sea') {
@@ -89,7 +90,8 @@ export const Environment = () => {
       }
       
       // Extract ALL street lamps for the Dynamic Light Culling System
-      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern')) {
+      // We check both the object's name AND the material's name!
+      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern') || materialName.includes('light1111') || materialName.includes('lamp')) {
         const position = new THREE.Vector3();
         child.getWorldPosition(position);
         
