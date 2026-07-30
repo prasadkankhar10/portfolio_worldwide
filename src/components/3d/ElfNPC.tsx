@@ -89,7 +89,7 @@ export const ElfNPC = ({
     }
   }, []);
 
-  const { actions } = useAnimations(animations, modelRef);
+  const { actions, mixer } = useAnimations(animations, modelRef);
 
   // Dynamic animation resolver (Fixes missing animations)
   const anims = useMemo(() => {
@@ -136,6 +136,14 @@ export const ElfNPC = ({
   useFrame((rootState, delta) => {
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
+
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 90;
+    if (containerRef.current.visible !== shouldBeVisible) {
+      containerRef.current.visible = shouldBeVisible;
+      mixer.timeScale = shouldBeVisible ? 1 : 0;
+    }
+    if (!shouldBeVisible) return; // Halt all heavy AI logic and physics updates!
+
 
     const npcPos = containerRef.current.position;
     // --- SHADOW CULLING ---

@@ -60,7 +60,7 @@ export const ClericNPC = ({
     }
   }, []);
 
-  const { actions } = useAnimations(animations, modelRef);
+  const { actions, mixer } = useAnimations(animations, modelRef);
 
   // Hardcoded mappings for Cleric.gltf
   const anims = useMemo(() => {
