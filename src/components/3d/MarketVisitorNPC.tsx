@@ -174,7 +174,7 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
   useFrame((rootState, delta) => {
     if (!containerRef.current) return;
 
-    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 90;
+    const shouldBeVisible = rootState.camera.position.distanceTo(containerRef.current.position) < 90;
     if (containerRef.current.visible !== shouldBeVisible) {
       containerRef.current.visible = shouldBeVisible;
       if (typeof mixer !== 'undefined' && mixer) mixer.timeScale = shouldBeVisible ? 1 : 0;
