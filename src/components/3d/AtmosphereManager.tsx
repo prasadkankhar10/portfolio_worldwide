@@ -24,38 +24,6 @@ type AtmospherePreset = {
 };
 
 const presets: Record<string, AtmospherePreset> = {
-  'Sunny Valley': {
-    ambientColor: '#4a5568',
-    ambientIntensity: 0.6,
-    sunColor: '#ffcf99',
-    sunIntensity: 2.0,
-    sunPosition: [500, 100, 200],
-    bgColor: '#87CEEB',
-    fogColor: '#87CEEB',
-    fogNear: 150,
-    fogFar: 600,
-    hasSky: true,
-    skyMieCoefficient: 0.005,
-    skyRayleigh: 0.5,
-    skyTurbidity: 10,
-    showStars: false
-  },
-  'Emerald Oasis': {
-    ambientColor: '#2b5c47',
-    ambientIntensity: 0.8,
-    sunColor: '#a8ffdb',
-    sunIntensity: 1.5,
-    sunPosition: [300, 200, -100],
-    bgColor: '#529b88',
-    fogColor: '#529b88',
-    fogNear: 100,
-    fogFar: 400,
-    hasSky: true,
-    skyMieCoefficient: 0.01,
-    skyRayleigh: 2,
-    skyTurbidity: 8,
-    showStars: false
-  },
   'Cosmic Nebula': {
     ambientColor: '#8a4ca8', // Slightly darker, richer purple
     ambientIntensity: 0.8, // Increased ambient to lighten the ground naturally
@@ -70,80 +38,6 @@ const presets: Record<string, AtmospherePreset> = {
     showStars: true,
     showCosmicDust: true,
     showNebula: true
-  },
-  'Mystic Forest': {
-    ambientColor: '#0f382a',
-    ambientIntensity: 0.5,
-    sunColor: '#63e2c6',
-    sunIntensity: 2.5,
-    sunPosition: [100, 300, 100],
-    bgColor: '#081f17',
-    fogColor: '#081f17',
-    fogNear: 50,
-    fogFar: 250,
-    hasSky: true,
-    skyMieCoefficient: 0.1,
-    skyRayleigh: 4,
-    skyTurbidity: 20,
-    showStars: false
-  },
-  'Fiery Galaxy': {
-    ambientColor: '#223149',
-    ambientIntensity: 0.3,
-    sunColor: '#df8a5d',
-    sunIntensity: 2.5,
-    sunPosition: [-200, 150, 400],
-    bgColor: '#111824',
-    fogColor: '#111824',
-    fogNear: 100,
-    fogFar: 500,
-    hasSky: false,
-    showStars: true
-  },
-  'Pastel Sunrise': {
-    ambientColor: '#b58e9f',
-    ambientIntensity: 0.7,
-    sunColor: '#ffd8c4',
-    sunIntensity: 1.8,
-    sunPosition: [400, 50, -300],
-    bgColor: '#ffb07c',
-    fogColor: '#ffb07c',
-    fogNear: 150,
-    fogFar: 600,
-    hasSky: true,
-    skyMieCoefficient: 0.04,
-    skyRayleigh: 3,
-    skyTurbidity: 15,
-    showStars: false
-  },
-  'Vice City Neon': {
-    ambientColor: '#BC6CFF',
-    ambientIntensity: 0.4,
-    sunColor: '#00F0FF',
-    sunIntensity: 2.5,
-    sunPosition: [500, 0, 500],
-    bgColor: '#0B0F2B',
-    fogColor: '#FF5CA8', 
-    fogNear: 100,
-    fogFar: 400,
-    hasSky: false,
-    showStars: true
-  },
-  'Cherry Blossom Sunset': {
-    ambientColor: '#e89bc5',
-    ambientIntensity: 0.6,
-    sunColor: '#ff906e',
-    sunIntensity: 1.5,
-    sunPosition: [-400, 80, 200],
-    bgColor: '#2a5b84',
-    fogColor: '#f27e99',
-    fogNear: 150,
-    fogFar: 500,
-    hasSky: true,
-    skyMieCoefficient: 0.025,
-    skyRayleigh: 3.5,
-    skyTurbidity: 12,
-    showStars: false
   }
 };
 
@@ -175,7 +69,7 @@ export const AtmosphereManager = () => {
     set({ Atmosphere: currentAtmosphere });
   }, [currentAtmosphere, set]);
 
-  const preset = presets[currentAtmosphere] || presets['Sunny Valley'];
+  const preset = presets[currentAtmosphere] || presets['Cosmic Nebula'];
 
   return (
     <>

@@ -75,7 +75,7 @@ interface GameStore {
 }
 
 export const useGameStore = create<GameStore>((set) => ({
-  currentAtmosphere: 'Sunny Valley',
+  currentAtmosphere: 'Cosmic Nebula',
   setAtmosphere: (atmosphere) => set({ currentAtmosphere: atmosphere }),
   isLoaded: false,
   setIsLoaded: (loaded) => set({ isLoaded: loaded }),
