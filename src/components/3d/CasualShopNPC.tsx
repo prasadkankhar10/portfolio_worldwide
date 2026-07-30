@@ -24,7 +24,7 @@ export function CasualShopNPC({
   const { scene, animations } = useGLTF('./models/NPCs/Casual3_Female.glb');
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone);
-  const { actions } = useAnimations(animations, containerRef);
+  const { actions, mixer } = useAnimations(animations, containerRef);
   
   const npcId = useMemo(() => Math.random().toString(), []);
   const store = useGameStore();

@@ -143,7 +143,7 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
   const { scene, animations } = useGLTF(`./models/NPCs/${modelFile}`);
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone);
-  const { actions } = useAnimations(animations, containerRef);
+  const { actions, mixer } = useAnimations(animations, containerRef);
   
   const npcId = useMemo(() => Math.random().toString(), []);
   const store = useGameStore();
