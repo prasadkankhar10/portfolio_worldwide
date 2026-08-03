@@ -78,7 +78,7 @@ export const Character = () => {
       // Ignore character mouse movement if free cam is active
       if (document.pointerLockElement && gameState === 'playing' && !isFreeCam) {
         yaw.current -= e.movementX * 0.002;
-        pitch.current += e.movementY * 0.002; // Fixed: Moving mouse up looks up
+        pitch.current -= e.movementY * 0.002; // Moving mouse up looks down (Inverted Y)
         pitch.current = Math.max(minPitch, Math.min(maxPitch, pitch.current));
       }
     };
