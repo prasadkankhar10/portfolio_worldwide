@@ -21,7 +21,7 @@ const lampPresets: Record<string, { color: string, intensity: number }> = {
 };
 
 export const Environment = () => {
-  const { scene } = useGLTF('./models/island2_model.glb');
+  const { scene } = useGLTF('./models/island6_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
@@ -313,4 +313,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('./models/island2_model.glb');
+useGLTF.preload('./models/island6_model.glb');
