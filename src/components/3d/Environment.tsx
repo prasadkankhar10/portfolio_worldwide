@@ -28,27 +28,6 @@ export const Environment = () => {
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
 
-  // Create a highly stripped-down scene specifically for Rapier Physics
-  // This removes trees, bushes, and tiny details from the collision mesh, speeding up load times by 10x
-  const physicsScene = useMemo(() => {
-    const pScene = SkeletonUtils.clone(scene);
-    const toRemove: THREE.Object3D[] = [];
-    const excludedPrefixes = ['tree', 'treetree', 'bush', 'mushroom', 'plant', 'leaf', 'root', 'lamp', 'pumpkin', 'cart', 'woodkitchenchair', 'sea', 'log', 'beziercurve'];
-    
-    pScene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        // Many GLTF names have numbers or suffixes, so we check if it starts with the base name
-        const baseName = child.name.split('_')[0].replace(/[0-9]/g, '').toLowerCase();
-        if (excludedPrefixes.includes(baseName) || excludedPrefixes.some(ex => child.name.toLowerCase().startsWith(ex))) {
-          toRemove.push(child);
-        }
-      }
-    });
-    
-    toRemove.forEach(child => child.parent?.remove(child));
-    return pScene;
-  }, [scene]);
-
   const { treeSpacing, treeExclusionRadius } = useControls('Forest Generation', {
     treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' },
     treeExclusionRadius: { value: 2, min: 0, max: 10, step: 0.1, label: 'Exclusion Radius' }
@@ -322,13 +301,9 @@ export const Environment = () => {
   return (
     <>
       <group>
-        {/* Invisible Physics Collider using optimized scene */}
         <RigidBody type="fixed" colliders="trimesh">
-          <primitive object={physicsScene} visible={false} />
+          <primitive object={clonedScene} />
         </RigidBody>
-        
-        {/* Visible Rendered Scene (No Physics calculation overhead here!) */}
-        <primitive object={clonedScene} />
         
         {/* Dynamic Light Culling System for 100+ Lamps */}
       {lampPositions.length > 0 && (
