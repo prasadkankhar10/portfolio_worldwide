@@ -33,12 +33,13 @@ export const Environment = () => {
   const physicsScene = useMemo(() => {
     const pScene = SkeletonUtils.clone(scene);
     const toRemove: THREE.Object3D[] = [];
-    const excluded = ['tree', 'bush', 'mushroom', 'plant', 'leaf', 'root', 'lamp', 'window', 'pumpkin', 'cart', 'chair', 'sea', 'water', 'bezier', 'node.', 'fire', 'smoke', 'dust'];
+    const excludedPrefixes = ['tree', 'treetree', 'bush', 'mushroom', 'plant', 'leaf', 'root', 'lamp', 'pumpkin', 'cart', 'woodkitchenchair', 'sea', 'log', 'beziercurve'];
     
     pScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        const name = child.name.toLowerCase();
-        if (excluded.some(ex => name.includes(ex))) {
+        // Many GLTF names have numbers or suffixes, so we check if it starts with the base name
+        const baseName = child.name.split('_')[0].replace(/[0-9]/g, '').toLowerCase();
+        if (excludedPrefixes.includes(baseName) || excludedPrefixes.some(ex => child.name.toLowerCase().startsWith(ex))) {
           toRemove.push(child);
         }
       }
