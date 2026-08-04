@@ -121,7 +121,7 @@ export const Environment = () => {
            child.material.emissiveIntensity = 3.0; // Glow brightly
         }
 
-        lampPositions.push(position.clone());
+        lampPlotsFound.push(position.clone());
         lightMeshRef.current = child; 
       }
 
