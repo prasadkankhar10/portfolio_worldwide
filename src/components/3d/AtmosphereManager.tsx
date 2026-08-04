@@ -56,9 +56,9 @@ export const AtmosphereManager = () => {
       }
     },
     brightness: {
-      value: 1.0,
+      value: 2.5,
       min: 0.0,
-      max: 3.0,
+      max: 5.0,
       step: 0.1,
       label: 'Brightness'
     }

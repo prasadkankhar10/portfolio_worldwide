@@ -106,6 +106,16 @@ export const Environment = () => {
         lampPlotsFound.push(position.clone());
         lightMeshRef.current = child; // Keep reference to one of them just in case
       }
+
+      // Add glow to Window materials
+      if (name.includes('window') || materialName.includes('window')) {
+        if (child.material) {
+           child.material = child.material.clone();
+           // Give windows a warm, inviting glow
+           child.material.emissive = new THREE.Color('#ffcc88');
+           child.material.emissiveIntensity = 2.0; 
+        }
+      }
       
       // Find Farm Dirt nodes
       if (name.includes('farm_dirt') || name.includes('farm_secondage')) {
