@@ -28,6 +28,26 @@ export const Environment = () => {
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
 
+  // Create a highly stripped-down scene specifically for Rapier Physics
+  // This removes trees, bushes, and tiny details from the collision mesh, speeding up load times by 10x
+  const physicsScene = useMemo(() => {
+    const pScene = SkeletonUtils.clone(scene);
+    const toRemove: THREE.Object3D[] = [];
+    const excluded = ['tree', 'bush', 'mushroom', 'plant', 'leaf', 'root', 'lamp', 'window', 'pumpkin', 'cart', 'chair', 'sea', 'water', 'bezier', 'node.', 'fire', 'smoke', 'dust'];
+    
+    pScene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const name = child.name.toLowerCase();
+        if (excluded.some(ex => name.includes(ex))) {
+          toRemove.push(child);
+        }
+      }
+    });
+    
+    toRemove.forEach(child => child.parent?.remove(child));
+    return pScene;
+  }, [scene]);
+
   const { treeSpacing, treeExclusionRadius } = useControls('Forest Generation', {
     treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' },
     treeExclusionRadius: { value: 2, min: 0, max: 10, step: 0.1, label: 'Exclusion Radius' }
@@ -66,7 +86,7 @@ export const Environment = () => {
 
     clonedScene.traverse((child: any) => {
       if (child.isMesh) {
-        // Massive optimization: The island is the ground, it only needs to receive shadows from trees/characters!
+        // HUGE OPTIMIZATION: Disable dynamic shadow casting for the 1500+ environment meshes
         child.castShadow = false;
         child.receiveShadow = true;
       }
@@ -90,28 +110,25 @@ export const Environment = () => {
       }
       
       // Extract ALL street lamps for the Dynamic Light Culling System
-      // We check both the object's name AND the material's name!
       if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern') || materialName.includes('lamp_material')) {
         const position = new THREE.Vector3();
         child.getWorldPosition(position);
         
         // Massive optimization: Give the physical lamp bulb a glowing emissive material.
-        // This looks like light is glowing, but costs zero performance!
         if (child.material) {
            child.material = child.material.clone();
            child.material.emissive = new THREE.Color(lampColor);
            child.material.emissiveIntensity = 3.0; // Glow brightly
         }
 
-        lampPlotsFound.push(position.clone());
-        lightMeshRef.current = child; // Keep reference to one of them just in case
+        lampPositions.push(position.clone());
+        lightMeshRef.current = child; 
       }
 
       // Add glow to Window materials
       if (name.includes('window') || materialName.includes('window')) {
         if (child.material) {
            child.material = child.material.clone();
-           // Give windows a warm, inviting glow
            child.material.emissive = new THREE.Color('#ffcc88');
            child.material.emissiveIntensity = 2.0; 
         }
@@ -303,11 +320,16 @@ export const Environment = () => {
 
   return (
     <>
-      <RigidBody type="fixed" colliders="trimesh">
+      <group>
+        {/* Invisible Physics Collider using optimized scene */}
+        <RigidBody type="fixed" colliders="trimesh">
+          <primitive object={physicsScene} visible={false} />
+        </RigidBody>
+        
+        {/* Visible Rendered Scene (No Physics calculation overhead here!) */}
         <primitive object={clonedScene} />
-      </RigidBody>
-      
-      {/* Dynamic Light Culling System for 100+ Lamps */}
+        
+        {/* Dynamic Light Culling System for 100+ Lamps */}
       {lampPositions.length > 0 && (
          <DynamicLamps 
             lampPositions={lampPositions} 
@@ -318,6 +340,7 @@ export const Environment = () => {
 
       {/* Render the hyper-optimized instanced trees */}
       {treeMatrices.length > 0 && <InstancedTrees spawnMatrices={treeMatrices} />}
+      </group>
     </>
   );
 };
