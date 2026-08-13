@@ -6,6 +6,9 @@ export interface DialogNode {
   setFlag?: string; // Flag to set to true when node is completed/skipped
   conditionFlag?: string; // Condition to check before playing this node
   altNextId?: string; // Jump to this ID immediately if conditionFlag is true
+  questAdvance?: boolean; // If true, advances the questStep by 1 when completed
+  requiredQuestStep?: number; // The step required to start this dialogue
+  outOfOrderText?: string; // Text to show if the quest step is too low
 }
 
 export const dialogData: Record<string, DialogNode> = {
@@ -15,7 +18,7 @@ export const dialogData: Record<string, DialogNode> = {
     npcName: 'Wizard of Origins',
     conditionFlag: 'learned_profile',
     altNextId: 'wizard_return',
-    text: "Greetings, traveler! Welcome to the realm of Prasad Anil Kankhar.",
+    text: "Greetings, traveler! To understand Prasad, you must collect the 7 Fragments of Knowledge.",
     nextId: 'wizard_intro_2'
   },
   wizard_intro_2: {
@@ -27,19 +30,25 @@ export const dialogData: Record<string, DialogNode> = {
   wizard_intro_3: {
     id: 'wizard_intro_3',
     npcName: 'Wizard of Origins',
-    text: "A disciplined soul, strict vegetarian, and practitioner of artistic handwriting. Seek out the others across this island to learn of his achievements!",
-    setFlag: 'learned_profile'
+    text: "Your first task: Speak to the Golden Knights in the courtyard to learn of his Academics and Leadership!",
+    setFlag: 'learned_profile',
+    questAdvance: true
   },
   wizard_return: {
     id: 'wizard_return',
     npcName: 'Wizard of Origins',
-    text: "You already know of his origins. Check your Map Journal to review his profile, or seek the other inhabitants!"
+    text: "You have gathered all the fragments! The ritual is ready to commence... Witness his true power!",
+    requiredQuestStep: 8,
+    outOfOrderText: "You have not gathered all the fragments yet! Check your Quest Tracker.",
+    questAdvance: true
   },
 
   // --- GOLDEN KNIGHTS (Academics & Leadership) ---
   knight_academics_1: {
     id: 'knight_academics_1',
     npcName: 'Knight of Academia',
+    requiredQuestStep: 1,
+    outOfOrderText: "Halt! You are not ready for this knowledge. Speak to the Wizard of Origins first!",
     conditionFlag: 'learned_academics',
     altNextId: 'knight_return',
     text: "Halt! Do you seek knowledge of Prasad's training? He pursues a B.Tech in Computer Science at MIT, Chhatrapati Sambhajinagar.",
@@ -54,8 +63,9 @@ export const dialogData: Record<string, DialogNode> = {
   knight_academics_3: {
     id: 'knight_academics_3',
     npcName: 'Knight of Academia',
-    text: "He even bears the prestigious title of Google Student Ambassador! A mighty warrior of the mind, indeed.",
-    setFlag: 'learned_academics'
+    text: "He even bears the prestigious title of Google Student Ambassador! Now, go find the Elf of Engineering deep in the woods for your next fragment.",
+    setFlag: 'learned_academics',
+    questAdvance: true
   },
   knight_return: {
     id: 'knight_return',
@@ -67,6 +77,8 @@ export const dialogData: Record<string, DialogNode> = {
   elf_tech_1: {
     id: 'elf_tech_1',
     npcName: 'Elf of Engineering',
+    requiredQuestStep: 2,
+    outOfOrderText: "You lack the academic fragment. See the Golden Knights first.",
     conditionFlag: 'learned_tech',
     altNextId: 'elf_return',
     text: "Ah, looking for the tools of the trade? Prasad is a master of the ancient languages: C++, JavaScript, React, Node.js, and Firebase.",
@@ -81,8 +93,9 @@ export const dialogData: Record<string, DialogNode> = {
   elf_tech_3: {
     id: 'elf_tech_3',
     npcName: 'Elf of Engineering',
-    text: "He prefers highly concise, direct communication—especially when receiving technical feedback on logic and architecture. Keep it sharp!",
-    setFlag: 'learned_tech'
+    text: "He prefers highly concise, direct communication. Now, seek out the Pirate Captain at the docks to learn of his Web Projects!",
+    setFlag: 'learned_tech',
+    questAdvance: true
   },
   elf_return: {
     id: 'elf_return',
@@ -94,6 +107,8 @@ export const dialogData: Record<string, DialogNode> = {
   pirate_web_1: {
     id: 'pirate_web_1',
     npcName: 'Captain of the Web',
+    requiredQuestStep: 3,
+    outOfOrderText: "Yarr! Ye ain't ready for my secrets! Seek the Elf of Engineering first!",
     conditionFlag: 'learned_web',
     altNextId: 'pirate_return',
     text: "Ahoy matey! Let me tell ye about the grand ships Prasad has launched into the digital sea! First, there was 'Nishtha'—an open-source habit-tracking platform.",
@@ -108,8 +123,9 @@ export const dialogData: Record<string, DialogNode> = {
   pirate_web_3: {
     id: 'pirate_web_3',
     npcName: 'Captain of the Web',
-    text: "He also built 'Vyuham', a gorgeous Chrome dashboard, and 'TraceMate Pro', an AR tracing PWA. The boy's a legendary shipwright!",
-    setFlag: 'learned_web'
+    text: "He also built 'Vyuham', a gorgeous Chrome dashboard. The boy's a legendary shipwright! Now, find the Cleric of AI near the glowing runes.",
+    setFlag: 'learned_web',
+    questAdvance: true
   },
   pirate_return: {
     id: 'pirate_return',
@@ -121,6 +137,8 @@ export const dialogData: Record<string, DialogNode> = {
   cleric_ai_1: {
     id: 'cleric_ai_1',
     npcName: 'Cleric of Artificial Intelligence',
+    requiredQuestStep: 4,
+    outOfOrderText: "Your mind is not yet prepared for Artificial Intelligence. Visit the Pirate Captain first.",
     conditionFlag: 'learned_ai',
     altNextId: 'cleric_return',
     text: "Blessings upon you. Have you heard of Prasad's miracles in Artificial Intelligence?",
@@ -135,8 +153,9 @@ export const dialogData: Record<string, DialogNode> = {
   cleric_ai_3: {
     id: 'cleric_ai_3',
     npcName: 'Cleric of Artificial Intelligence',
-    text: "He even summoned 'Butler AI', a self-coding multi-agent assistant, and 'Akṣayanidhi', a local-first AI photo archive. True divine creation!",
-    setFlag: 'learned_ai'
+    text: "He even summoned 'Butler AI', a self-coding multi-agent assistant. True divine creation! Next, find the Goblin Tinkerer at the market edge.",
+    setFlag: 'learned_ai',
+    questAdvance: true
   },
   cleric_return: {
     id: 'cleric_return',
@@ -148,6 +167,8 @@ export const dialogData: Record<string, DialogNode> = {
   goblin_game_1: {
     id: 'goblin_game_1',
     npcName: 'Goblin Tinkerer',
+    requiredQuestStep: 5,
+    outOfOrderText: "You must learn the magic of AI from the Cleric first, hehe!",
     conditionFlag: 'learned_games',
     altNextId: 'goblin_return',
     text: "Hehe! You like games? Prasad makes games! Very fun games!",
@@ -156,8 +177,9 @@ export const dialogData: Record<string, DialogNode> = {
   goblin_game_2: {
     id: 'goblin_game_2',
     npcName: 'Goblin Tinkerer',
-    text: "He built 'On the Way', a joyful delivery-themed mobile game. Perfect for humans ages 12 to 30! You should play it, hehe!",
-    setFlag: 'learned_games'
+    text: "He built 'On the Way', a joyful delivery-themed mobile game. Perfect for humans! Now, go find the Cowboy Sheriff in the marketplace, hehe!",
+    setFlag: 'learned_games',
+    questAdvance: true
   },
   goblin_return: {
     id: 'goblin_return',
@@ -169,6 +191,8 @@ export const dialogData: Record<string, DialogNode> = {
   cowboy_events_1: {
     id: 'cowboy_events_1',
     npcName: 'Community Sheriff',
+    requiredQuestStep: 6,
+    outOfOrderText: "Hold it! You need to talk to the Goblin Tinkerer before you talk to me.",
     conditionFlag: 'learned_events',
     altNextId: 'cowboy_return',
     text: "Howdy partner. Prasad ain't just a coder; he's a community builder. Roundin' folks up is his specialty.",
@@ -183,8 +207,9 @@ export const dialogData: Record<string, DialogNode> = {
   cowboy_events_3: {
     id: 'cowboy_events_3',
     npcName: 'Community Sheriff',
-    text: "He even orchestrated a massive 'Among Us IRL' physical game event for a campus festival. Yeehaw!",
-    setFlag: 'learned_events'
+    text: "He even orchestrated a massive 'Among Us IRL' physical game event. Yeehaw! Head over to the Witch of the Arts for your final fragment.",
+    setFlag: 'learned_events',
+    questAdvance: true
   },
   cowboy_return: {
     id: 'cowboy_return',
@@ -196,6 +221,8 @@ export const dialogData: Record<string, DialogNode> = {
   witch_creative_1: {
     id: 'witch_creative_1',
     npcName: 'Witch of the Arts',
+    requiredQuestStep: 7,
+    outOfOrderText: "I sense you have not visited the Sheriff yet. Go to him first.",
     conditionFlag: 'learned_creative',
     altNextId: 'witch_return',
     text: "Do you feel the emotional depth in the air? Prasad is not just logic... he is art.",
@@ -210,8 +237,9 @@ export const dialogData: Record<string, DialogNode> = {
   witch_creative_3: {
     id: 'witch_creative_3',
     npcName: 'Witch of the Arts',
-    text: "A rare blend of technical ambition, creative thinking, and emotional intelligence. He builds systems that connect with people both logically and emotionally.",
-    setFlag: 'learned_creative'
+    text: "He builds systems that connect with people both logically and emotionally. Return to the Wizard of Origins! The ritual is ready!",
+    setFlag: 'learned_creative',
+    questAdvance: true
   },
   witch_return: {
     id: 'witch_return',

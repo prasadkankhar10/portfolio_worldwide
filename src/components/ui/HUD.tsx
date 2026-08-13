@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { Leva } from 'leva';
+import { QuestTracker } from './QuestTracker';
 
 export const HUD = () => {
   const gameState = useGameStore((state) => state.gameState);
@@ -66,7 +67,7 @@ export const HUD = () => {
         </div>
       )}
 
-      {/* Removed Crosshair as per user request */}
+      <QuestTracker />
 
       {!isMobile && (
         <div className="p-6 flex flex-col gap-2">
