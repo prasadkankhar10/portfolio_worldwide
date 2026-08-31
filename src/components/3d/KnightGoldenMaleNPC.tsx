@@ -147,7 +147,7 @@ export const KnightGoldenMaleNPC = ({
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
-    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 90;
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 40;
     if (containerRef.current.visible !== shouldBeVisible) {
       containerRef.current.visible = shouldBeVisible;
       mixer.timeScale = shouldBeVisible ? 1 : 0;

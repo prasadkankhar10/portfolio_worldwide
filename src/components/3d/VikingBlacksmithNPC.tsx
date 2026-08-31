@@ -63,7 +63,7 @@ export function VikingBlacksmithNPC({
   useFrame((rootState, delta) => {
     if (!containerRef.current) return;
 
-    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 90;
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 40;
     if (containerRef.current.visible !== shouldBeVisible) {
       containerRef.current.visible = shouldBeVisible;
       if (typeof mixer !== 'undefined' && mixer) mixer.timeScale = shouldBeVisible ? 1 : 0;
