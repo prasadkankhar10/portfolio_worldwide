@@ -131,15 +131,17 @@ export const AtmosphereManager = () => {
 
       {/* Cosmic Dust (Magical floating particles) */}
       {preset.showCosmicDust && (
-        <Sparkles count={800} scale={100} size={8} speed={0.4} opacity={1.0} color="#D58BE8" />
-      )}
-
-      {/* Nebula (Large glowing colorful spots in the sky/background) */}
-      {preset.showNebula && (
         <>
-          <Sparkles count={150} scale={400} size={250} speed={0.1} opacity={0.6} color="#7A4BA8" position={[0, 200, 0]} />
-          <Sparkles count={150} scale={400} size={200} speed={0.15} opacity={0.8} color="#6EC9E8" position={[0, 250, 0]} />
-          <Sparkles count={100} scale={300} size={300} speed={0.05} opacity={0.5} color="#F6D48F" position={[100, 300, -100]} />
+          {/* Atmosphere Particles - Drastically reduced count for GPU fill-rate optimization */}
+          <Sparkles count={100} scale={100} size={15} speed={0.4} opacity={1.0} color="#D58BE8" />
+          
+          {/* Giant distant nebula stars */}
+          <group>
+            {/* Main Core */}
+            <Sparkles count={30} scale={400} size={300} speed={0.1} opacity={0.6} color="#7A4BA8" position={[0, 200, 0]} />
+            <Sparkles count={30} scale={400} size={250} speed={0.15} opacity={0.8} color="#6EC9E8" position={[0, 250, 0]} />
+            <Sparkles count={20} scale={300} size={350} speed={0.05} opacity={0.5} color="#F6D48F" position={[100, 300, -100]} />
+          </group>
         </>
       )}
     </>

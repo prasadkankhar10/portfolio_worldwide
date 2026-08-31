@@ -169,7 +169,7 @@ export const RitualCenter = () => {
                </Torus>
 
                {/* Extreme Sparkles */}
-               <Sparkles count={4000} scale={60} size={25} speed={40} opacity={1} color="#ffffff" position={[0, 20, 0]} />
+               <Sparkles count={200} scale={60} size={50} speed={40} opacity={1} color="#ffffff" position={[0, 20, 0]} />
              </>
           )}
         </>
