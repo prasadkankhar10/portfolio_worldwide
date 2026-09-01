@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { Physics } from '@react-three/rapier';
-import { Environment as DreiEnvironment, Stats, Sky } from '@react-three/drei';
+import { Environment as DreiEnvironment, Stats, Sky, Bvh } from '@react-three/drei';
 import { EffectComposer, Outline, Selection, Bloom, Vignette } from '@react-three/postprocessing';
 import { Environment } from './Environment';
 import { AtmosphereManager } from './AtmosphereManager';
@@ -78,6 +78,7 @@ export const Scene = () => {
 
       <Physics debug={false}>
       <Suspense fallback={null}>
+        <Bvh firstHitOnly>
       {/* Marketplace NPCs */}
       <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
       <CowboyShopNPC position={[112.3, 3.0, 7.2]} rotation={[0, Math.PI, 0]} />
@@ -136,6 +137,7 @@ export const Scene = () => {
         <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
         <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
         <RitualCenter />
+              </Bvh>
       </Suspense>
       </Physics>
 
