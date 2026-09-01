@@ -22,20 +22,8 @@ export const DialogOverlay: React.FC = () => {
       }
     }
     
-    // Check quest order
-    if (node && node.requiredQuestStep !== undefined) {
-      const currentStep = useGameStore.getState().questStep;
-      if (currentStep < node.requiredQuestStep) {
-        return {
-          id: 'out_of_order',
-          npcName: node.npcName,
-          text: node.outOfOrderText || "You are not ready for this.",
-        };
-      }
-    }
-    
     return node;
-  }, [activeDialogId, useGameStore.getState().dialogFlags, useGameStore.getState().questStep]);
+  }, [activeDialogId, useGameStore.getState().dialogFlags]);
 
   // Typewriter effect
   useEffect(() => {
@@ -74,13 +62,8 @@ export const DialogOverlay: React.FC = () => {
         store.setDialogFlag(currentDialog.setFlag, true);
       }
       
-      // Advance quest if requested
-      if (currentDialog.questAdvance) {
-        store.setQuestStep(store.questStep + 1);
-      }
-      
       // Special Finale Trigger
-      if (currentDialog.id === 'wizard_return' && currentDialog.questAdvance) {
+      if (currentDialog.id === 'wizard_return') {
          store.setActiveRitual(true);
          store.setRitualState('gathering');
       }

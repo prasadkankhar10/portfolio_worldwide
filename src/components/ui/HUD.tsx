@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { Leva } from 'leva';
-import { QuestTracker } from './QuestTracker';
 
 export const HUD = () => {
   const gameState = useGameStore((state) => state.gameState);
@@ -67,8 +66,7 @@ export const HUD = () => {
         </div>
       )}
 
-      <QuestTracker />
-
+      
       {!isMobile && (
         <div className="p-6 flex flex-col gap-2">
           <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">

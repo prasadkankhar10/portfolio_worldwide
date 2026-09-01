@@ -39,6 +39,7 @@ const GoblinFruitNPC = React.lazy(() => import('./GoblinFruitNPC').then(m => ({ 
 const WizardNPC = React.lazy(() => import('./WizardNPC').then(m => ({ default: m.WizardNPC })));
 const MarketVisitorNPC = React.lazy(() => import('./MarketVisitorNPC').then(m => ({ default: m.MarketVisitorNPC })));
 import { NpcChatSystem } from './NpcChatSystem';
+import { BuildingTrigger } from './BuildingTrigger';
 import { RitualCenter } from './RitualCenter';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
@@ -46,30 +47,35 @@ import { useGameStore } from '../../store/useGameStore';
 export const Scene = () => {
   const hasStarted = useGameStore((state) => state.hasStarted);
   const activeOutlineMesh = useGameStore((state) => state.activeOutlineMesh);
+  const isMobile = useGameStore((state) => state.isMobile);
 
   return (
     <>
       {/* Postprocessing for Interactive Outlines */}
-      <EffectComposer multisampling={0} autoClear={false}>
-        <Outline 
-           selection={activeOutlineMesh ? [activeOutlineMesh] : []}
-           blur 
-           visibleEdgeColor={0xffffff} 
-           hiddenEdgeColor={0xffffff} 
-           edgeStrength={3} 
-        />
-        <Bloom 
-          intensity={1.2} 
-          luminanceThreshold={0.85} 
-          luminanceSmoothing={0.1} 
-          mipmapBlur 
-        />
-        <Vignette eskil={false} offset={0.1} darkness={1.1} />
-      </EffectComposer>
-
+      {!isMobile && (
+        <EffectComposer multisampling={0} autoClear={false}>
+          <Outline 
+             selection={activeOutlineMesh ? [activeOutlineMesh] : []}
+             blur 
+             visibleEdgeColor={0xffffff} 
+             hiddenEdgeColor={0xffffff} 
+             edgeStrength={3} 
+          />
+          <Bloom 
+            intensity={1.2} 
+            luminanceThreshold={0.85} 
+            luminanceSmoothing={0.1} 
+            mipmapBlur 
+          />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      )}
       <AtmosphereManager />
 
       <NpcChatSystem />
+      {/* Building Triggers */}
+      <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
+
       <Physics debug={false}>
       <Suspense fallback={null}>
       {/* Marketplace NPCs */}

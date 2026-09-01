@@ -62,9 +62,7 @@ interface GameStore {
   ritualState: 'idle' | 'gathering' | 'channeling' | 'climax';
   setRitualState: (state: 'idle' | 'gathering' | 'channeling' | 'climax') => void;
   // Story Quest Logic
-  questStep: number;
-  setQuestStep: (step: number) => void;
-  // NPC Chat System
+      // NPC Chat System
   npcRegistry: Record<string, RegisteredNPC>;
   registerNpc: (npc: RegisteredNPC) => void;
   updateNpcState: (id: string, position: THREE.Vector3, state: string) => void;
@@ -119,9 +117,7 @@ export const useGameStore = create<GameStore>((set) => ({
   ritualState: 'idle',
   setRitualState: (state) => set({ ritualState: state }),
   
-  questStep: 0,
-  setQuestStep: (step) => set({ questStep: step }),
-  
+      
   npcRegistry: {},
   registerNpc: (npc) => set((state) => ({ npcRegistry: { ...state.npcRegistry, [npc.id]: npc } })),
   updateNpcState: (id, position, npcState) => set((state) => {
