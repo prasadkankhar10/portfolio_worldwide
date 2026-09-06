@@ -6,9 +6,9 @@ import * as THREE from 'three';
 export const Sea: React.FC = () => {
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   
-  // Load the model and extract the 'sea' node
-  const { nodes } = useGLTF('./models/island7_model.glb') as any;
-  const seaNode = nodes['sea']; 
+  // Load the model and extract the 'sea' node if present
+  const { nodes } = useGLTF('./models/chunks_export/persistent_base.glb') as any;
+  const seaNode = nodes ? nodes['sea'] : null; 
   
   // Load the normal map for realistic ripples
   const normalMap = useTexture('./textures/water_normal.jpg');
@@ -36,30 +36,32 @@ export const Sea: React.FC = () => {
     }
   });
 
-  if (!seaNode) return null;
+  const seaY = seaNode ? seaNode.position.y : 2.4;
 
   return (
     <group>
-      {/* 1. The Custom Sea Mesh (Inner Coastline) */}
-      <mesh 
-        geometry={seaNode.geometry} 
-        position={seaNode.position} 
-        rotation={seaNode.rotation} 
-        scale={seaNode.scale}
-      >
-        <meshStandardMaterial 
-          ref={materialRef}
-          color="#006994"
-          normalMap={normalMap}
-          normalScale={new THREE.Vector2(1.5, 1.5)}
-          roughness={0.1}
-          metalness={0.8}
-        />
-      </mesh>
+      {/* 1. The Custom Sea Mesh (Inner Coastline) if present */}
+      {seaNode && (
+        <mesh 
+          geometry={seaNode.geometry} 
+          position={seaNode.position} 
+          rotation={seaNode.rotation} 
+          scale={seaNode.scale}
+        >
+          <meshStandardMaterial 
+            ref={materialRef}
+            color="#006994"
+            normalMap={normalMap}
+            normalScale={new THREE.Vector2(1.5, 1.5)}
+            roughness={0.1}
+            metalness={0.8}
+          />
+        </mesh>
+      )}
 
       {/* 2. The Infinite Horizon Ocean (Outer Ring) */}
       <mesh 
-        position={[0, seaNode.position.y - 0.5, 0]} // Slightly below to prevent z-fighting
+        position={[0, seaY - 0.5, 0]} // Slightly below to prevent z-fighting
         rotation={[-Math.PI / 2, 0, 0]} 
       >
         <planeGeometry args={[4000, 4000]} /> 
@@ -75,5 +77,5 @@ export const Sea: React.FC = () => {
   );
 };
 
-useGLTF.preload('./models/island7_model.glb');
+useGLTF.preload('./models/chunks_export/persistent_base.glb');
 useTexture.preload('./textures/water_normal.jpg');
