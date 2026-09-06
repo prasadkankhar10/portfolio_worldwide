@@ -21,12 +21,17 @@ const lampPresets: Record<string, { color: string, intensity: number }> = {
 };
 
 export const Environment = () => {
-  const { scene } = useGLTF('./models/island6_model.glb');
+  const { scene } = useGLTF('./models/island7_model.glb');
   const windFanRef = useRef<THREE.Object3D | null>(null);
   const wellMeshRef = useRef<THREE.Object3D | null>(null);
 
   // Safely clone the scene so we don't permanently mutate the useGLTF cache!
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+
+  const { chunkingEnabled, chunkCullDistance } = useControls('Spatial Chunking', {
+    chunkingEnabled: { value: true, label: 'Enable Chunking' },
+    chunkCullDistance: { value: 100, min: 40, max: 200, step: 5, label: 'Cull Distance (m)' }
+  });
 
   const { treeSpacing, treeExclusionRadius } = useControls('Forest Generation', {
     treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' },
@@ -53,22 +58,50 @@ export const Environment = () => {
 
   const lightMeshRef = useRef<THREE.Mesh | null>(null);
 
-  // Optimize tree placement - run ONLY when spacing changes
-  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, lampPositions } = useMemo(() => {
+  // Optimize tree placement & spatial chunks
+  const { treeMatrices, extractedFarmPlots, extractedDepositPlots, lampPositions, spatialChunks } = useMemo(() => {
     const matrices: THREE.Matrix4[] = [];
     const acceptedPositions: THREE.Vector3[] = [];
     const farmPlotsFound: THREE.Vector3[] = [];
     const depositPlotsFound: THREE.Vector3[] = [];
     const lampPlotsFound: THREE.Vector3[] = [];
+    const chunksMap = new Map<string, { center: THREE.Vector3; meshes: THREE.Mesh[] }>();
+    const CHUNK_SIZE = 50; // 50-meter spatial sectors
 
     // Force absolute world matrix update on the CLONE
     clonedScene.updateMatrixWorld(true);
 
     clonedScene.traverse((child: any) => {
       if (child.isMesh) {
-        // HUGE OPTIMIZATION: Disable dynamic shadow casting for the 1500+ environment meshes
+        // HUGE OPTIMIZATION: Disable dynamic shadow casting for environment meshes
         child.castShadow = false;
         child.receiveShadow = true;
+
+        const meshName = (child.name || '').toLowerCase();
+        // Keep ground, water, and interactive essentials persistent
+        const isPersistent = meshName.includes('wind_fan') ||
+                             meshName.includes('well') ||
+                             meshName === 'sea' ||
+                             meshName.startsWith('plane') ||
+                             meshName.includes('terrain') ||
+                             meshName.includes('ground') ||
+                             meshName.includes('sand') ||
+                             meshName.includes('water');
+
+        if (!isPersistent) {
+          const worldPos = new THREE.Vector3();
+          child.getWorldPosition(worldPos);
+          const cx = Math.floor(worldPos.x / CHUNK_SIZE);
+          const cz = Math.floor(worldPos.z / CHUNK_SIZE);
+          const chunkKey = `${cx}_${cz}`;
+          if (!chunksMap.has(chunkKey)) {
+            chunksMap.set(chunkKey, {
+              center: new THREE.Vector3((cx + 0.5) * CHUNK_SIZE, worldPos.y, (cz + 0.5) * CHUNK_SIZE),
+              meshes: []
+            });
+          }
+          chunksMap.get(chunkKey)!.meshes.push(child);
+        }
       }
 
       const name = child.name.toLowerCase();
@@ -184,7 +217,8 @@ export const Environment = () => {
       treeMatrices: matrices, 
       extractedFarmPlots: farmPlotsFound, 
       extractedDepositPlots: depositPlotsFound, 
-      lampPositions: lampPlotsFound 
+      lampPositions: lampPlotsFound,
+      spatialChunks: Array.from(chunksMap.values())
     };
   }, [clonedScene, treeSpacing, treeExclusionRadius, lampColor]);
 
@@ -226,6 +260,31 @@ export const Environment = () => {
     if (windFanRef.current) {
       // Rotate locally around Z axis
       windFanRef.current.rotation.z += fanSpeed * delta;
+    }
+  });
+
+  // --- SPATIAL CHUNKING SYSTEM ---
+  const chunkTimer = useRef(0);
+  useFrame((_, delta) => {
+    if (!chunkingEnabled || spatialChunks.length === 0) return;
+    chunkTimer.current += delta;
+    if (chunkTimer.current > 0.1) {
+      chunkTimer.current = 0;
+      const playerPos = globalPlayerState.position;
+      const cullDistSq = chunkCullDistance * chunkCullDistance;
+
+      for (let c = 0; c < spatialChunks.length; c++) {
+        const chunk = spatialChunks[c];
+        const dx = chunk.center.x - playerPos.x;
+        const dz = chunk.center.z - playerPos.z;
+        const isVisible = (dx * dx + dz * dz) < cullDistSq;
+
+        for (let m = 0; m < chunk.meshes.length; m++) {
+          if (chunk.meshes[m].visible !== isVisible) {
+            chunk.meshes[m].visible = isVisible;
+          }
+        }
+      }
     }
   });
 
@@ -322,4 +381,4 @@ export const Environment = () => {
 };
 
 // Preload the model to avoid pop-in
-useGLTF.preload('./models/island6_model.glb');
+useGLTF.preload('./models/island7_model.glb');
