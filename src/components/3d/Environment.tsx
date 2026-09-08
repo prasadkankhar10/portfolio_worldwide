@@ -206,9 +206,7 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
 
   return (
     <group ref={groupRef}>
-      <RigidBody type="fixed" colliders="trimesh">
-        <primitive object={cloned} />
-      </RigidBody>
+      <primitive object={cloned} />
     </group>
   );
 };
@@ -222,6 +220,26 @@ const PersistentBase: React.FC = () => {
       if (child.isMesh) {
         child.castShadow = false;
         child.receiveShadow = true;
+      }
+    });
+    return c;
+  }, [scene]);
+
+  return <primitive object={cloned} />;
+};
+
+// Dedicated, lightweight physics colliders from Blender collision.glb
+const CollisionWorld: React.FC = () => {
+  const { scene } = useGLTF('./models/collision.glb');
+  const cloned = useMemo(() => {
+    const c = SkeletonUtils.clone(scene);
+    c.updateMatrixWorld(true);
+    c.traverse((child: any) => {
+      if (child.isMesh) {
+        // Pure physics geometry: invisible to the GPU renderer
+        child.visible = false;
+        child.castShadow = false;
+        child.receiveShadow = false;
       }
     });
     return c;
@@ -363,6 +381,9 @@ export const Environment: React.FC = () => {
 
   return (
     <group>
+      {/* 0. Dedicated, Lightweight Physics Colliders */}
+      <CollisionWorld />
+
       {/* 1. Permanent Base Ground & Ocean Terrain */}
       <PersistentBase />
 
@@ -398,6 +419,7 @@ export const Environment: React.FC = () => {
   );
 };
 
-// Preload all 10 chunk models (total 2.47MB)
+// Preload all chunk models and collision model
+useGLTF.preload('./models/collision.glb');
 useGLTF.preload('./models/chunks_export/persistent_base.glb');
 CHUNKS_METADATA.forEach(chunk => useGLTF.preload(chunk.file));
