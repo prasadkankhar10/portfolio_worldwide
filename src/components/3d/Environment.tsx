@@ -225,10 +225,16 @@ const PersistentBase: React.FC = () => {
     return c;
   }, [scene]);
 
-  return <primitive object={cloned} />;
+  return (
+    <RigidBody type="fixed" colliders="trimesh">
+      <primitive object={cloned} />
+    </RigidBody>
+  );
 };
 
 // Dedicated, lightweight physics colliders from Blender collision.glb
+const invisibleColliderMaterial = new THREE.MeshBasicMaterial({ visible: false });
+
 const CollisionWorld: React.FC = () => {
   const { scene } = useGLTF('./models/collision.glb');
   const cloned = useMemo(() => {
@@ -236,8 +242,10 @@ const CollisionWorld: React.FC = () => {
     c.updateMatrixWorld(true);
     c.traverse((child: any) => {
       if (child.isMesh) {
-        // Pure physics geometry: invisible to the GPU renderer
-        child.visible = false;
+        // Keep child.visible = true so Rapier's traverseVisible builds colliders!
+        // Using material.visible = false ensures the GPU skips rendering it completely.
+        child.visible = true;
+        child.material = invisibleColliderMaterial;
         child.castShadow = false;
         child.receiveShadow = false;
       }
@@ -246,7 +254,7 @@ const CollisionWorld: React.FC = () => {
   }, [scene]);
 
   return (
-    <RigidBody type="fixed" colliders="trimesh">
+    <RigidBody type="fixed" colliders="trimesh" includeInvisible={true}>
       <primitive object={cloned} />
     </RigidBody>
   );
