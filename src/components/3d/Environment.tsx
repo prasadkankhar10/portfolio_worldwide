@@ -66,6 +66,10 @@ interface ChunkSectorProps {
   metadata: ChunkMetadata;
   viewDistance: number;
   chunkingEnabled: boolean;
+  lodMode: string;
+  lod0Distance: number;
+  lod1Distance: number;
+  showDebugLOD: boolean;
   lampColor: string;
   lampIntensity: number;
   fanSpeed: number;
@@ -75,17 +79,31 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
   metadata,
   viewDistance,
   chunkingEnabled,
+  lodMode,
+  lod0Distance,
+  lod1Distance,
+  showDebugLOD,
   lampColor,
   lampIntensity,
   fanSpeed
 }) => {
-  const { scene } = useGLTF(metadata.file);
-  const groupRef = useRef<THREE.Group>(null);
-  const windFanRef = useRef<THREE.Object3D | null>(null);
+  // Load all 3 pre-built LOD tiers for this chunk
+  const lod0 = useGLTF(`./models/threejs_game_assets/chunks_lod/lod0/${metadata.id}_lod0.glb`);
+  const lod1 = useGLTF(`./models/threejs_game_assets/chunks_lod/lod1/${metadata.id}_lod1.glb`);
+  const lod2 = useGLTF(`./models/threejs_game_assets/chunks_lod/lod2/${metadata.id}_lod2.glb`);
 
-  const cloned = useMemo(() => {
-    const clonedScene = SkeletonUtils.clone(scene);
+  const groupRef = useRef<THREE.Group>(null);
+  const lod0Ref = useRef<THREE.Group>(null);
+  const lod1Ref = useRef<THREE.Group>(null);
+  const lod2Ref = useRef<THREE.Group>(null);
+
+  const windFansRef = useRef<(THREE.Object3D | null)[]>([]);
+
+  // Setup scenes with shadow, emissive materials, and optional debug tint
+  const setupTier = (rawScene: THREE.Group, debugColor?: string) => {
+    const clonedScene = SkeletonUtils.clone(rawScene);
     clonedScene.updateMatrixWorld(true);
+    let fan: THREE.Object3D | null = null;
 
     clonedScene.traverse((child: any) => {
       if (child.isMesh) {
@@ -95,6 +113,9 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
         const mats = Array.isArray(child.material) ? child.material : [child.material];
         mats.forEach((mat: any) => {
           if (!mat) return;
+          if (debugColor) {
+            mat.color = new THREE.Color(debugColor);
+          }
           const matName = (mat.name || '').toLowerCase();
           // Emissive Street Lamps
           if (matName.includes('lamp_material') || matName.includes('lamp')) {
@@ -110,46 +131,92 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
       }
 
       const name = (child.name || '').toLowerCase();
-      // Windmill fan blade decoupling
+      // Decoupled Windmill Fan (Chunk 2_0)
       if (name.includes('wind_fan') || name.includes('fan')) {
-        windFanRef.current = child;
+        fan = child;
       }
     });
 
-    return clonedScene;
-  }, [scene, lampColor, lampIntensity]);
+    return { scene: clonedScene, fan };
+  };
 
-  // Smooth windmill rotation on Y-axis (as specified in DEVELOPER_GUIDE.md)
+  const tier0 = useMemo(() => setupTier(lod0.scene, showDebugLOD ? '#22c55e' : undefined), [lod0.scene, lampColor, lampIntensity, showDebugLOD]);
+  const tier1 = useMemo(() => setupTier(lod1.scene, showDebugLOD ? '#eab308' : undefined), [lod1.scene, lampColor, lampIntensity, showDebugLOD]);
+  const tier2 = useMemo(() => setupTier(lod2.scene, showDebugLOD ? '#ef4444' : undefined), [lod2.scene, lampColor, lampIntensity, showDebugLOD]);
+
+  useEffect(() => {
+    windFansRef.current = [tier0.fan, tier1.fan, tier2.fan];
+  }, [tier0.fan, tier1.fan, tier2.fan]);
+
+  // Smooth windmill rotation on Y-axis (DEVELOPER_GUIDE.md)
   useFrame((_, delta) => {
-    if (windFanRef.current) {
-      windFanRef.current.rotation.y += fanSpeed * delta;
-    }
+    windFansRef.current.forEach(fan => {
+      if (fan) fan.rotation.y += fanSpeed * delta;
+    });
   });
 
-  // Dynamic Distance Culling for this Chunk
+  // Dynamic Distance-based LOD switching and Culling
   const checkTimer = useRef(0);
-  useFrame((_, delta) => {
-    if (!groupRef.current) return;
-    if (!chunkingEnabled) {
-      if (!groupRef.current.visible) groupRef.current.visible = true;
-      return;
-    }
+  const activeTierRef = useRef<number>(0);
+
+  useFrame((state, delta) => {
     checkTimer.current += delta;
-    if (checkTimer.current > 0.1) {
+    if (checkTimer.current > 0.05) {
       checkTimer.current = 0;
-      const playerPos = globalPlayerState.position;
-      const dx = metadata.center.x - playerPos.x;
-      const dz = metadata.center.z - playerPos.z;
-      const isVisible = (dx * dx + dz * dz) < (viewDistance * viewDistance);
-      if (groupRef.current.visible !== isVisible) {
-        groupRef.current.visible = isVisible;
+      if (!groupRef.current) return;
+
+      // Distance measured from camera / player to this chunk's center
+      const camPos = state.camera.position;
+      const dx = metadata.center.x - camPos.x;
+      const dz = metadata.center.z - camPos.z;
+      const distSq = dx * dx + dz * dz;
+
+      // 1. Distance Culling
+      if (chunkingEnabled && distSq > viewDistance * viewDistance) {
+        if (groupRef.current.visible) groupRef.current.visible = false;
+        return;
+      }
+      if (!groupRef.current.visible) groupRef.current.visible = true;
+
+      // 2. LOD Selection
+      let targetTier = 0;
+      if (lodMode === 'Force LOD0 (High)') {
+        targetTier = 0;
+      } else if (lodMode === 'Force LOD1 (Medium)') {
+        targetTier = 1;
+      } else if (lodMode === 'Force LOD2 (Low)') {
+        targetTier = 2;
+      } else {
+        const dist = Math.sqrt(distSq);
+        if (dist < lod0Distance) {
+          targetTier = 0;
+        } else if (dist < lod1Distance) {
+          targetTier = 1;
+        } else {
+          targetTier = 2;
+        }
+      }
+
+      if (activeTierRef.current !== targetTier) {
+        activeTierRef.current = targetTier;
+        if (lod0Ref.current) lod0Ref.current.visible = targetTier === 0;
+        if (lod1Ref.current) lod1Ref.current.visible = targetTier === 1;
+        if (lod2Ref.current) lod2Ref.current.visible = targetTier === 2;
       }
     }
   });
 
   return (
     <group ref={groupRef}>
-      <primitive object={cloned} />
+      <group ref={lod0Ref} visible={true}>
+        <primitive object={tier0.scene} />
+      </group>
+      <group ref={lod1Ref} visible={false}>
+        <primitive object={tier1.scene} />
+      </group>
+      <group ref={lod2Ref} visible={false}>
+        <primitive object={tier2.scene} />
+      </group>
     </group>
   );
 };
@@ -207,6 +274,17 @@ export const Environment: React.FC = () => {
   const { chunkingEnabled, viewDistance } = useControls('3x3 Chunking System', {
     chunkingEnabled: { value: true, label: 'Enable Chunking' },
     viewDistance: { value: 120, min: 60, max: 250, step: 5, label: 'View Distance (m)' }
+  });
+
+  const { lodMode, lod0Distance, lod1Distance, showDebugLOD } = useControls('Level of Detail (LOD)', {
+    lodMode: {
+      value: 'Auto (Distance)',
+      options: ['Auto (Distance)', 'Force LOD0 (High)', 'Force LOD1 (Medium)', 'Force LOD2 (Low)'],
+      label: 'LOD Mode'
+    },
+    lod0Distance: { value: 55, min: 20, max: 120, step: 5, label: 'LOD0 Cutoff (0-55m)' },
+    lod1Distance: { value: 130, min: 60, max: 220, step: 5, label: 'LOD1 Cutoff (55-130m)' },
+    showDebugLOD: { value: false, label: 'Debug Tint (Green/Yellow/Red)' }
   });
 
   const { fanSpeed } = useControls('Windmill', {
@@ -312,13 +390,17 @@ export const Environment: React.FC = () => {
       {/* 1. Permanent Base Ground & Ocean Terrain */}
       <PersistentBase />
 
-      {/* 2. 3x3 Dynamic Spatial Chunks (1 draw call per chunk) */}
+      {/* 2. 3x3 Dynamic Spatial Chunks with 3-tier distance LOD */}
       {CHUNKS_METADATA.map(metadata => (
         <ChunkSector
           key={metadata.id}
           metadata={metadata}
           viewDistance={viewDistance}
           chunkingEnabled={chunkingEnabled}
+          lodMode={lodMode}
+          lod0Distance={lod0Distance}
+          lod1Distance={lod1Distance}
+          showDebugLOD={showDebugLOD}
           lampColor={lampColor}
           lampIntensity={lampIntensity}
           fanSpeed={fanSpeed}
@@ -343,7 +425,11 @@ export const Environment: React.FC = () => {
   );
 };
 
-// Preload all chunk models, persistent base, and collision model
+// Preload all chunk LOD models, persistent base, and collision model
 useGLTF.preload('./models/threejs_game_assets/base/collision.glb');
 useGLTF.preload('./models/threejs_game_assets/base/persistent_base.glb');
-CHUNKS_METADATA.forEach(chunk => useGLTF.preload(chunk.file));
+['lod0', 'lod1', 'lod2'].forEach(tier => {
+  CHUNKS_METADATA.forEach(chunk => {
+    useGLTF.preload(`./models/threejs_game_assets/chunks_lod/${tier}/${chunk.id}_${tier}.glb`);
+  });
+});
