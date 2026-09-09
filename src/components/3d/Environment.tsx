@@ -1,10 +1,9 @@
-import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { RigidBody } from '@react-three/rapier';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
-import { InstancedTrees } from './InstancedTrees';
 import { DynamicLamps } from './DynamicLamps';
 import { useControls } from 'leva';
 import { globalPlayerState } from './Character';
@@ -17,16 +16,40 @@ export interface ChunkMetadata {
   file: string;
 }
 
+// 3x3 Chunk Layout based on the batched production assets
 export const CHUNKS_METADATA: ChunkMetadata[] = [
-  { id: 'chunk_0_0', name: 'South-West (Fortress)', center: new THREE.Vector3(-90, 0, 90), file: './models/chunks_export/chunk_0_0.glb' },
-  { id: 'chunk_1_0', name: 'South-Center (Gates)', center: new THREE.Vector3(0, 0, 90), file: './models/chunks_export/chunk_1_0.glb' },
-  { id: 'chunk_2_0', name: 'South-East (Farmlands)', center: new THREE.Vector3(90, 0, 90), file: './models/chunks_export/chunk_2_0.glb' },
-  { id: 'chunk_0_1', name: 'West-Center (Blacksmith)', center: new THREE.Vector3(-90, 0, 0), file: './models/chunks_export/chunk_0_1.glb' },
-  { id: 'chunk_1_1', name: 'Town Center (Market & Well)', center: new THREE.Vector3(0, 0, 0), file: './models/chunks_export/chunk_1_1.glb' },
-  { id: 'chunk_2_1', name: 'East-Center (Inn & Library)', center: new THREE.Vector3(90, 0, 0), file: './models/chunks_export/chunk_2_1.glb' },
-  { id: 'chunk_0_2', name: 'North-West (Pine Forest)', center: new THREE.Vector3(-90, 0, -90), file: './models/chunks_export/chunk_0_2.glb' },
-  { id: 'chunk_1_2', name: 'North-Center (Castle Gates)', center: new THREE.Vector3(0, 0, -90), file: './models/chunks_export/chunk_1_2.glb' },
-  { id: 'chunk_2_2', name: 'North-East (Grand Buildings)', center: new THREE.Vector3(90, 0, -90), file: './models/chunks_export/chunk_2_2.glb' },
+  { id: 'chunk_0_0', name: 'South-West (Fortress)', center: new THREE.Vector3(-100, 0, 107), file: './models/threejs_game_assets/chunks_standard/chunk_0_0.glb' },
+  { id: 'chunk_1_0', name: 'South-Center (Gates)', center: new THREE.Vector3(0, 0, 72), file: './models/threejs_game_assets/chunks_standard/chunk_1_0.glb' },
+  { id: 'chunk_2_0', name: 'South-East (Farmlands)', center: new THREE.Vector3(77, 0, 72), file: './models/threejs_game_assets/chunks_standard/chunk_2_0.glb' },
+  { id: 'chunk_0_1', name: 'West-Center (Blacksmith)', center: new THREE.Vector3(-100, 0, -2), file: './models/threejs_game_assets/chunks_standard/chunk_0_1.glb' },
+  { id: 'chunk_1_1', name: 'Town Center (Market & Well)', center: new THREE.Vector3(0, 0, -1), file: './models/threejs_game_assets/chunks_standard/chunk_1_1.glb' },
+  { id: 'chunk_2_1', name: 'East-Center (Inn & Library)', center: new THREE.Vector3(102, 0, 40), file: './models/threejs_game_assets/chunks_standard/chunk_2_1.glb' },
+  { id: 'chunk_0_2', name: 'North-West (Pine Forest)', center: new THREE.Vector3(-85, 0, -83), file: './models/threejs_game_assets/chunks_standard/chunk_0_2.glb' },
+  { id: 'chunk_1_2', name: 'North-Center (Castle Gates)', center: new THREE.Vector3(-4, 0, -83), file: './models/threejs_game_assets/chunks_standard/chunk_1_2.glb' },
+  { id: 'chunk_2_2', name: 'North-East (Grand Buildings)', center: new THREE.Vector3(98, 0, -75), file: './models/threejs_game_assets/chunks_standard/chunk_2_2.glb' },
+];
+
+const STATIC_LAMP_POSITIONS: [number, number, number][] = [
+  [-54.45, 6.3, 49], [-79.5, 6.3, -1.47], [-49.39, 6.3, -12.37], [-46.43, 6.3, -23.69], [-63.25, 6.3, -80.27],
+  [14.43, 6.27, 12.88], [20.6, 6.27, 21.29], [12.77, 6.21, -14.66], [-15.06, 6.3, -12.71], [-1.79, 6.3, -15.19],
+  [15.97, 6.3, -1.6], [-15.75, 6.3, 2.16], [-11.43, 6.3, 14.85], [-0.52, 6.3, -10.5], [27.29, 6.28, 1.98],
+  [37.54, 6.28, 1.98], [15.92, 6.28, 1.98], [10.85, 6.29, 14.55], [-41.25, 6.3, -36.71], [34.76, 6.3, -44.4],
+  [1.69, 6.3, -72.1], [-30.8, 6.3, -56.04], [-18.14, 6.3, -57.15], [-8.34, 6.3, -57.18], [11.96, 6.3, -57.65],
+  [25.45, 6.3, -54.51], [90.26, 6.29, 110.44], [86.06, 6.27, 111.58], [79.89, 6.27, 103.18], [50.46, 6.27, 44.11],
+  [57.88, 6.28, 41.62], [59.97, 6.28, 31.56], [59.97, 6.28, 20.63], [61.46, 6.28, 7.17], [69.57, 6.28, 2.16],
+  [79.82, 6.28, 2.16], [90.18, 6.28, 2.16], [100.46, 6.28, 2.16], [47.9, 6.28, 1.98], [58.18, 6.28, 1.98],
+  [54.77, 6.3, -38.03], [67.32, 6.3, -35.61], [67.96, 6.3, -23.47], [68.29, 6.3, -8.66], [79.6, 6.3, -77.47],
+  [73.48, 6.21, -65.16]
+];
+
+const STATIC_FARM_PLOTS: [number, number, number][] = [
+  [93.73, 3.02, 67.1], [94.44, 3.02, 81.27], [89.76, 3.1, 53.58],
+  [107.02, 3.02, 52.3], [107.02, 3.02, 67.1], [107.02, 3.02, 81.27]
+];
+
+const STATIC_DEPOSIT_PLOTS: [number, number, number][] = [
+  [77.43, 2.99, 73.71], [77.43, 2.99, 73.71], [77.43, 2.99, 73.71],
+  [77.43, 2.99, 73.71], [77.43, 2.99, 73.71], [72.88, 10.45, 51.44]
 ];
 
 const lampPresets: Record<string, { color: string; intensity: number }> = {
@@ -39,147 +62,67 @@ const lampPresets: Record<string, { color: string; intensity: number }> = {
   'Pure White': { color: '#ffffff', intensity: 3.0 }
 };
 
-interface ChunkMarkers {
-  lampPositions: THREE.Vector3[];
-  treeMatrices: THREE.Matrix4[];
-  farmPlots: THREE.Vector3[];
-  depositPlots: THREE.Vector3[];
-  wellMesh?: THREE.Mesh | null;
-  windFan?: THREE.Object3D | null;
-}
-
 interface ChunkSectorProps {
   metadata: ChunkMetadata;
   viewDistance: number;
   chunkingEnabled: boolean;
-  treeSpacing: number;
   lampColor: string;
   lampIntensity: number;
   fanSpeed: number;
-  onMarkersReady: (chunkId: string, markers: ChunkMarkers) => void;
 }
 
 const ChunkSector: React.FC<ChunkSectorProps> = ({
   metadata,
   viewDistance,
   chunkingEnabled,
-  treeSpacing,
   lampColor,
   lampIntensity,
-  fanSpeed,
-  onMarkersReady
+  fanSpeed
 }) => {
   const { scene } = useGLTF(metadata.file);
   const groupRef = useRef<THREE.Group>(null);
   const windFanRef = useRef<THREE.Object3D | null>(null);
 
-  const { cloned, markers } = useMemo(() => {
-    const cloned = SkeletonUtils.clone(scene);
-    cloned.updateMatrixWorld(true);
+  const cloned = useMemo(() => {
+    const clonedScene = SkeletonUtils.clone(scene);
+    clonedScene.updateMatrixWorld(true);
 
-    const lampPositions: THREE.Vector3[] = [];
-    const treeMatrices: THREE.Matrix4[] = [];
-    const farmPlots: THREE.Vector3[] = [];
-    const depositPlots: THREE.Vector3[] = [];
-    let wellMesh: THREE.Mesh | null = null;
-    let windFan: THREE.Object3D | null = null;
-
-    cloned.traverse((child: any) => {
+    clonedScene.traverse((child: any) => {
       if (child.isMesh) {
         child.castShadow = false;
         child.receiveShadow = true;
+
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach((mat: any) => {
+          if (!mat) return;
+          const matName = (mat.name || '').toLowerCase();
+          // Emissive Street Lamps
+          if (matName.includes('lamp_material') || matName.includes('lamp')) {
+            mat.emissive = new THREE.Color(lampColor);
+            mat.emissiveIntensity = lampIntensity;
+          }
+          // Glowing Windows
+          if (matName.includes('window')) {
+            mat.emissive = new THREE.Color('#ffcc88');
+            mat.emissiveIntensity = 2.0;
+          }
+        });
       }
 
       const name = (child.name || '').toLowerCase();
-      const materialName = (child.material?.name || '').toLowerCase();
-
-      // Check for Windmill Fan
+      // Windmill fan blade decoupling
       if (name.includes('wind_fan') || name.includes('fan')) {
-        windFan = child;
-      }
-
-      // Check for Interactive Well
-      if (name.includes('well')) {
-        wellMesh = child;
-      }
-
-      // Street Lamps
-      if (name.includes('light1111') || name.includes('lamp') || name.includes('lantern') || materialName.includes('lamp_material')) {
-        const pos = new THREE.Vector3();
-        child.getWorldPosition(pos);
-        if (child.material) {
-          child.material = child.material.clone();
-          child.material.emissive = new THREE.Color(lampColor);
-          child.material.emissiveIntensity = lampIntensity;
-        }
-        lampPositions.push(pos);
-      }
-
-      // Glowing Windows
-      if (name.includes('window') || materialName.includes('window')) {
-        if (child.material) {
-          child.material = child.material.clone();
-          child.material.emissive = new THREE.Color('#ffcc88');
-          child.material.emissiveIntensity = 2.0;
-        }
-      }
-
-      // Farm Plots
-      if (name.includes('farm_dirt') || name.includes('farm_secondage')) {
-        const pos = new THREE.Vector3();
-        child.getWorldPosition(pos);
-        farmPlots.push(pos);
-      }
-
-      // Deposit Points
-      if (name.includes('bigbarn') || name.includes('mill-wind')) {
-        const pos = new THREE.Vector3();
-        child.getWorldPosition(pos);
-        pos.z += 2.0;
-        depositPlots.push(pos);
-      }
-
-      // Tree spawn markers
-      const isNormalTree = name.includes('tree_swapn') || name.includes('tree_spawn') || name.includes('treespawn');
-      const isDenseTree = name.includes('1treetree');
-      if (isNormalTree || isDenseTree) {
-        const position = new THREE.Vector3();
-        const rotation = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        child.matrixWorld.decompose(position, rotation, scale);
-
-        const randomRotation = Math.random() * Math.PI * 2;
-        rotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), randomRotation));
-        const treeScale = 1.0 * (1.0 + Math.random() * 0.4);
-        scale.set(treeScale, treeScale, treeScale);
-
-        const matrix = new THREE.Matrix4().compose(position, rotation, scale);
-        treeMatrices.push(matrix);
-
-        // Remove dummy cube from scene so camera doesn't bump into it
-        setTimeout(() => {
-          if (child.parent) child.parent.remove(child);
-        }, 0);
+        windFanRef.current = child;
       }
     });
 
-    return {
-      cloned,
-      markers: { lampPositions, treeMatrices, farmPlots, depositPlots, wellMesh, windFan }
-    };
-  }, [scene, lampColor, lampIntensity, treeSpacing]);
+    return clonedScene;
+  }, [scene, lampColor, lampIntensity]);
 
-  useEffect(() => {
-    onMarkersReady(metadata.id, markers);
-    if (markers.windFan) {
-      windFanRef.current = markers.windFan;
-    }
-  }, [metadata.id, markers, onMarkersReady]);
-
-  // Rotate fan if present in this chunk
+  // Smooth windmill rotation on Y-axis (as specified in DEVELOPER_GUIDE.md)
   useFrame((_, delta) => {
     if (windFanRef.current) {
-      windFanRef.current.rotation.z += fanSpeed * delta;
+      windFanRef.current.rotation.y += fanSpeed * delta;
     }
   });
 
@@ -212,7 +155,7 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
 };
 
 const PersistentBase: React.FC = () => {
-  const { scene } = useGLTF('./models/chunks_export/persistent_base.glb');
+  const { scene } = useGLTF('./models/threejs_game_assets/base/persistent_base.glb');
   const cloned = useMemo(() => {
     const c = SkeletonUtils.clone(scene);
     c.updateMatrixWorld(true);
@@ -232,18 +175,18 @@ const PersistentBase: React.FC = () => {
   );
 };
 
-// Dedicated, lightweight physics colliders from Blender collision.glb
+// Dedicated, lightweight physics colliders from collision.glb (72 simplified convex shapes)
 const invisibleColliderMaterial = new THREE.MeshBasicMaterial({ visible: false });
 
 const CollisionWorld: React.FC = () => {
-  const { scene } = useGLTF('./models/collision.glb');
+  const { scene } = useGLTF('./models/threejs_game_assets/base/collision.glb');
   const cloned = useMemo(() => {
     const c = SkeletonUtils.clone(scene);
     c.updateMatrixWorld(true);
     c.traverse((child: any) => {
       if (child.isMesh) {
         // Keep child.visible = true so Rapier's traverseVisible builds colliders!
-        // Using material.visible = false ensures the GPU skips rendering it completely.
+        // Material.visible = false ensures WebGL skips rendering it.
         child.visible = true;
         child.material = invisibleColliderMaterial;
         child.castShadow = false;
@@ -266,12 +209,8 @@ export const Environment: React.FC = () => {
     viewDistance: { value: 120, min: 60, max: 250, step: 5, label: 'View Distance (m)' }
   });
 
-  const { treeSpacing } = useControls('Forest Generation', {
-    treeSpacing: { value: 6, min: 2, max: 20, step: 0.5, label: 'Tree Spacing (m)' }
-  });
-
   const { fanSpeed } = useControls('Windmill', {
-    fanSpeed: { value: 2.0, min: 0, max: 10, step: 0.1, label: 'Fan Speed' }
+    fanSpeed: { value: 1.8, min: 0, max: 10, step: 0.1, label: 'Fan Speed' }
   });
 
   const [{ lampPreset, lampColor, lampIntensity }, setLamp] = useControls('Street Lamp', () => ({
@@ -288,41 +227,21 @@ export const Environment: React.FC = () => {
     lampIntensity: { value: 2.5, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
   })) as any;
 
-  // Aggregated state from all chunks
+  // Lamps state for dynamic point light illumination
   const [allLamps, setAllLamps] = useState<THREE.Vector3[]>([]);
-  const [allTrees, setAllTrees] = useState<THREE.Matrix4[]>([]);
   const wellMeshRef = useRef<THREE.Mesh | null>(null);
 
-  const chunkMarkersRef = useRef<Record<string, ChunkMarkers>>({});
   const setFarmPlots = useGameStore(state => state.setFarmPlots);
   const setDepositPlots = useGameStore(state => state.setDepositPlots);
 
-  const handleMarkersReady = useCallback((chunkId: string, markers: ChunkMarkers) => {
-    chunkMarkersRef.current[chunkId] = markers;
-    if (markers.wellMesh) {
-      wellMeshRef.current = markers.wellMesh;
-    }
-
-    // Re-aggregate markers across all registered chunks
-    const lamps: THREE.Vector3[] = [];
-    const trees: THREE.Matrix4[] = [];
-    const farms: THREE.Vector3[] = [];
-    const deposits: THREE.Vector3[] = [];
-
-    Object.values(chunkMarkersRef.current).forEach(m => {
-      lamps.push(...m.lampPositions);
-      trees.push(...m.treeMatrices);
-      farms.push(...m.farmPlots);
-      deposits.push(...m.depositPlots);
-    });
-
-    setAllLamps(lamps);
-    setAllTrees(trees);
-    if (farms.length > 0) setFarmPlots(farms);
-    if (deposits.length > 0) setDepositPlots(deposits);
+  // Initialize static markers immediately on mount
+  useEffect(() => {
+    setFarmPlots(STATIC_FARM_PLOTS.map(p => new THREE.Vector3(...p)));
+    setDepositPlots(STATIC_DEPOSIT_PLOTS.map(p => new THREE.Vector3(...p)));
+    setAllLamps(STATIC_LAMP_POSITIONS.map(p => new THREE.Vector3(...p)));
   }, [setFarmPlots, setDepositPlots]);
 
-  // Well interaction logic
+  // Well interaction logic (Town Center Well at (0, 3.98, 0))
   const [isNearWell, setIsNearWell] = useState(false);
   const setActiveDialog = useGameStore(state => state.setActiveDialog);
   const activeDialogNpcId = useGameStore(state => state.activeDialogNpcId);
@@ -332,9 +251,7 @@ export const Environment: React.FC = () => {
 
   useFrame(() => {
     if (!wellMeshRef.current) return;
-    const wellPos = new THREE.Vector3();
-    wellMeshRef.current.getWorldPosition(wellPos);
-    const distToPlayer = wellPos.distanceTo(globalPlayerState.position);
+    const distToPlayer = wellMeshRef.current.position.distanceTo(globalPlayerState.position);
     if (distToPlayer < 4.5) {
       if (!isNearWell) setIsNearWell(true);
     } else {
@@ -389,28 +306,32 @@ export const Environment: React.FC = () => {
 
   return (
     <group>
-      {/* 0. Dedicated, Lightweight Physics Colliders */}
+      {/* 0. Dedicated, Lightweight Physics Colliders (72 simplified convex shapes) */}
       <CollisionWorld />
 
       {/* 1. Permanent Base Ground & Ocean Terrain */}
       <PersistentBase />
 
-      {/* 2. 3x3 Dynamic Spatial Chunks */}
+      {/* 2. 3x3 Dynamic Spatial Chunks (1 draw call per chunk) */}
       {CHUNKS_METADATA.map(metadata => (
         <ChunkSector
           key={metadata.id}
           metadata={metadata}
           viewDistance={viewDistance}
           chunkingEnabled={chunkingEnabled}
-          treeSpacing={treeSpacing}
           lampColor={lampColor}
           lampIntensity={lampIntensity}
           fanSpeed={fanSpeed}
-          onMarkersReady={handleMarkersReady}
         />
       ))}
 
-      {/* 3. Dynamic Lamps */}
+      {/* 3. Interactive Well Silhouette / Outline Proxy in Town Square */}
+      <mesh ref={wellMeshRef} position={[0, 3.5, 0]}>
+        <cylinderGeometry args={[1.3, 1.3, 2.2, 16]} />
+        <meshBasicMaterial colorWrite={false} depthWrite={false} />
+      </mesh>
+
+      {/* 4. Dynamic Street Lamps (Nearest 3 to player) */}
       {allLamps.length > 0 && (
         <DynamicLamps
           lampPositions={allLamps}
@@ -418,16 +339,11 @@ export const Environment: React.FC = () => {
           lampIntensity={lampIntensity}
         />
       )}
-
-      {/* 4. Instanced Trees */}
-      {allTrees.length > 0 && (
-        <InstancedTrees spawnMatrices={allTrees} />
-      )}
     </group>
   );
 };
 
-// Preload all chunk models and collision model
-useGLTF.preload('./models/collision.glb');
-useGLTF.preload('./models/chunks_export/persistent_base.glb');
+// Preload all chunk models, persistent base, and collision model
+useGLTF.preload('./models/threejs_game_assets/base/collision.glb');
+useGLTF.preload('./models/threejs_game_assets/base/persistent_base.glb');
 CHUNKS_METADATA.forEach(chunk => useGLTF.preload(chunk.file));
