@@ -21,7 +21,7 @@ export const Character = () => {
   const {
     walkSpeed, runSpeed, rotationSpeed,
     jumpForce, gravityScale, rollThreshold,
-    minPitch, maxPitch
+    minPitch, maxPitch, cameraCollision
   } = useControls('Character Setup', {
     walkSpeed: { value: 3, min: 1, max: 20 },
     runSpeed: { value: 8, min: 1, max: 30 },
@@ -31,6 +31,7 @@ export const Character = () => {
     rollThreshold: { value: -10, min: -30, max: 0 },
     minPitch: { value: -Math.PI / 2 + 0.1, min: -Math.PI, max: 0 },
     maxPitch: { value: Math.PI / 2 - 0.1, min: 0, max: Math.PI },
+    cameraCollision: { value: false, label: 'Camera Wall Collision' },
   });
   
   const rigidBodyRef = useRef<RapierRigidBody>(null);
@@ -293,26 +294,32 @@ export const Character = () => {
       const rayDirection = idealOffset.clone().normalize();
       const maxRayDistance = radius;
 
-      // AAA: Smoother Wall Collisions (Snap in, Lerp out)
-      const hit = world.castRay(
-        new RAPIER.Ray(rayOrigin, rayDirection),
-        maxRayDistance,
-        true,
-        undefined,
-        undefined,
-        playerCollider
-      );
-
       let targetCameraDist = maxRayDistance;
-      if (hit && hit.timeOfImpact < maxRayDistance) {
-        targetCameraDist = Math.max(0.5, hit.timeOfImpact - 0.2); // Keep a minimum distance
-      }
 
-      // Instantly snap in to prevent clipping, smoothly lerp out
-      if (targetCameraDist < currentCameraDist.current) {
-        currentCameraDist.current = targetCameraDist;
+      if (cameraCollision) {
+        // Wall Collisions (Snap in, Lerp out)
+        const hit = world.castRay(
+          new RAPIER.Ray(rayOrigin, rayDirection),
+          maxRayDistance,
+          true,
+          undefined,
+          undefined,
+          playerCollider
+        );
+
+        if (hit && hit.timeOfImpact < maxRayDistance) {
+          targetCameraDist = Math.max(0.5, hit.timeOfImpact - 0.2); // Keep a minimum distance
+        }
+
+        // Instantly snap in to prevent clipping, smoothly lerp out
+        if (targetCameraDist < currentCameraDist.current) {
+          currentCameraDist.current = targetCameraDist;
+        } else {
+          currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 5 * delta));
+        }
       } else {
-        currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 5 * delta));
+        // Camera passes through collision boxes and walls smoothly at full target distance
+        currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 8 * delta));
       }
 
       const finalCameraPosition = rayOrigin.clone().add(rayDirection.multiplyScalar(currentCameraDist.current));
