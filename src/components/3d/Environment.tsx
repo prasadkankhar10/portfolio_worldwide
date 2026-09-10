@@ -13,20 +13,73 @@ export interface ChunkMetadata {
   id: string;
   name: string;
   center: THREE.Vector3;
-  file: string;
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+  file?: string;
 }
 
-// 3x3 Chunk Layout based on the batched production assets
+// 2D Euclidean distance from point to Axis-Aligned Bounding Box (AABB)
+function getDistanceToBox(px: number, pz: number, minX: number, maxX: number, minZ: number, maxZ: number): number {
+  const dx = Math.max(minX - px, 0, px - maxX);
+  const dz = Math.max(minZ - pz, 0, pz - maxZ);
+  return Math.sqrt(dx * dx + dz * dz);
+}
+
+// 3x3 Chunk Layout with exact spatial perimeter bounding boxes
 export const CHUNKS_METADATA: ChunkMetadata[] = [
-  { id: 'chunk_0_0', name: 'South-West (Fortress)', center: new THREE.Vector3(-100, 0, 107), file: './models/threejs_game_assets/chunks_standard/chunk_0_0.glb' },
-  { id: 'chunk_1_0', name: 'South-Center (Gates)', center: new THREE.Vector3(0, 0, 72), file: './models/threejs_game_assets/chunks_standard/chunk_1_0.glb' },
-  { id: 'chunk_2_0', name: 'South-East (Farmlands)', center: new THREE.Vector3(77, 0, 72), file: './models/threejs_game_assets/chunks_standard/chunk_2_0.glb' },
-  { id: 'chunk_0_1', name: 'West-Center (Blacksmith)', center: new THREE.Vector3(-100, 0, -2), file: './models/threejs_game_assets/chunks_standard/chunk_0_1.glb' },
-  { id: 'chunk_1_1', name: 'Town Center (Market & Well)', center: new THREE.Vector3(0, 0, -1), file: './models/threejs_game_assets/chunks_standard/chunk_1_1.glb' },
-  { id: 'chunk_2_1', name: 'East-Center (Inn & Library)', center: new THREE.Vector3(102, 0, 40), file: './models/threejs_game_assets/chunks_standard/chunk_2_1.glb' },
-  { id: 'chunk_0_2', name: 'North-West (Pine Forest)', center: new THREE.Vector3(-85, 0, -83), file: './models/threejs_game_assets/chunks_standard/chunk_0_2.glb' },
-  { id: 'chunk_1_2', name: 'North-Center (Castle Gates)', center: new THREE.Vector3(-4, 0, -83), file: './models/threejs_game_assets/chunks_standard/chunk_1_2.glb' },
-  { id: 'chunk_2_2', name: 'North-East (Grand Buildings)', center: new THREE.Vector3(98, 0, -75), file: './models/threejs_game_assets/chunks_standard/chunk_2_2.glb' },
+  {
+    id: 'chunk_0_0',
+    name: 'South-West (Fortress)',
+    center: new THREE.Vector3(-100, 0, 107),
+    bounds: { minX: -135, maxX: -14.8, minZ: 12.4, maxZ: 135 }
+  },
+  {
+    id: 'chunk_1_0',
+    name: 'South-Center (Gates)',
+    center: new THREE.Vector3(0, 0, 72),
+    bounds: { minX: -45, maxX: 45, minZ: 45, maxZ: 135 }
+  },
+  {
+    id: 'chunk_2_0',
+    name: 'South-East (Farmlands)',
+    center: new THREE.Vector3(77, 0, 72),
+    bounds: { minX: -4.1, maxX: 135, minZ: -0.1, maxZ: 142.6 }
+  },
+  {
+    id: 'chunk_0_1',
+    name: 'West-Center (Blacksmith)',
+    center: new THREE.Vector3(-100, 0, -2),
+    bounds: { minX: -135, maxX: -19.9, minZ: -45, maxZ: 45 }
+  },
+  {
+    id: 'chunk_1_1',
+    name: 'Town Center (Market & Well)',
+    center: new THREE.Vector3(0, 0, -1),
+    bounds: { minX: -75.3, maxX: 97.9, minZ: -73.9, maxZ: 96.1 }
+  },
+  {
+    id: 'chunk_2_1',
+    name: 'East-Center (Inn & Library)',
+    center: new THREE.Vector3(102, 0, 40),
+    bounds: { minX: 29.2, maxX: 135, minZ: -45, maxZ: 89.6 }
+  },
+  {
+    id: 'chunk_0_2',
+    name: 'North-West (Pine Forest)',
+    center: new THREE.Vector3(-85, 0, -83),
+    bounds: { minX: -135, maxX: -14.7, minZ: -135, maxZ: -19.1 }
+  },
+  {
+    id: 'chunk_1_2',
+    name: 'North-Center (Castle Gates)',
+    center: new THREE.Vector3(-4, 0, -83),
+    bounds: { minX: -45, maxX: 45, minZ: -135, maxZ: -15.1 }
+  },
+  {
+    id: 'chunk_2_2',
+    name: 'North-East (Grand Buildings)',
+    center: new THREE.Vector3(98, 0, -75),
+    bounds: { minX: 14.6, maxX: 135, minZ: -135, maxZ: -10.5 }
+  },
 ];
 
 const STATIC_LAMP_POSITIONS: [number, number, number][] = [
@@ -155,7 +208,7 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
     });
   });
 
-  // Dynamic Distance-based LOD switching and Culling
+  // Dynamic Distance-based LOD switching and Culling using Box3 Perimeter Distance
   const checkTimer = useRef(0);
   const activeTierRef = useRef<number>(0);
 
@@ -165,21 +218,25 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
       checkTimer.current = 0;
       if (!groupRef.current) return;
 
-      // Distance measured from camera / player to this chunk's center
+      // Measure distance from both Camera and Player to chunk bounding perimeter
       const camPos = state.camera.position;
-      const dx = metadata.center.x - camPos.x;
-      const dz = metadata.center.z - camPos.z;
-      const distSq = dx * dx + dz * dz;
+      const playerPos = globalPlayerState.position;
+      const b = metadata.bounds;
 
-      // 1. Distance Culling
-      if (chunkingEnabled && distSq > viewDistance * viewDistance) {
+      const camDist = getDistanceToBox(camPos.x, camPos.z, b.minX, b.maxX, b.minZ, b.maxZ);
+      const playerDist = getDistanceToBox(playerPos.x, playerPos.z, b.minX, b.maxX, b.minZ, b.maxZ);
+      // Minimum distance ensures neither player nor camera sees low poly when nearby
+      const dist = Math.min(camDist, playerDist);
+
+      // 1. Distance Culling: only cull if outside viewDistance
+      if (chunkingEnabled && dist > viewDistance) {
         if (groupRef.current.visible) groupRef.current.visible = false;
         return;
       }
       if (!groupRef.current.visible) groupRef.current.visible = true;
 
-      // 2. LOD Selection
-      let targetTier = 0;
+      // 2. Dynamic LOD Selection with Hysteresis (prevents edge flickering)
+      let targetTier = activeTierRef.current;
       if (lodMode === 'Force LOD0 (High)') {
         targetTier = 0;
       } else if (lodMode === 'Force LOD1 (Medium)') {
@@ -187,13 +244,24 @@ const ChunkSector: React.FC<ChunkSectorProps> = ({
       } else if (lodMode === 'Force LOD2 (Low)') {
         targetTier = 2;
       } else {
-        const dist = Math.sqrt(distSq);
-        if (dist < lod0Distance) {
-          targetTier = 0;
-        } else if (dist < lod1Distance) {
-          targetTier = 1;
+        const HYSTERESIS = 6.0; // 6m buffer prevents border flickering
+        if (targetTier === 0) {
+          if (dist > lod0Distance + HYSTERESIS) {
+            targetTier = dist > lod1Distance + HYSTERESIS ? 2 : 1;
+          }
+        } else if (targetTier === 1) {
+          if (dist < lod0Distance) {
+            targetTier = 0;
+          } else if (dist > lod1Distance + HYSTERESIS) {
+            targetTier = 2;
+          }
         } else {
-          targetTier = 2;
+          // targetTier === 2
+          if (dist < lod0Distance) {
+            targetTier = 0;
+          } else if (dist < lod1Distance) {
+            targetTier = 1;
+          }
         }
       }
 
