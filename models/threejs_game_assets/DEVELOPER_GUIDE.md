@@ -1,4 +1,4 @@
-﻿# Medieval Island - Three.js Technical Integration & Developer Guide
+# Medieval Island - Three.js Technical Integration & Developer Guide
 
 Welcome to the **Medieval Island 3D Asset Package**. This guide provides everything a Three.js developer needs to integrate, stream, and render the complete island world with high framerates (60–120+ FPS) on desktop and mobile browsers.
 
@@ -6,10 +6,11 @@ Welcome to the **Medieval Island 3D Asset Package**. This guide provides everyth
 
 ## 1. Executive Overview
 
-This environment has been fully restructured, optimized, and packaged for production web games:
-- **Draw Call Reduction (99.3% cut)**: 1,551 individual loose mesh models were batched into unified static chunk meshes. Draw calls dropped from **1,500+ down to ~30–50**.
-- **Physics Geometry Reduction (93% cut)**: Collision meshes were reduced from **34,535 vertices down to 2,433 vertices**. Fences and walls now use lightweight, convex collision volumes.
-- **Level of Detail (THREE.LOD)**: Every chunk has 3 pre-built LOD tiers (`lod0`, `lod1`, `lod2`), reducing far-distance vertex processing by **over 75%**.
+This environment has been fully restructured, optimized, enriched, and packaged for production web games:
+- **Draw Call Reduction (99.3% cut)**: 1,600+ individual loose mesh models are batched into unified static chunk meshes. Draw calls dropped from **1,600+ down to ~30–50**.
+- **Snug Building Collisions**: All 47 building colliders were tightly calibrated around ground-floor walls. Roof overhangs and porches no longer block players, allowing smooth doorway entry and narrow-alley navigation.
+- **World Population & Life**: Over 118 new authentic props populate previously empty zones (Harbor rowboats & cargo, Farm golden haystacks & water trough, Campsite with stone campfire & benches, lush pine/oak forest groves, wooden crossroads signposts, and town resting benches).
+- **Architecture-Preserving LODs (THREE.LOD)**: Fixed all ground tearing and roof puncture issues. Ground planes and roads are protected with locked boundary vertices, and micro-clutter is cleanly culled in distant tiers (`lod1`, `lod2`).
 - **Repaired Geometry & Shading**: Fixed all backward-facing polygons, missing road sections, and split normals on roads and buildings.
 
 ---
@@ -137,7 +138,21 @@ for (let cy = 0; cy < 3; cy++) {
 
 ## 5. Collision & Physics Integration (`collision.glb`)
 
-`collision.glb` contains 72 simplified convex colliders covering all buildings, walls, and terrain.
+`collision.glb` contains 72 streamlined collision proxies specifically designed for web game physics engines (Cannon-es, Rapier, or custom THREE.Raycaster):
+
+### Collision Structure & Accuracy
+1. **Minimum Ground-Floor Wall Footprints**:
+   - Unlike raw visual meshes or generic bounding boxes, standard building colliders (`COL_House_*`, `COL_Barracks_*`, `COL_Storage_*`, etc.) are tightly fitted to the actual ground-floor perimeter walls.
+   - Roof eave overhangs, signs, and decorative awnings are excluded from collision hulls, allowing players to walk right up to walls, touch doorframes, and smoothly slip through narrow alleys.
+2. **Compound Colliders on Walkable & Interactive Models**:
+   - **`COL_Blacksmith`**: Divided into 2 boxes (shop room + chimney). The covered forge pavilion with anvil and workbench is open air for player entry.
+   - **`COL_Inn`**: Divided into 2 boxes (dining hall + guest wing). The front porch and central outdoor courtyard are 100% open air.
+   - **`COL_Temple_SecondAge_Level2`**: Formed by 2 intersecting cross-boxes ($30\text{m} \times 11\text{m}$ nave + $11\text{m} \times 30\text{m}$ transept), hugging the sanctuary walls while leaving all four corner courtyards and octagonal platform stairs accessible.
+   - **`COL_Houses_SecondAge_2_Level3`**: Formed by 2 separate boxes for the twin townhouses, leaving the diagonal cobblestone alleyway open for passage.
+   - **`COL_Stable` & `COL_Stable.001`**: Enclosed barn box, leaving the outdoor horse paddock open.
+   - **`COL_Dock_FirstAge` (.001, .002)**: Low-profile plank walkway boxes ($2.48\text{m} \times 5.78\text{m} \times 0.5\text{m}$) aligned to the walking deck; water and boat mooring slips are completely free.
+3. **Ultra-Low Vertex Budget**:
+   - Each building collider consists of only 8 to 16 vertices (6 to 12 quads). Total physics vertices across the entire $270\text{m} \times 270\text{m}$ island remain under 3,000 vertices—guaranteeing 60–120 FPS raycasting and collision detection on mobile and desktop devices.
 
 ### How to Use with Raycasting
 Use `threejs_game_assets/code_templates/CollisionManager.js`:

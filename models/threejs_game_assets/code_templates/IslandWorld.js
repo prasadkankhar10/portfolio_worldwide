@@ -1,4 +1,4 @@
-﻿/**
+/**
  * IslandWorld.js - Three.js Modular Island World Manager
  *
  * Handles:
@@ -44,19 +44,27 @@ export class IslandWorld {
 
     // Active LOD nodes keyed by 'cx_cy'
     this.chunkLods = new Map();
+    this.chunkBoxes = new Map();
 
     // Animated objects
     this.windFan = null;
     this.windFanSpeed = 1.8; // radians per second
 
-    // World dimensions
-    this.islandCenter = new THREE.Vector3(0, 0, 0);
-    this.chunkSize = 90.0; // Approx 90m per chunk (270m total / 3)
+    // Celestial Orrery animated parts (Chunk 1_2)
+    this.orreryOuterRing = null;
+    this.orreryMidRing = null;
+    this.orreryInnerRing = null;
+    this.orreryCrystal = null;
+    this.orreryRunes = null;
+    this.observatoryRunes = null;
+    this.animClock = 0;
 
-    // Distance thresholds (meters)
-    this.lod0Distance = 0;   // 0 - 55m: Full quality
-    this.lod1Distance = 55;  // 55 - 130m: Mid quality (~40% polys)
-    this.lod2Distance = 130; // 130m+: Far horizon (~15% polys)
+    // World dimensions & Chunk grid
+    this.islandCenter = new THREE.Vector3(0, 0, 0);
+    this.chunkSize = 90.0; // 90m per chunk (270m total / 3)
+    this.lod1Threshold = 40.0;  // 0 - 40m from chunk edge: LOD0 (100% detail)
+    this.lod2Threshold = 100.0; // 40 - 100m from chunk edge: LOD1 (mid detail)
+                                // 100m+ from chunk edge: LOD2 (horizon silhouette)
   }
 
   /**
@@ -131,13 +139,17 @@ export class IslandWorld {
       const key = `${cx}_${cy}`;
       const lod = new THREE.LOD();
       lod.name = `Chunk_LOD_${key}`;
+      // Disable Three.js default point-to-point distance check so our
+      // boundary-aware Box3 distance updater controls LOD switching
+      lod.autoUpdate = false;
+
       this.chunksGroup.add(lod);
       this.chunkLods.set(key, lod);
 
       const prefix = `${this.basePath}chunks_lod/`;
 
       // Helper to load a tier
-      const loadTier = (tierName, distance) => {
+      const loadTier = (tierName) => {
         return new Promise((res) => {
           const url = `${prefix}${tierName}/chunk_${cx}_${cy}_${tierName}.glb`;
           this.loader.load(
@@ -149,19 +161,34 @@ export class IslandWorld {
                   child.castShadow = true;
                   child.receiveShadow = true;
 
+                  const lowerName = child.name.toLowerCase();
                   // Capture wind_fan in Chunk 2_0
-                  if (child.name.toLowerCase().includes('wind_fan')) {
+                  if (lowerName.includes('wind_fan')) {
                     this.windFan = child;
+                  } else if (lowerName.includes('orrery_ring_outer')) {
+                    this.orreryOuterRing = child;
+                  } else if (lowerName.includes('orrery_ring_mid')) {
+                    this.orreryMidRing = child;
+                  } else if (lowerName.includes('orrery_ring_inner')) {
+                    this.orreryInnerRing = child;
+                  } else if (lowerName.includes('orrery_core_crystal')) {
+                    this.orreryCrystal = child;
+                  } else if (lowerName.includes('orrery_floating_runes')) {
+                    this.orreryRunes = child;
+                  } else if (lowerName.includes('observatory_runestones')) {
+                    this.observatoryRunes = child;
                   }
                 }
               });
-              lod.addLevel(model, distance);
-              res();
+              // Distance parameter here is a fallback index
+              const distFallback = tierName === 'lod0' ? 0 : (tierName === 'lod1' ? 40 : 100);
+              lod.addLevel(model, distFallback);
+              res(model);
             },
             undefined,
             (err) => {
               console.warn(`[IslandWorld] Could not load ${url}:`, err);
-              res();
+              res(null);
             }
           );
         });
@@ -169,10 +196,24 @@ export class IslandWorld {
 
       // Load all 3 tiers concurrently
       Promise.all([
-        loadTier('lod0', this.lod0Distance),
-        loadTier('lod1', this.lod1Distance),
-        loadTier('lod2', this.lod2Distance),
-      ]).then(() => {
+        loadTier('lod0'),
+        loadTier('lod1'),
+        loadTier('lod2'),
+      ]).then(([lod0Model]) => {
+        // Compute world-space AABB bounding box for this chunk
+        const box = new THREE.Box3();
+        if (lod0Model) {
+          box.setFromObject(lod0Model);
+        } else {
+          // Fallback approximate 90x90m box based on grid coordinates
+          const minX = cx * 90 - 135;
+          const maxX = minX + 90;
+          const minZ = (2 - cy) * 90 - 135; // Blender Y to Three.js -Z
+          const maxZ = minZ + 90;
+          box.min.set(minX, 0, minZ);
+          box.max.set(maxX, 50, maxZ);
+        }
+        this.chunkBoxes.set(key, box);
         resolve(lod);
       });
     });
@@ -180,12 +221,64 @@ export class IslandWorld {
 
   /**
    * Per-frame update loop. Call this inside your requestAnimationFrame callback.
+   * Updates windmill blade rotation and evaluates chunk LODs using distance
+   * to each chunk's bounding box (AABB).
    * @param {number} delta - Delta time in seconds (e.g. clock.getDelta())
    */
   update(delta = 0.016) {
     // 1. Rotate the windmill blades smoothly
     if (this.windFan) {
       this.windFan.rotation.y += this.windFanSpeed * delta;
+    }
+
+    // 2. Animate Celestial Orrery & Floating Runes
+    this.animClock += delta;
+    if (this.orreryOuterRing) {
+      this.orreryOuterRing.rotation.z += 0.35 * delta;
+    }
+    if (this.orreryMidRing) {
+      this.orreryMidRing.rotation.x += 0.55 * delta;
+    }
+    if (this.orreryInnerRing) {
+      this.orreryInnerRing.rotation.y += 0.85 * delta;
+    }
+    if (this.orreryRunes) {
+      this.orreryRunes.rotation.z -= 0.25 * delta;
+    }
+    if (this.orreryCrystal) {
+      this.orreryCrystal.rotation.z += 0.60 * delta;
+      this.orreryCrystal.position.z = Math.sin(this.animClock * 2.0) * 0.12;
+    }
+    if (this.observatoryRunes) {
+      this.observatoryRunes.rotation.z += 0.45 * delta;
+    }
+
+    // 3. Update chunk LODs based on distance to chunk's Bounding Box (AABB)
+    // This guarantees that when a player stands right next to a neighboring chunk,
+    // distanceToPoint is ~0m and the neighbor stays at crisp, high-detail LOD0!
+    const camPos = this.camera.position;
+    for (const [key, lod] of this.chunkLods) {
+      const box = this.chunkBoxes.get(key);
+      if (!box || lod.levels.length < 3) continue;
+
+      // Distance from camera to the closest point of the chunk's box
+      const dist = box.distanceToPoint(camPos);
+
+      // Select tier based on distance from the chunk's boundary edge
+      let activeIndex = 0;
+      if (dist >= this.lod2Threshold) {
+        activeIndex = 2; // Far horizon silhouette (100m+)
+      } else if (dist >= this.lod1Threshold) {
+        activeIndex = 1; // Mid distance (40 - 100m)
+      } else {
+        activeIndex = 0; // Close range & adjacent boundary (0 - 40m): High Detail
+      }
+
+      for (let i = 0; i < lod.levels.length; i++) {
+        if (lod.levels[i].object) {
+          lod.levels[i].object.visible = (i === activeIndex);
+        }
+      }
     }
   }
 
