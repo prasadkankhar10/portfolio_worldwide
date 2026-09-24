@@ -58,6 +58,19 @@ export class IslandWorldUnchunked {
     this.orreryCrystal = null;
     this.orreryRunes = null;
     this.observatoryRunes = null;
+
+    // Additional Magical Installations (Waystones, Portal, Moonwell, Ward Shield)
+    this.waystoneCrossroadsCrystal = null;
+    this.waystoneCrossroadsRunes = null;
+    this.waystoneDocksCrystal = null;
+    this.waystoneDocksRunes = null;
+    this.portalVortex = null;
+    this.portalKeystones = null;
+    this.moonwellOrbs = null;
+    this.wardRuneRing1 = null;
+    this.wardRuneRing2 = null;
+    this.wardDome = null;
+
     this.magicalLights = [];
 
     this.animClock = 0;
@@ -133,6 +146,34 @@ export class IslandWorldUnchunked {
               // 3. Ground Observatory Sanctum
               else if (name.includes('observatory_runestones')) {
                 this.observatoryRunes = child;
+              }
+              // 4. Arcane Waystones (Crossroads & Docks)
+              else if (name.includes('arcane_waystone_crossroads_crystal')) {
+                this.waystoneCrossroadsCrystal = child;
+              } else if (name.includes('arcane_waystone_crossroads_runes')) {
+                this.waystoneCrossroadsRunes = child;
+              } else if (name.includes('arcane_waystone_docks_crystal')) {
+                this.waystoneDocksCrystal = child;
+              } else if (name.includes('arcane_waystone_docks_runes')) {
+                this.waystoneDocksRunes = child;
+              }
+              // 5. Citadel Arcane Portal
+              else if (name.includes('citadel_arcane_portal_vortex_disc')) {
+                this.portalVortex = child;
+              } else if (name.includes('citadel_arcane_portal_floating_keystones')) {
+                this.portalKeystones = child;
+              }
+              // 6. Enchanted Moonwell & Flora
+              else if (name.includes('enchanted_moonwell_grove_floating_orbs')) {
+                this.moonwellOrbs = child;
+              }
+              // 7. Arcane Ward Shield (Summit)
+              else if (name.includes('citadel_arcane_ward_shield_runering1')) {
+                this.wardRuneRing1 = child;
+              } else if (name.includes('citadel_arcane_ward_shield_runering2')) {
+                this.wardRuneRing2 = child;
+              } else if (name.includes('citadel_arcane_ward_shield_dome')) {
+                this.wardDome = child;
               }
             }
           });
@@ -263,6 +304,34 @@ export class IslandWorldUnchunked {
     obsLight.position.set(-0.20, 4.50, -96.50);
     this.root.add(obsLight);
     this.magicalLights.push({ light: obsLight, baseIntensity: 1.8, speed: 1.6 });
+
+    // 3. Arcane Waystone - Crossroads
+    // Blender (8.0, -10.0, 5.0) -> Three.js (8.0, 5.0, 10.0)
+    const waystoneCrossLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
+    waystoneCrossLight.position.set(8.0, 5.0, 10.0);
+    this.root.add(waystoneCrossLight);
+    this.magicalLights.push({ light: waystoneCrossLight, baseIntensity: 2.2, speed: 2.0 });
+
+    // 4. Arcane Waystone - Docks
+    // Blender (102.0, -125.0, 5.0) -> Three.js (102.0, 5.0, 125.0)
+    const waystoneDocksLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
+    waystoneDocksLight.position.set(102.0, 5.0, 125.0);
+    this.root.add(waystoneDocksLight);
+    this.magicalLights.push({ light: waystoneDocksLight, baseIntensity: 2.2, speed: 2.0 });
+
+    // 5. Citadel Arcane Portal Gateway
+    // Blender (-15.0, 105.0, 5.5) -> Three.js (-15.0, 5.5, -105.0)
+    const portalLight = new THREE.PointLight(0x9d4edd, 2.8, 22.0, 1.4);
+    portalLight.position.set(-15.0, 5.5, -105.0);
+    this.root.add(portalLight);
+    this.magicalLights.push({ light: portalLight, baseIntensity: 2.8, speed: 2.6 });
+
+    // 6. Enchanted Moonwell & Bio Grove
+    // Blender (-50.0, -35.0, 4.8) -> Three.js (-50.0, 4.8, 35.0)
+    const moonwellLight = new THREE.PointLight(0x00e5ff, 2.0, 18.0, 1.3);
+    moonwellLight.position.set(-50.0, 4.8, 35.0);
+    this.root.add(moonwellLight);
+    this.magicalLights.push({ light: moonwellLight, baseIntensity: 2.0, speed: 1.8 });
   }
 
   /**
@@ -325,7 +394,49 @@ export class IslandWorldUnchunked {
       this.observatoryRunes.rotation.z += 0.45 * delta;
     }
 
-    // 4. Pulsing Magical Lights
+    // 4. Arcane Waystones (Crossroads & Docks)
+    if (this.waystoneCrossroadsCrystal) {
+      this.waystoneCrossroadsCrystal.rotation.z += 0.75 * delta;
+      this.waystoneCrossroadsCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2) * 0.1;
+    }
+    if (this.waystoneCrossroadsRunes) {
+      this.waystoneCrossroadsRunes.rotation.z -= 0.40 * delta;
+    }
+    if (this.waystoneDocksCrystal) {
+      this.waystoneDocksCrystal.rotation.z += 0.75 * delta;
+      this.waystoneDocksCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2 + 1.0) * 0.1;
+    }
+    if (this.waystoneDocksRunes) {
+      this.waystoneDocksRunes.rotation.z -= 0.40 * delta;
+    }
+
+    // 5. Citadel Arcane Portal Gateway
+    if (this.portalVortex) {
+      this.portalVortex.rotation.y += 0.80 * delta;
+    }
+    if (this.portalKeystones) {
+      this.portalKeystones.rotation.y -= 0.20 * delta;
+    }
+
+    // 6. Enchanted Moonwell & Floating Orbs
+    if (this.moonwellOrbs) {
+      this.moonwellOrbs.rotation.z += 0.30 * delta;
+      this.moonwellOrbs.position.z = 0.52 + Math.sin(this.animClock * 1.8) * 0.08;
+    }
+
+    // 7. Arcane Citadel Ward Shield (Summit)
+    if (this.wardRuneRing1) {
+      this.wardRuneRing1.rotation.z += 0.22 * delta;
+    }
+    if (this.wardRuneRing2) {
+      this.wardRuneRing2.rotation.z -= 0.32 * delta;
+    }
+    if (this.wardDome && this.wardDome.material) {
+      // Subtle celestial energy breathing pulse
+      this.wardDome.material.opacity = 0.35 + Math.sin(this.animClock * 2.5) * 0.08;
+    }
+
+    // 8. Pulsing Magical Lights
     for (const item of this.magicalLights) {
       item.light.intensity =
         item.baseIntensity + Math.sin(this.animClock * item.speed) * (item.baseIntensity * 0.25);
