@@ -306,28 +306,24 @@ export class IslandWorldUnchunked {
     this.magicalLights.push({ light: obsLight, baseIntensity: 1.8, speed: 1.6 });
 
     // 3. Arcane Waystone - Crossroads
-    // Blender (8.0, -10.0, 5.0) -> Three.js (8.0, 5.0, 10.0)
     const waystoneCrossLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
-    waystoneCrossLight.position.set(8.0, 5.0, 10.0);
+    waystoneCrossLight.position.set(8.0, 5.0, 17.75);
     this.root.add(waystoneCrossLight);
     this.magicalLights.push({ light: waystoneCrossLight, baseIntensity: 2.2, speed: 2.0 });
 
     // 4. Arcane Waystone - Docks
-    // Blender (102.0, -125.0, 5.0) -> Three.js (102.0, 5.0, 125.0)
     const waystoneDocksLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
     waystoneDocksLight.position.set(102.0, 5.0, 125.0);
     this.root.add(waystoneDocksLight);
     this.magicalLights.push({ light: waystoneDocksLight, baseIntensity: 2.2, speed: 2.0 });
 
     // 5. Citadel Arcane Portal Gateway
-    // Blender (-15.0, 105.0, 5.5) -> Three.js (-15.0, 5.5, -105.0)
     const portalLight = new THREE.PointLight(0x9d4edd, 2.8, 22.0, 1.4);
     portalLight.position.set(-15.0, 5.5, -105.0);
     this.root.add(portalLight);
     this.magicalLights.push({ light: portalLight, baseIntensity: 2.8, speed: 2.6 });
 
     // 6. Enchanted Moonwell & Bio Grove
-    // Blender (-50.0, -35.0, 4.8) -> Three.js (-50.0, 4.8, 35.0)
     const moonwellLight = new THREE.PointLight(0x00e5ff, 2.0, 18.0, 1.3);
     moonwellLight.position.set(-50.0, 4.8, 35.0);
     this.root.add(moonwellLight);
@@ -364,10 +360,11 @@ export class IslandWorldUnchunked {
    */
   update(delta = 0.016) {
     this.animClock += delta;
+    const time = this.animClock;
 
     // 1. Windmill fan in Farmland
     if (this.windFan) {
-      this.windFan.rotation.y += this.windFanSpeed * delta;
+      this.windFan.rotation.y += 1.80 * delta;
     }
 
     // 2. Celestial Orrery at the Watchtower Summit
@@ -386,7 +383,7 @@ export class IslandWorldUnchunked {
     if (this.orreryCrystal) {
       this.orreryCrystal.rotation.z += 0.60 * delta;
       // Gentle vertical levitation bobbing
-      this.orreryCrystal.position.z = Math.sin(this.animClock * 2.0) * 0.12;
+      this.orreryCrystal.position.z = Math.sin(time * 2.0) * 0.12;
     }
 
     // 3. Ground Observatory Sanctum
@@ -397,14 +394,14 @@ export class IslandWorldUnchunked {
     // 4. Arcane Waystones (Crossroads & Docks)
     if (this.waystoneCrossroadsCrystal) {
       this.waystoneCrossroadsCrystal.rotation.z += 0.75 * delta;
-      this.waystoneCrossroadsCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2) * 0.1;
+      this.waystoneCrossroadsCrystal.position.z = 1.85 + Math.sin(time * 2.2) * 0.10;
     }
     if (this.waystoneCrossroadsRunes) {
       this.waystoneCrossroadsRunes.rotation.z -= 0.40 * delta;
     }
     if (this.waystoneDocksCrystal) {
       this.waystoneDocksCrystal.rotation.z += 0.75 * delta;
-      this.waystoneDocksCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2 + 1.0) * 0.1;
+      this.waystoneDocksCrystal.position.z = 1.85 + Math.sin(time * 2.2 + 1.2) * 0.10;
     }
     if (this.waystoneDocksRunes) {
       this.waystoneDocksRunes.rotation.z -= 0.40 * delta;
@@ -416,12 +413,13 @@ export class IslandWorldUnchunked {
     }
     if (this.portalKeystones) {
       this.portalKeystones.rotation.y -= 0.20 * delta;
+      this.portalKeystones.position.z = Math.sin(time * 1.5) * 0.05;
     }
 
     // 6. Enchanted Moonwell & Floating Orbs
     if (this.moonwellOrbs) {
       this.moonwellOrbs.rotation.z += 0.30 * delta;
-      this.moonwellOrbs.position.z = 0.52 + Math.sin(this.animClock * 1.8) * 0.08;
+      this.moonwellOrbs.position.z = 0.52 + Math.sin(time * 1.8) * 0.08;
     }
 
     // 7. Arcane Citadel Ward Shield (Summit)
