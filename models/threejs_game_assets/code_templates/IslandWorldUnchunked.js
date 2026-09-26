@@ -362,76 +362,83 @@ export class IslandWorldUnchunked {
     this.animClock += delta;
     const time = this.animClock;
 
-    // 1. Windmill fan in Farmland
+    // 1. Windmill fan in Farmland (Spins on axle Z)
     if (this.windFan) {
-      this.windFan.rotation.y += 1.80 * delta;
+      this.windFan.rotation.z += 1.80 * delta;
     }
 
     // 2. Celestial Orrery at the Watchtower Summit
     if (this.orreryOuterRing) {
       this.orreryOuterRing.rotation.z += 0.35 * delta;
+      this.orreryOuterRing.rotation.y += 0.20 * delta;
     }
     if (this.orreryMidRing) {
       this.orreryMidRing.rotation.x += 0.55 * delta;
     }
     if (this.orreryInnerRing) {
       this.orreryInnerRing.rotation.y += 0.85 * delta;
+      this.orreryInnerRing.rotation.z += 0.40 * delta;
     }
     if (this.orreryRunes) {
-      this.orreryRunes.rotation.z -= 0.25 * delta;
+      this.orreryRunes.rotation.y -= 0.30 * delta;
+      this.orreryRunes.rotation.z -= 0.20 * delta;
     }
     if (this.orreryCrystal) {
-      this.orreryCrystal.rotation.z += 0.60 * delta;
-      // Gentle vertical levitation bobbing
-      this.orreryCrystal.position.z = Math.sin(time * 2.0) * 0.12;
+      this.orreryCrystal.rotation.y += 0.60 * delta;
+      this.orreryCrystal.rotation.z += 0.40 * delta;
+      // Gentle vertical levitation bobbing centered inside Orrery_Assembly
+      this.orreryCrystal.position.y = Math.sin(time * 2.0) * 0.15;
     }
 
     // 3. Ground Observatory Sanctum
     if (this.observatoryRunes) {
-      this.observatoryRunes.rotation.z += 0.45 * delta;
+      this.observatoryRunes.rotation.y += 0.45 * delta;
+      this.observatoryRunes.position.y = Math.sin(time * 1.8) * 0.08;
     }
 
     // 4. Arcane Waystones (Crossroads & Docks)
     if (this.waystoneCrossroadsCrystal) {
-      this.waystoneCrossroadsCrystal.rotation.z += 0.75 * delta;
-      this.waystoneCrossroadsCrystal.position.z = 1.85 + Math.sin(time * 2.2) * 0.10;
+      this.waystoneCrossroadsCrystal.rotation.y += 0.80 * delta;
+      this.waystoneCrossroadsCrystal.position.y = 1.85 + Math.sin(time * 2.2) * 0.12;
     }
     if (this.waystoneCrossroadsRunes) {
-      this.waystoneCrossroadsRunes.rotation.z -= 0.40 * delta;
+      this.waystoneCrossroadsRunes.rotation.y -= 0.50 * delta;
+      this.waystoneCrossroadsRunes.position.y = 1.85 + Math.sin(time * 2.2 + 0.6) * 0.05;
     }
     if (this.waystoneDocksCrystal) {
-      this.waystoneDocksCrystal.rotation.z += 0.75 * delta;
-      this.waystoneDocksCrystal.position.z = 1.85 + Math.sin(time * 2.2 + 1.2) * 0.10;
+      this.waystoneDocksCrystal.rotation.y += 0.80 * delta;
+      this.waystoneDocksCrystal.position.y = 1.85 + Math.sin(time * 2.2 + 1.2) * 0.12;
     }
     if (this.waystoneDocksRunes) {
-      this.waystoneDocksRunes.rotation.z -= 0.40 * delta;
+      this.waystoneDocksRunes.rotation.y -= 0.50 * delta;
+      this.waystoneDocksRunes.position.y = 1.85 + Math.sin(time * 2.2 + 1.8) * 0.05;
     }
 
     // 5. Citadel Arcane Portal Gateway
     if (this.portalVortex) {
-      this.portalVortex.rotation.y += 0.80 * delta;
+      this.portalVortex.rotation.z += 1.20 * delta;
     }
     if (this.portalKeystones) {
       this.portalKeystones.rotation.y -= 0.20 * delta;
-      this.portalKeystones.position.z = Math.sin(time * 1.5) * 0.05;
+      this.portalKeystones.position.y = Math.sin(time * 1.6) * 0.08;
     }
 
     // 6. Enchanted Moonwell & Floating Orbs
     if (this.moonwellOrbs) {
-      this.moonwellOrbs.rotation.z += 0.30 * delta;
-      this.moonwellOrbs.position.z = 0.52 + Math.sin(time * 1.8) * 0.08;
+      this.moonwellOrbs.rotation.y += 0.40 * delta;
+      this.moonwellOrbs.position.y = 0.52 + Math.sin(time * 1.8) * 0.08;
     }
 
     // 7. Arcane Citadel Ward Shield (Summit)
     if (this.wardRuneRing1) {
-      this.wardRuneRing1.rotation.z += 0.22 * delta;
+      this.wardRuneRing1.rotation.y += 0.25 * delta;
     }
     if (this.wardRuneRing2) {
-      this.wardRuneRing2.rotation.z -= 0.32 * delta;
+      this.wardRuneRing2.rotation.y -= 0.35 * delta;
     }
     if (this.wardDome && this.wardDome.material) {
       // Subtle celestial energy breathing pulse
-      this.wardDome.material.opacity = 0.35 + Math.sin(this.animClock * 2.5) * 0.08;
+      this.wardDome.material.opacity = 0.30 + Math.sin(this.animClock * 2.5) * 0.08;
     }
 
     // 8. Pulsing Magical Lights
