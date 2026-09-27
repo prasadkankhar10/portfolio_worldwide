@@ -14,7 +14,6 @@
  *      - Floating core arcane crystal bobbing & spinning
  *      - Orbiting carved runestones (summit crown & ground observatory)
  *      - Windmill fan rotation
- *  5. Magical Lighting setup (Atmospheric lighting, PointLights, Emissive pulses)
  *
  * Dependencies:
  *   three (>= r150)
@@ -23,6 +22,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { StonehengeRunePuzzle } from './StonehengeRunePuzzle.js';
 
 export class IslandWorldUnchunked {
   /**
@@ -71,7 +71,8 @@ export class IslandWorldUnchunked {
     this.wardRuneRing2 = null;
     this.wardDome = null;
 
-    this.magicalLights = [];
+    // Interactive 6-Pillar Stonehenge Rune Puzzle
+    this.stonehengePuzzle = new StonehengeRunePuzzle(this.scene, this.camera);
 
     this.animClock = 0;
   }
@@ -91,9 +92,6 @@ export class IslandWorldUnchunked {
 
     // 3. Load procedural instanced trees (trees.glb + tree_spawn_points.json)
     await this.loadInstancedTrees();
-
-    // 4. Setup magical scene lighting
-    this.setupMagicalLighting();
 
     console.log('[IslandWorld] World fully loaded and ready!');
   }
@@ -179,6 +177,8 @@ export class IslandWorldUnchunked {
           });
 
           this.root.add(model);
+          this.stonehengePuzzle.bindModel(model);
+          this.stonehengePuzzle.enableClickInteraction();
           resolve(model);
         },
         undefined,
@@ -287,48 +287,7 @@ export class IslandWorldUnchunked {
     }
   }
 
-  /**
-   * Adds atmospheric magical lighting around the Celestial Watchtower and Sanctuaries
-   */
-  setupMagicalLighting() {
-    // 1. Summit Arcane Focus Crystal Light (Cyan glow at summit Z = 57.5m)
-    // Blender (-0.23, 108.77, 57.50) -> Three.js (-0.23, 57.50, -108.77)
-    const crystalLight = new THREE.PointLight(0x00e5ff, 2.5, 35.0, 1.2);
-    crystalLight.position.set(-0.23, 57.50, -108.77);
-    this.root.add(crystalLight);
-    this.magicalLights.push({ light: crystalLight, baseIntensity: 2.5, speed: 2.2 });
 
-    // 2. Ground Observatory Light (Warm Gold & Cyan at courtyard)
-    // Blender (-0.20, 96.50, 4.50) -> Three.js (-0.20, 4.50, -96.50)
-    const obsLight = new THREE.PointLight(0xffd54f, 1.8, 18.0, 1.5);
-    obsLight.position.set(-0.20, 4.50, -96.50);
-    this.root.add(obsLight);
-    this.magicalLights.push({ light: obsLight, baseIntensity: 1.8, speed: 1.6 });
-
-    // 3. Arcane Waystone - Crossroads
-    const waystoneCrossLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
-    waystoneCrossLight.position.set(8.0, 5.0, 17.75);
-    this.root.add(waystoneCrossLight);
-    this.magicalLights.push({ light: waystoneCrossLight, baseIntensity: 2.2, speed: 2.0 });
-
-    // 4. Arcane Waystone - Docks
-    const waystoneDocksLight = new THREE.PointLight(0x00e5ff, 2.2, 16.0, 1.3);
-    waystoneDocksLight.position.set(102.0, 5.0, 125.0);
-    this.root.add(waystoneDocksLight);
-    this.magicalLights.push({ light: waystoneDocksLight, baseIntensity: 2.2, speed: 2.0 });
-
-    // 5. Citadel Arcane Portal Gateway
-    const portalLight = new THREE.PointLight(0x9d4edd, 2.8, 22.0, 1.4);
-    portalLight.position.set(-15.0, 5.5, -105.0);
-    this.root.add(portalLight);
-    this.magicalLights.push({ light: portalLight, baseIntensity: 2.8, speed: 2.6 });
-
-    // 6. Enchanted Moonwell & Bio Grove
-    const moonwellLight = new THREE.PointLight(0x00e5ff, 2.0, 18.0, 1.3);
-    moonwellLight.position.set(-50.0, 4.8, 35.0);
-    this.root.add(moonwellLight);
-    this.magicalLights.push({ light: moonwellLight, baseIntensity: 2.0, speed: 1.8 });
-  }
 
   /**
    * Snaps a character position to the terrain or paved promenade floor.
@@ -355,96 +314,86 @@ export class IslandWorldUnchunked {
 
   /**
    * Call this every frame inside requestAnimationFrame(render).
-   * Animates all magical orrery rings, orbiting bodies, crystals, and lights.
+   * Animates all magical orrery rings, orbiting bodies, crystals, and portals.
    * @param {number} delta - Delta time in seconds (e.g. clock.getDelta())
    */
   update(delta = 0.016) {
     this.animClock += delta;
-    const time = this.animClock;
 
-    // 1. Windmill fan in Farmland (Spins on axle Z)
+    // 1. Windmill fan in Farmland
     if (this.windFan) {
-      this.windFan.rotation.z += 1.80 * delta;
+      this.windFan.rotation.y += this.windFanSpeed * delta;
     }
 
     // 2. Celestial Orrery at the Watchtower Summit
     if (this.orreryOuterRing) {
       this.orreryOuterRing.rotation.z += 0.35 * delta;
-      this.orreryOuterRing.rotation.y += 0.20 * delta;
     }
     if (this.orreryMidRing) {
       this.orreryMidRing.rotation.x += 0.55 * delta;
     }
     if (this.orreryInnerRing) {
       this.orreryInnerRing.rotation.y += 0.85 * delta;
-      this.orreryInnerRing.rotation.z += 0.40 * delta;
     }
     if (this.orreryRunes) {
-      this.orreryRunes.rotation.y -= 0.30 * delta;
-      this.orreryRunes.rotation.z -= 0.20 * delta;
+      this.orreryRunes.rotation.z -= 0.25 * delta;
     }
     if (this.orreryCrystal) {
-      this.orreryCrystal.rotation.y += 0.60 * delta;
-      this.orreryCrystal.rotation.z += 0.40 * delta;
-      // Gentle vertical levitation bobbing centered inside Orrery_Assembly
-      this.orreryCrystal.position.y = Math.sin(time * 2.0) * 0.15;
+      this.orreryCrystal.rotation.z += 0.60 * delta;
+      // Gentle vertical levitation bobbing
+      this.orreryCrystal.position.z = Math.sin(this.animClock * 2.0) * 0.12;
     }
 
     // 3. Ground Observatory Sanctum
     if (this.observatoryRunes) {
-      this.observatoryRunes.rotation.y += 0.45 * delta;
-      this.observatoryRunes.position.y = Math.sin(time * 1.8) * 0.08;
+      this.observatoryRunes.rotation.z += 0.45 * delta;
     }
 
     // 4. Arcane Waystones (Crossroads & Docks)
     if (this.waystoneCrossroadsCrystal) {
-      this.waystoneCrossroadsCrystal.rotation.y += 0.80 * delta;
-      this.waystoneCrossroadsCrystal.position.y = 1.85 + Math.sin(time * 2.2) * 0.12;
+      this.waystoneCrossroadsCrystal.rotation.z += 0.75 * delta;
+      this.waystoneCrossroadsCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2) * 0.1;
     }
     if (this.waystoneCrossroadsRunes) {
-      this.waystoneCrossroadsRunes.rotation.y -= 0.50 * delta;
-      this.waystoneCrossroadsRunes.position.y = 1.85 + Math.sin(time * 2.2 + 0.6) * 0.05;
+      this.waystoneCrossroadsRunes.rotation.z -= 0.40 * delta;
     }
     if (this.waystoneDocksCrystal) {
-      this.waystoneDocksCrystal.rotation.y += 0.80 * delta;
-      this.waystoneDocksCrystal.position.y = 1.85 + Math.sin(time * 2.2 + 1.2) * 0.12;
+      this.waystoneDocksCrystal.rotation.z += 0.75 * delta;
+      this.waystoneDocksCrystal.position.z = 1.85 + Math.sin(this.animClock * 2.2 + 1.0) * 0.1;
     }
     if (this.waystoneDocksRunes) {
-      this.waystoneDocksRunes.rotation.y -= 0.50 * delta;
-      this.waystoneDocksRunes.position.y = 1.85 + Math.sin(time * 2.2 + 1.8) * 0.05;
+      this.waystoneDocksRunes.rotation.z -= 0.40 * delta;
     }
 
     // 5. Citadel Arcane Portal Gateway
     if (this.portalVortex) {
-      this.portalVortex.rotation.z += 1.20 * delta;
+      this.portalVortex.rotation.y += 0.80 * delta;
     }
     if (this.portalKeystones) {
       this.portalKeystones.rotation.y -= 0.20 * delta;
-      this.portalKeystones.position.y = Math.sin(time * 1.6) * 0.08;
     }
 
     // 6. Enchanted Moonwell & Floating Orbs
     if (this.moonwellOrbs) {
-      this.moonwellOrbs.rotation.y += 0.40 * delta;
-      this.moonwellOrbs.position.y = 0.52 + Math.sin(time * 1.8) * 0.08;
+      this.moonwellOrbs.rotation.z += 0.30 * delta;
+      this.moonwellOrbs.position.z = 0.52 + Math.sin(this.animClock * 1.8) * 0.08;
     }
 
     // 7. Arcane Citadel Ward Shield (Summit)
     if (this.wardRuneRing1) {
-      this.wardRuneRing1.rotation.y += 0.25 * delta;
+      this.wardRuneRing1.rotation.z += 0.22 * delta;
     }
     if (this.wardRuneRing2) {
-      this.wardRuneRing2.rotation.y -= 0.35 * delta;
+      this.wardRuneRing2.rotation.z -= 0.32 * delta;
     }
     if (this.wardDome && this.wardDome.material) {
       // Subtle celestial energy breathing pulse
-      this.wardDome.material.opacity = 0.30 + Math.sin(this.animClock * 2.5) * 0.08;
+      this.wardDome.material.opacity = 0.35 + Math.sin(this.animClock * 2.5) * 0.08;
     }
 
-    // 8. Pulsing Magical Lights
-    for (const item of this.magicalLights) {
-      item.light.intensity =
-        item.baseIntensity + Math.sin(this.animClock * item.speed) * (item.baseIntensity * 0.25);
+    // 8. Interactive 6-Pillar Stonehenge Rune Puzzle
+    if (this.stonehengePuzzle) {
+      this.stonehengePuzzle.update(delta);
     }
   }
 }
