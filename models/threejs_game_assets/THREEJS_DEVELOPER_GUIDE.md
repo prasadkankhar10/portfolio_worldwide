@@ -21,11 +21,12 @@ All game assets are located in [`threejs_game_assets/`](file:///c:/Users/prasa/O
 
 ```
 threejs_game_assets/
-├── island_world_complete.glb      # [16.8 MB] COMPLETE UNCHUNKED WORLD (Terrain, Ocean, Roads, All Buildings, Props, Magic)
-├── trees.glb                      # [114 KB] 6 Optimized Tree Prototypes (Oaks, Pines, Birch)
-├── tree_spawn_points.json         # [297 KB] Exact positions & rotations for all 1,265 trees
+├── island_world_complete.glb        # [16.5 MB] Standard Complete Unchunked World (100% vanilla GLTF compatible)
+├── island_world_complete_draco.glb  # [2.97 MB] Ultra-Compressed Draco Model (82% smaller for instant web loading)
+├── trees.glb                        # [114 KB] 6 Optimized Tree Prototypes (Oaks, Pines, Birch)
+├── tree_spawn_points.json           # [297 KB] Exact positions & rotations for all 1,265 trees
 ├── base/
-│   └── collision.glb              # [1.30 MB] 97 Snug Box Colliders & Walkable Floor Meshes
+│   └── collision.glb              # [1.31 MB] 98 Snug Box Colliders & Walkable Floor Meshes
 └── code_templates/
     ├── IslandWorldUnchunked.js    # Ready-to-use Single-File World & Magic Manager class
     ├── StonehengeRunePuzzle.js    # Interactive 6-Pillar Elemental Rune Puzzle & UI Message Modal
@@ -56,10 +57,6 @@ renderer.toneMappingExposure = 1.1;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
-
-// 2. Night Sky Background & Volumetric Fog
-scene.background = new THREE.Color(0x080812); // Deep Void Indigo (#080812)
-scene.fog = new THREE.Fog(0x080812, 30.0, 200.0); // Smooth 30m to 200m depth fading
 
 // 2. Sky Background & Volumetric Fog
 scene.background = new THREE.Color(0x080812); // Deep Void Indigo (#080812)
@@ -202,7 +199,7 @@ Managed automatically by [`code_templates/StonehengeRunePuzzle.js`](file:///c:/U
 
 ## 4. Collision & Character Snapping (`collision.glb`)
 
-[`collision.glb`](file:///c:/Users/prasa/OneDrive/Desktop/learn/blender/portfolio/from%20packes/mean%20file/with%20ref/threejs_game_assets/base/collision.glb) contains **97 optimized low-poly collision meshes** (including snug colliders for all buildings, bridges, waystones, and Stonehenge sanctuary `COL_Magic_Stonehenge_Altar`, `COL_Magic_Megalith_1` through `COL_Magic_Megalith_6`):
+[`collision.glb`](file:///c:/Users/prasa/OneDrive/Desktop/learn/blender/portfolio/from%20packes/mean%20file/with%20ref/threejs_game_assets/base/collision.glb) contains **98 optimized low-poly collision meshes** (including snug colliders for all buildings, village square stone floor `COL_Wall`, bridges, waystones, and Stonehenge sanctuary `COL_Magic_Stonehenge_Altar`, `COL_Magic_Megalith_1` through `COL_Magic_Megalith_6`):
 
 ```javascript
 model.traverse((child) => {
