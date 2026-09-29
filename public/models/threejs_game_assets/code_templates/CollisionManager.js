@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CollisionManager.js - Three.js Physics & Collision Handler
  *
  * Handles:
@@ -57,7 +57,8 @@ export class CollisionManager {
                 wireframe: true,
               });
 
-              if (child.name.toLowerCase().includes('ground')) {
+              const lowerName = child.name.toLowerCase();
+              if (lowerName.includes('ground') || lowerName.includes('path') || lowerName.includes('road')) {
                 this.groundMeshes.push(child);
               } else {
                 this.obstacleMeshes.push(child);

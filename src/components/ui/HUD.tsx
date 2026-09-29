@@ -6,6 +6,9 @@ export const HUD = () => {
   const gameState = useGameStore((state) => state.gameState);
   const setGameState = useGameStore((state) => state.setGameState);
   const isMobile = useGameStore((state) => state.isMobile);
+  const magicPrompt = useGameStore((state) => state.magicPrompt);
+  const stonehengeBanner = useGameStore((state) => state.stonehengeBanner);
+  const setStonehengeBanner = useGameStore((state) => state.setStonehengeBanner);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
@@ -112,6 +115,40 @@ export const HUD = () => {
           </p>
         </div>
       </div>
+
+      {/* Interactive Celestial Magic Prompt */}
+      {magicPrompt && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 pointer-events-none animate-bounce z-40">
+          <div className="bg-stone-950/85 backdrop-blur-md px-6 py-3 border border-cyan-400/80 rounded-full shadow-[0_0_25px_rgba(0,229,255,0.5)] flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+            <p className="text-cyan-200 font-mono text-sm tracking-wider font-semibold">
+              {magicPrompt}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 3.G Stonehenge Ancient Sanctuary Completion Banner Modal */}
+      {stonehengeBanner && (
+        <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-50 max-w-[560px] w-[92%] text-center pointer-events-auto animate-in fade-in zoom-in-95 duration-500">
+          <div className="bg-gradient-to-b from-stone-950/98 via-slate-950/95 to-stone-950/98 backdrop-blur-xl border-2 border-amber-400/90 rounded-2xl p-6 sm:p-8 shadow-[0_0_40px_rgba(255,213,79,0.5),0_0_70px_rgba(0,229,255,0.25)] flex flex-col items-center">
+            <div className="w-12 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mb-3" />
+            <h2 className="text-xl sm:text-2xl font-serif tracking-widest text-amber-300 uppercase font-bold drop-shadow-[0_0_14px_rgba(255,213,79,0.7)] mb-3">
+              {stonehengeBanner.title}
+            </h2>
+            <div 
+              className="text-cyan-100 text-sm sm:text-base leading-relaxed font-sans mb-5 drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]"
+              dangerouslySetInnerHTML={{ __html: stonehengeBanner.bodyHtml }}
+            />
+            <button
+              onClick={() => setStonehengeBanner(null)}
+              className="px-6 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-300 text-stone-950 font-bold uppercase tracking-wider text-sm rounded-lg shadow-[0_0_20px_rgba(255,213,79,0.7)] transition-all transform hover:scale-105 cursor-pointer"
+            >
+              ACCEPT BLESSING
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="absolute top-6 right-6">
         <button 

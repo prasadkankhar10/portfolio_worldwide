@@ -9,23 +9,28 @@ interface DistanceNameTagProps {
   position?: [number, number, number];
 }
 
+const _tagWorldPos = new THREE.Vector3();
+const VISIBLE_DISTANCE_SQ = 20 * 20; // 20 meters
+
 export function DistanceNameTag({ name, position = [0, 4.0, 0] }: DistanceNameTagProps) {
   const [visible, setVisible] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
+  const frameCount = useRef(Math.floor(Math.random() * 6)); // Jitter frame checks
 
   useFrame(() => {
+    frameCount.current++;
+    if (frameCount.current % 6 !== 0) return; // Run check only 10 times/sec
     if (!groupRef.current) return;
     
-    // Get world position of this tag
-    const worldPos = new THREE.Vector3();
-    groupRef.current.getWorldPosition(worldPos);
+    // Get world position of this tag using static pre-allocated vector (0 allocations)
+    groupRef.current.getWorldPosition(_tagWorldPos);
     
-    // Calculate distance to player
-    const dist = worldPos.distanceTo(globalPlayerState.position);
+    // Fast distance squared to player
+    const distSq = _tagWorldPos.distanceToSquared(globalPlayerState.position);
     
-    if (dist < 50 && !visible) {
+    if (distSq < VISIBLE_DISTANCE_SQ && !visible) {
       setVisible(true);
-    } else if (dist >= 50 && visible) {
+    } else if (distSq >= VISIBLE_DISTANCE_SQ && visible) {
       setVisible(false);
     }
   });

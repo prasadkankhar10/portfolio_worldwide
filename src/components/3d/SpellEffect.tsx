@@ -10,9 +10,16 @@ interface SpellEffectProps {
   duration?: number;
   type?: SpellType;
   scaleMultiplier?: number;
+  visible?: boolean;
 }
 
-export const SpellEffect = ({ color = '#00ffcc', duration = 3.0, type = 'arcane', scaleMultiplier = 1.0 }: SpellEffectProps) => {
+export const SpellEffect = ({
+  color = '#00ffcc',
+  duration = 3.0,
+  type = 'arcane',
+  scaleMultiplier = 1.0,
+  visible = true
+}: SpellEffectProps) => {
   const groupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
   const lightRef = useRef<THREE.PointLight>(null);
@@ -24,9 +31,27 @@ export const SpellEffect = ({ color = '#00ffcc', duration = 3.0, type = 'arcane'
 
   const baseColor = useMemo(() => new THREE.Color(color), [color]);
   const timer = useRef(0);
+  const wasVisible = useRef(visible);
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
+
+    // Check both explicit prop and hierarchy visibility
+    const isCurrentlyVisible = visible && groupRef.current.visible && (!groupRef.current.parent || groupRef.current.parent.visible);
+
+    if (!isCurrentlyVisible) {
+      timer.current = 0;
+      if (lightRef.current && lightRef.current.intensity > 0) {
+        lightRef.current.intensity = 0;
+      }
+      wasVisible.current = false;
+      return;
+    }
+
+    if (!wasVisible.current) {
+      timer.current = 0;
+      wasVisible.current = true;
+    }
     
     timer.current += delta;
     const progress = Math.min(1.0, timer.current / duration);
@@ -67,7 +92,7 @@ export const SpellEffect = ({ color = '#00ffcc', duration = 3.0, type = 'arcane'
   });
 
   return (
-    <group ref={groupRef} position={[0, 1.2, 0.5]}>
+    <group ref={groupRef} position={[0, 1.2, 0.5]} visible={visible}>
       
       {/* --- ARCANE MAGIC (Wizard) --- */}
       {type === 'arcane' && (

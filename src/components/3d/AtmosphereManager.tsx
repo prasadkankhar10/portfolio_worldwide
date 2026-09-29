@@ -44,6 +44,9 @@ const presets: Record<string, AtmospherePreset> = {
 export const AtmosphereManager = () => {
   const currentAtmosphere = useGameStore((state) => state.currentAtmosphere);
   const setAtmosphere = useGameStore((state) => state.setAtmosphere);
+  const performanceMode = useGameStore((state) => state.performanceMode);
+  const isLowPowerGpu = useGameStore((state) => state.isLowPowerGpu);
+  const disableShadows = isLowPowerGpu || performanceMode;
 
   const [{ Atmosphere, brightness }, set] = useControls('Environment', () => ({
     Atmosphere: {
@@ -55,8 +58,7 @@ export const AtmosphereManager = () => {
         }
       }
     },
-    brightness: {
-      value: 2.5,
+    brightness: { value: 1.0,
       min: 0.0,
       max: 5.0,
       step: 0.1,
@@ -92,7 +94,7 @@ export const AtmosphereManager = () => {
         position={preset.sunPosition} 
         intensity={preset.sunIntensity * brightness} 
         color={preset.sunColor}
-        castShadow 
+        castShadow={!disableShadows} 
         shadow-mapSize-width={512} 
         shadow-mapSize-height={512} 
         shadow-camera-far={1000}

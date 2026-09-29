@@ -9,6 +9,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
+import { UP_AXIS, setRapierRay, _sharedRayDown, _sharedRayForward, _sharedRayLeft, _sharedRayRight, _poolFrustum, _poolMat4 } from '../../utils/mathPool';
 
 export type PirateState = 'RESTING_SITTING' | 'RESTING_STANDING' | 'WALKING_TO_PORT' | 'WORKING_PORT' | 'WALKING_TO_STORAGE' | 'WORKING_STORAGE' | 'WALKING_TO_WAYPOINT' | 'WORKING_WAYPOINT' | 'WALKING_TO_HOUSE' | 'INTERACTING' | 'ESCAPING' | 'CHATTING';
 
@@ -203,7 +204,7 @@ export const PirateFemaleNPC = ({
       if (dirToPlayer.lengthSq() > 0.001) {
         dirToPlayer.normalize();
         const angle = Math.atan2(dirToPlayer.x, dirToPlayer.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
       }
       nextAnim = (interactTimer.current < 2.0 && anims.wave) ? anims.wave : anims.idle;
@@ -216,7 +217,7 @@ export const PirateFemaleNPC = ({
         if (dir.lengthSq() > 0.001) {
           dir.normalize();
           const angle = Math.atan2(dir.x, dir.z);
-          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
           containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
         }
       }
@@ -276,9 +277,9 @@ export const PirateFemaleNPC = ({
       const leftShoulder = new THREE.Vector3(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
       const rightShoulder = new THREE.Vector3(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
       
-      const fHit = world.castRayAndGetNormal(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.0, true);
-      const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.0, true);
-      const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.0, true);
+      const fHit = world.castRayAndGetNormal(setRapierRay(_sharedRayForward, forwardRayOrigin, dirToTarget), 1.0, true);
+      const lHit = world.castRayAndGetNormal(setRapierRay(_sharedRayLeft, leftShoulder, dirToTarget), 1.0, true);
+      const rHit = world.castRayAndGetNormal(setRapierRay(_sharedRayRight, rightShoulder, dirToTarget), 1.0, true);
       
       const isWall = (hit: any) => hit && hit.timeOfImpact < 2.0 && hit.normal && hit.normal.y < 0.7;
       
@@ -326,7 +327,7 @@ export const PirateFemaleNPC = ({
         } else {
            // We are dodging! 
            const angle = Math.atan2(moveDir.x, moveDir.z);
-           targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+           targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
            containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
            npcPos.addScaledVector(moveDir, speedFactor * delta);
            
@@ -347,7 +348,7 @@ export const PirateFemaleNPC = ({
         failedTargetCount.current = 0; 
       } else {
         const angle = Math.atan2(moveDir.x, moveDir.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         npcPos.addScaledVector(moveDir, speedFactor * delta);
@@ -363,7 +364,7 @@ export const PirateFemaleNPC = ({
 
     // GRAVITY & GROUND SNAPPING
     const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 0.5, npcPos.z);
-    const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
+    const snapRay = setRapierRay(_sharedRayDown, snapRayOrigin, downDir);
     const snapHit = world.castRay(snapRay, 50.0, true);
     
     if (snapHit && snapHit.timeOfImpact < 50.0) {

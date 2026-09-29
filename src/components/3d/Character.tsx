@@ -13,6 +13,34 @@ export const globalPlayerState = {
   quaternion: new THREE.Quaternion()
 };
 
+
+// Static pre-allocated vectors to prevent GC allocations in useFrame
+const _groundRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+const _cameraRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: -1 });
+const _charForwardVec = new THREE.Vector3(0, 0, -1);
+const _moveDirection = new THREE.Vector3();
+const _yawQuat = new THREE.Quaternion();
+const _targetQuat = new THREE.Quaternion();
+const _currentQuat = new THREE.Quaternion();
+const _worldDirection = new THREE.Vector3();
+const _headPosition = new THREE.Vector3();
+const _baseLookAt = new THREE.Vector3();
+const _rightVector = new THREE.Vector3(1, 0, 0);
+const _shoulderOffset = new THREE.Vector3();
+const _idealLookAt = new THREE.Vector3();
+const _idealOffset = new THREE.Vector3();
+const _rayOrigin = new THREE.Vector3();
+const _rayDirection = new THREE.Vector3();
+const _finalCameraPosition = new THREE.Vector3();
+const _UP_AXIS = new THREE.Vector3(0, 1, 0);
+const _groundOrigins = [
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+];
+
 export const Character = () => {
   const { scene, animations } = useGLTF('./models/NPCs/Adventurer.glb');
   const { actions } = useAnimations(animations, scene);
@@ -103,6 +131,15 @@ export const Character = () => {
   useFrame((state, delta) => {
     if (!rigidBodyRef.current || !characterRef.current) return;
 
+    // Handle instant magical teleportation (Arcane Waystones & Rift Portals)
+    const teleportTarget = useGameStore.getState().teleportTarget;
+    if (teleportTarget) {
+      rigidBodyRef.current.setTranslation(teleportTarget, true);
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      useGameStore.getState().clearTeleportTarget();
+      return;
+    }
+
     // Freeze character input if Free Cam is active
     let { forward, back, left, right, run, jump } = get();
     
@@ -135,21 +172,28 @@ export const Character = () => {
     const charTranslation = rigidBodyRef.current.translation();
     const playerCollider = rigidBodyRef.current.collider(0);
 
+    // Fall protection: If player falls into the sea, respawn at Harbor Pier
+    if (charTranslation.y < 1.0) {
+      rigidBodyRef.current.setTranslation({ x: 109.45, y: 4.0, z: 133.0 }, true);
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      return;
+    }
+
     // 0. Robust Ground Detection (Center + 4 edges to prevent missing ground near walls)
     const yOffset = 0.1;
     const rayLength = 0.4;
-    const rayDir = new THREE.Vector3(0, -1, 0);
-    const origins = [
-      new THREE.Vector3(charTranslation.x, charTranslation.y + yOffset, charTranslation.z),
-      new THREE.Vector3(charTranslation.x + 0.3, charTranslation.y + yOffset, charTranslation.z),
-      new THREE.Vector3(charTranslation.x - 0.3, charTranslation.y + yOffset, charTranslation.z),
-      new THREE.Vector3(charTranslation.x, charTranslation.y + yOffset, charTranslation.z + 0.3),
-      new THREE.Vector3(charTranslation.x, charTranslation.y + yOffset, charTranslation.z - 0.3),
-    ];
+    _groundOrigins[0].set(charTranslation.x, charTranslation.y + yOffset, charTranslation.z);
+    _groundOrigins[1].set(charTranslation.x + 0.3, charTranslation.y + yOffset, charTranslation.z);
+    _groundOrigins[2].set(charTranslation.x - 0.3, charTranslation.y + yOffset, charTranslation.z);
+    _groundOrigins[3].set(charTranslation.x, charTranslation.y + yOffset, charTranslation.z + 0.3);
+    _groundOrigins[4].set(charTranslation.x, charTranslation.y + yOffset, charTranslation.z - 0.3);
 
     let isGrounded = false;
-    for (const origin of origins) {
-      const hit = world.castRay(new RAPIER.Ray(origin, rayDir), rayLength, true, undefined, undefined, playerCollider);
+    for (let i = 0; i < 5; i++) {
+      _groundRay.origin.x = _groundOrigins[i].x;
+      _groundRay.origin.y = _groundOrigins[i].y;
+      _groundRay.origin.z = _groundOrigins[i].z;
+      const hit = world.castRay(_groundRay, rayLength, true, undefined, undefined, playerCollider);
       if (hit !== null) {
         isGrounded = true;
         break;
@@ -167,7 +211,7 @@ export const Character = () => {
       zEl.innerText = charTranslation.z.toFixed(1);
     }
     if (dirEl && state.camera) {
-      const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(state.camera.quaternion);
+      const forwardVec = _charForwardVec.set(0, 0, -1).applyQuaternion(state.camera.quaternion);
       const angle = Math.atan2(forwardVec.x, forwardVec.z);
       let dir = 'N';
       if (angle >= -Math.PI/4 && angle < Math.PI/4) dir = 'S';
@@ -183,7 +227,7 @@ export const Character = () => {
     }
 
     // 1. Calculate Movement relative to Camera Yaw
-    const moveDirection = new THREE.Vector3();
+    const moveDirection = _moveDirection.set(0, 0, 0);
     if (forward) moveDirection.z -= 1;
     if (back) moveDirection.z += 1;
     if (left) moveDirection.x -= 1;
@@ -198,8 +242,8 @@ export const Character = () => {
       moveDirection.normalize();
 
       // Apply camera yaw to movement
-      const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
-      const worldDirection = moveDirection.clone().applyQuaternion(yawQuat);
+      _yawQuat.setFromAxisAngle(_UP_AXIS, yaw.current);
+      const worldDirection = _worldDirection.copy(moveDirection).applyQuaternion(_yawQuat);
 
       const velocity = rigidBodyRef.current.linvel();
       
@@ -217,9 +261,9 @@ export const Character = () => {
 
       // Rotate character to face movement direction smoothly
       const targetRotation = Math.atan2(worldDirection.x, worldDirection.z);
-      const currentQuat = characterRef.current.quaternion.clone();
-      const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetRotation);
-      characterRef.current.quaternion.slerpQuaternions(currentQuat, targetQuat, rotationSpeed * delta);
+      _currentQuat.copy(characterRef.current.quaternion);
+      _targetQuat.setFromAxisAngle(_UP_AXIS, targetRotation);
+      characterRef.current.quaternion.slerpQuaternions(_currentQuat, _targetQuat, rotationSpeed * delta);
     } else {
       const velocity = rigidBodyRef.current.linvel();
       let newY = velocity.y;
@@ -244,7 +288,7 @@ export const Character = () => {
     // --- ONLY UPDATE CAMERA IF FREE CAM IS NOT ACTIVE ---
     if (!isFreeCam) {
       // 2. Camera System Update
-      const headPosition = new THREE.Vector3(charTranslation.x, charTranslation.y + 1.5, charTranslation.z);
+      const headPosition = _headPosition.set(charTranslation.x, charTranslation.y + 1.5, charTranslation.z);
       
       // Smooth target follow (Spring/Lerp)
       cameraTarget.current.lerp(headPosition, 10 * delta);
@@ -258,11 +302,11 @@ export const Character = () => {
       prevVelY.current = currentVelY;
 
       // 3. Update Camera Position & LookAt
-      const baseLookAt = new THREE.Vector3(0, 1.5, 0).applyMatrix4(characterRef.current.matrixWorld);
+      const baseLookAt = _baseLookAt.set(0, 1.5, 0).applyMatrix4(characterRef.current.matrixWorld);
       
       // AAA: Over-the-shoulder offset (1 unit to the right of the camera's yaw)
-      const rightVector = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current);
-      const shoulderOffset = rightVector.multiplyScalar(1.2);
+      const rightVector = _rightVector.set(1, 0, 0).applyAxisAngle(_UP_AXIS, yaw.current);
+      const shoulderOffset = _shoulderOffset.copy(rightVector).multiplyScalar(1.2);
       
       // AAA: Camera Bobbing when moving on ground
       if (isGrounded && isMoving) {
@@ -280,7 +324,7 @@ export const Character = () => {
         shakeIntensity.current = Math.max(0, shakeIntensity.current - delta * 3);
       }
 
-      const idealLookAt = baseLookAt.clone().add(shoulderOffset);
+      const idealLookAt = _idealLookAt.copy(baseLookAt).add(shoulderOffset);
       idealLookAt.y += bobOffset + shakeOffset;
       
       // Calculate spherical coordinates for camera position
@@ -288,18 +332,24 @@ export const Character = () => {
       const x = radius * Math.cos(pitch.current) * Math.sin(yaw.current);
       const y = radius * Math.sin(pitch.current);
       const z = radius * Math.cos(pitch.current) * Math.cos(yaw.current);
-      const idealOffset = new THREE.Vector3(x, y, z);
+      const idealOffset = _idealOffset.set(x, y, z);
       
-      const rayOrigin = idealLookAt.clone();
-      const rayDirection = idealOffset.clone().normalize();
+      const rayOrigin = _rayOrigin.copy(idealLookAt);
+      const rayDirection = _rayDirection.copy(idealOffset).normalize();
       const maxRayDistance = radius;
 
       let targetCameraDist = maxRayDistance;
 
       if (cameraCollision) {
-        // Wall Collisions (Snap in, Lerp out)
+        _cameraRay.origin.x = rayOrigin.x;
+        _cameraRay.origin.y = rayOrigin.y;
+        _cameraRay.origin.z = rayOrigin.z;
+        _cameraRay.dir.x = rayDirection.x;
+        _cameraRay.dir.y = rayDirection.y;
+        _cameraRay.dir.z = rayDirection.z;
+
         const hit = world.castRay(
-          new RAPIER.Ray(rayOrigin, rayDirection),
+          _cameraRay,
           maxRayDistance,
           true,
           undefined,
@@ -308,21 +358,19 @@ export const Character = () => {
         );
 
         if (hit && hit.timeOfImpact < maxRayDistance) {
-          targetCameraDist = Math.max(0.5, hit.timeOfImpact - 0.2); // Keep a minimum distance
+          targetCameraDist = Math.max(0.5, hit.timeOfImpact - 0.2);
         }
 
-        // Instantly snap in to prevent clipping, smoothly lerp out
         if (targetCameraDist < currentCameraDist.current) {
           currentCameraDist.current = targetCameraDist;
         } else {
           currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 5 * delta));
         }
       } else {
-        // Camera passes through collision boxes and walls smoothly at full target distance
         currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 8 * delta));
       }
 
-      const finalCameraPosition = rayOrigin.clone().add(rayDirection.multiplyScalar(currentCameraDist.current));
+      const finalCameraPosition = _finalCameraPosition.copy(rayOrigin).addScaledVector(rayDirection, currentCameraDist.current);
 
       // Smooth camera lag
       cameraPosition.current.lerp(finalCameraPosition, Math.min(1, 10 * delta));
@@ -344,7 +392,7 @@ export const Character = () => {
       ref={rigidBodyRef} 
       colliders={false} 
       type="dynamic" 
-      position={[0, 10, 0]} 
+      position={[109.45, 4.0, 133.0]} 
       enabledRotations={[false, false, false]} 
       gravityScale={gravityScale}
     >

@@ -6,6 +6,7 @@ import { SkeletonUtils } from 'three-stdlib';
 import { useGameStore } from '../../store/useGameStore';
 import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
+import { UP_AXIS, setRapierRay, _sharedRayDown, _sharedRayForward, _sharedRayLeft, _sharedRayRight, _poolFrustum, _poolMat4 } from '../../utils/mathPool';
 
 interface MarketVisitorNPCProps {
   modelFile: string;
@@ -227,7 +228,7 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
         containerRef.current.position.addScaledVector(dir, moveSpeed * delta);
         
         const angle = Math.atan2(dir.x, dir.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         nextAnim = 'Walking_A';
       } else {
@@ -239,7 +240,7 @@ export function MarketVisitorNPC({ modelFile, startPosition = [115, 3.0, 0] }: M
         lookDir.y = 0;
         lookDir.normalize();
         const lookAngle = Math.atan2(lookDir.x, lookDir.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), lookAngle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, lookAngle);
       }
     } else if (stateRef.current === 'BROWSING') {
       containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);

@@ -1,7 +1,8 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Environment as DreiEnvironment, Stats, Sky, Bvh } from '@react-three/drei';
-import { EffectComposer, Outline, Selection, Bloom, Vignette } from '@react-three/postprocessing';
+import { Stats, useGLTF } from '@react-three/drei';
+import { EffectComposer, Outline, Bloom, Vignette } from '@react-three/postprocessing';
 import { Environment } from './Environment';
 import { AtmosphereManager } from './AtmosphereManager';
 import { Character } from './Character';
@@ -10,6 +11,7 @@ import { Birds } from './Birds';
 import { Fireflies } from './Fireflies';
 import { FreeCamManager } from './FreeCam';
 import { Sea } from './Sea';
+import { FrameLagTracker } from './FrameLagTracker';
 const ClericNPC = React.lazy(() => import('./ClericNPC').then(m => ({ default: m.ClericNPC })));
 const BlueSoldierFemaleNPC = React.lazy(() => import('./BlueSoldierFemaleNPC').then(m => ({ default: m.BlueSoldierFemaleNPC })));
 const BlueSoldierMaleNPC = React.lazy(() => import('./BlueSoldierMaleNPC').then(m => ({ default: m.BlueSoldierMaleNPC })));
@@ -45,26 +47,57 @@ import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
 
 export const Scene = () => {
+  const { gl, scene, camera } = useThree();
   const hasStarted = useGameStore((state) => state.hasStarted);
   const activeOutlineMesh = useGameStore((state) => state.activeOutlineMesh);
-  const isMobile = useGameStore((state) => state.isMobile);
+  const isLowPowerGpu = useGameStore((state) => state.isLowPowerGpu);
+  const performanceMode = useGameStore((state) => state.performanceMode);
+
+  // Stagger NPC mounting over frames to eliminate the single-frame texture upload spike on game start
+  const [loadPhase, setLoadPhase] = React.useState(0);
+  useEffect(() => {
+    if (hasStarted) {
+      setLoadPhase(1); // Phase 1: Player character immediately (0ms)
+      const t1 = setTimeout(() => setLoadPhase(2), 100); // Phase 2: Marketplace shopkeepers (+100ms)
+      const t2 = setTimeout(() => setLoadPhase(3), 250); // Phase 3: Market visitors (+250ms)
+      const t3 = setTimeout(() => setLoadPhase(4), 400); // Phase 4: Dock workers & wanderers (+400ms)
+      const t4 = setTimeout(() => setLoadPhase(5), 600); // Phase 5: Forest goblins, sparring knights, mages & ritual (+600ms)
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(t4);
+      };
+    } else {
+      setLoadPhase(0);
+    }
+  }, [hasStarted]);
+
+  // Pre-warm WebGL shader pipeline on mount to eliminate mid-game shader compilation hitches
+  useEffect(() => {
+    try {
+      gl.compile(scene, camera);
+    } catch {
+      // Ignored
+    }
+  }, [gl, scene, camera]);
 
   return (
     <>
       {/* Postprocessing for Interactive Outlines */}
-      {!isMobile && (
+      {!isLowPowerGpu && !performanceMode && (
         <EffectComposer multisampling={0} autoClear={false}>
           <Outline 
              selection={activeOutlineMesh ? [activeOutlineMesh] : []}
              blur 
              visibleEdgeColor={0xffffff} 
              hiddenEdgeColor={0xffffff} 
-             edgeStrength={3} 
+             edgeStrength={activeOutlineMesh ? 3 : 0} 
           />
           <Bloom 
-            intensity={1.2} 
-            luminanceThreshold={0.85} 
-            luminanceSmoothing={0.1} 
+            intensity={0.4} 
+            luminanceThreshold={1.2} 
+            luminanceSmoothing={0.3} 
             mipmapBlur 
           />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
@@ -73,83 +106,127 @@ export const Scene = () => {
       <AtmosphereManager />
 
       <NpcChatSystem />
-      {/* Building Triggers */}
-      <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
 
       <Physics debug={false}>
-      <Suspense fallback={null}>
-        <Bvh firstHitOnly>
-      {/* Marketplace NPCs */}
-      <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
-      <CowboyShopNPC position={[112.3, 3.0, 7.2]} rotation={[0, Math.PI, 0]} />
-      <CasualShopNPC position={[103.8, 3.0, -7.5]} rotation={[0, Math.PI/2, 0]} />
-      <WitchShopNPC position={[120.7, 3.0, -7.1]} rotation={[0, -Math.PI/2, 0]} />
-      <GoblinFruitNPC position={[125.6, 3.0, 7.4]} rotation={[0, -Math.PI/2, 0]} />
+        <Suspense fallback={null}>
+          <Environment />
+          <Sea />
 
-        <Environment />
-        <Sea />
-        {hasStarted && (
-          <>
-            <Character />
-            <CompanionOrb />
-          </>
-        )}
-        
-        
-      {/* Market Visitors */}
-      <MarketVisitorNPC modelFile="Casual3_Male.glb" startPosition={[115, 3.0, 0]} />
-      <MarketVisitorNPC modelFile="Knight_Male.glb" startPosition={[112, 3.0, -3]} />
-      <MarketVisitorNPC modelFile="Cowboy_Female.glb" startPosition={[118, 3.0, 5]} />
+          {/* Dynamic Characters & Interactive Gameplay Elements (loaded on game start) */}
+          {hasStarted && (
+            <>
+              <Character />
+              <CompanionOrb />
+              {/* Building Triggers */}
+              <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
 
-        {/* AI NPCs */}
-        <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(101, 30, -76)} />
-        
-        <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" maxWanderRadius={5} />
-        <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" maxWanderRadius={5} />
-        <Casual3FemaleNPC startPosition={new THREE.Vector3(15, 30, 5)} maxWanderRadius={5} />
-        <Casual3MaleNPC startPosition={new THREE.Vector3(-15, 30, -5)} maxWanderRadius={5} />
-        <CowboyFemaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <CowboyFemaleNPC startPosition={new THREE.Vector3(80, 30, 55)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <CowboyFemaleNPC startPosition={new THREE.Vector3(88, 30, 60)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <CowboyHairNPC startPosition={new THREE.Vector3(25, 30, 0)} maxWanderRadius={5} />
-        <CowboyMaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <CowboyMaleNPC startPosition={new THREE.Vector3(82, 30, 62)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <CowboyMaleNPC startPosition={new THREE.Vector3(86, 30, 54)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-        <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" maxWanderRadius={5} />
-        <GoblinFemaleNPC startPosition={new THREE.Vector3(-85, 30, -93)} dialogId="goblin_forest_1" maxWanderRadius={4} />
-        <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
-        <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
-        <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
-        <ElfNPC startPosition={new THREE.Vector3(-55, 3, 76)} maxWanderRadius={0} startState="WATCHING" dialogId="world_guide_1" />
-        <WizardNPC startPosition={new THREE.Vector3(-55, 3, 72)} maxWanderRadius={0} startState="WATCHING" dialogId="wizard_quest_1" />
-        <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-64, 3, 74)} maxWanderRadius={0} startState="WATCHING" dialogId="knight_academics_1" />
-        <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-60, 3, 72)} dialogId="knight_academics_1" startState="SPARRING" sparringRole="ATTACKER" maxWanderRadius={5} />
-        <KnightMaleNPC startPosition={new THREE.Vector3(-60, 3, 76)} startState="SPARRING" sparringRole="DEFENDER" maxWanderRadius={5} />
-        {/* DOCK WORKERS ROUTINE (WITH SITTING) */}
-        <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} startState="RESTING_SITTING" dialogId="pirate_web_1" />
-        <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} startState="WORKING_PORT" dialogId="pirate_web_1" />
-        <PirateMaleNPC startPosition={new THREE.Vector3(104, 30, 115)} startState="WORKING_PORT" />
-        <PirateFemaleNPC startPosition={new THREE.Vector3(102, 30, 118)} startState="WORKING_STORAGE" />
-        <PirateFemaleNPC startPosition={new THREE.Vector3(100, 30, 116)} startState="WORKING_STORAGE" />
-        <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
-        <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
-        <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
-        <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
-        <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
-        <RitualCenter />
-              </Bvh>
-      </Suspense>
+              {/* Phase 2: Marketplace Shopkeepers (+100ms) */}
+              {loadPhase >= 2 && (
+                <>
+                  <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
+                  <CowboyShopNPC position={[112.3, 3.0, 7.2]} rotation={[0, Math.PI, 0]} />
+                  <CasualShopNPC position={[103.8, 3.0, -7.5]} rotation={[0, Math.PI/2, 0]} />
+                  <WitchShopNPC position={[120.7, 3.0, -7.1]} rotation={[0, -Math.PI/2, 0]} />
+                  <GoblinFruitNPC position={[125.6, 3.0, 7.4]} rotation={[0, -Math.PI/2, 0]} />
+                </>
+              )}
+
+              {/* Phase 3: Market Visitors (+250ms) */}
+              {loadPhase >= 3 && (
+                <>
+                  <MarketVisitorNPC modelFile="Casual3_Male.glb" startPosition={[115, 3.0, 0]} />
+                  <MarketVisitorNPC modelFile="Knight_Male.glb" startPosition={[112, 3.0, -3]} />
+                  <MarketVisitorNPC modelFile="Cowboy_Female.glb" startPosition={[118, 3.0, 5]} />
+                </>
+              )}
+
+              {/* Phase 4: Dock workers & Town Wanderers (+400ms) */}
+              {loadPhase >= 4 && (
+                <>
+                  <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" maxWanderRadius={5} />
+                  <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" maxWanderRadius={5} />
+                  <Casual3FemaleNPC startPosition={new THREE.Vector3(15, 30, 5)} maxWanderRadius={5} />
+                  <Casual3MaleNPC startPosition={new THREE.Vector3(-15, 30, -5)} maxWanderRadius={5} />
+                  <CowboyFemaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <CowboyFemaleNPC startPosition={new THREE.Vector3(80, 30, 55)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <CowboyFemaleNPC startPosition={new THREE.Vector3(88, 30, 60)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <CowboyHairNPC startPosition={new THREE.Vector3(25, 30, 0)} maxWanderRadius={5} />
+                  <CowboyMaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <CowboyMaleNPC startPosition={new THREE.Vector3(82, 30, 62)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <CowboyMaleNPC startPosition={new THREE.Vector3(86, 30, 54)} dialogId="cowboy_events_1" maxWanderRadius={5} />
+                  <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" maxWanderRadius={5} />
+                  <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
+                  <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
+                  <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
+
+                  {/* DOCK WORKERS ROUTINE (WITH SITTING) */}
+                  <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} startState="RESTING_SITTING" dialogId="pirate_web_1" />
+                  <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} startState="WORKING_PORT" dialogId="pirate_web_1" />
+                  <PirateMaleNPC startPosition={new THREE.Vector3(104, 30, 115)} startState="WORKING_PORT" />
+                  <PirateFemaleNPC startPosition={new THREE.Vector3(102, 30, 118)} startState="WORKING_STORAGE" />
+                  <PirateFemaleNPC startPosition={new THREE.Vector3(100, 30, 116)} startState="WORKING_STORAGE" />
+                </>
+              )}
+
+              {/* Phase 5: Forest Goblins, Sparring Knights, Mages & Ritual (+600ms) */}
+              {loadPhase >= 5 && (
+                <>
+                  <GoblinFemaleNPC startPosition={new THREE.Vector3(-85, 30, -93)} dialogId="goblin_forest_1" maxWanderRadius={4} />
+                  <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
+                  <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
+                  <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
+                  <ElfNPC startPosition={new THREE.Vector3(-55, 3, 76)} maxWanderRadius={0} startState="WATCHING" dialogId="world_guide_1" />
+                  <WizardNPC startPosition={new THREE.Vector3(-55, 3, 72)} maxWanderRadius={0} startState="WATCHING" dialogId="wizard_quest_1" />
+                  <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-64, 3, 74)} maxWanderRadius={0} startState="WATCHING" dialogId="knight_academics_1" />
+                  <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-60, 3, 72)} dialogId="knight_academics_1" startState="SPARRING" sparringRole="ATTACKER" maxWanderRadius={5} />
+                  <KnightMaleNPC startPosition={new THREE.Vector3(-60, 3, 76)} startState="SPARRING" sparringRole="DEFENDER" maxWanderRadius={5} />
+
+                  <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(101, 30, -76)} />
+                  <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
+                  <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
+                  <RitualCenter />
+                </>
+              )}
+            </>
+          )}
+        </Suspense>
       </Physics>
 
       {/* Free Camera Mode */}
       <FreeCamManager />
 
       {/* Procedural Wildlife */}
-      <Birds count={50} />
-      <Fireflies count={150} />
+      <Birds count={performanceMode ? 15 : 35} />
+      <Fireflies count={performanceMode ? 40 : 120} />
+
+      {/* Frame & Lag Performance Profiler */}
+      <FrameLagTracker />
 
       {/* Performance Monitor */}
       <Stats />
     </>
   );
 };
+
+// Pre-load NPC models to eliminate mid-game texture/geometry compilation freezes
+useGLTF.preload('./models/NPCs/Cleric.glb');
+useGLTF.preload('./models/NPCs/BlueSoldier_Female.glb');
+useGLTF.preload('./models/NPCs/BlueSoldier_Male.glb');
+useGLTF.preload('./models/NPCs/Casual3_Female.glb');
+useGLTF.preload('./models/NPCs/Casual3_Male.glb');
+useGLTF.preload('./models/NPCs/Cowboy_Female.glb');
+useGLTF.preload('./models/NPCs/Cowboy_Hair.glb');
+useGLTF.preload('./models/NPCs/Cowboy_Male.glb');
+useGLTF.preload('./models/NPCs/Elf.glb');
+useGLTF.preload('./models/NPCs/Goblin_Female.glb');
+useGLTF.preload('./models/NPCs/Goblin_Male.glb');
+useGLTF.preload('./models/NPCs/KnightGolden_Female.glb');
+useGLTF.preload('./models/NPCs/KnightGolden_Male.glb');
+useGLTF.preload('./models/NPCs/Knight_Male.glb');
+useGLTF.preload('./models/NPCs/Pirate_Female.glb');
+useGLTF.preload('./models/NPCs/Pirate_Male.glb');
+useGLTF.preload('./models/NPCs/VikingHelmet.glb');
+useGLTF.preload('./models/NPCs/Viking_Female.glb');
+useGLTF.preload('./models/NPCs/Viking_Male.glb');
+useGLTF.preload('./models/NPCs/Witch.glb');
+useGLTF.preload('./models/NPCs/Wizard.glb');

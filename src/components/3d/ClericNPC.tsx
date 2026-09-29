@@ -8,6 +8,7 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 import { SpellEffect } from './SpellEffect';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
+import { UP_AXIS, setRapierRay, _sharedRayDown, _sharedRayForward, _sharedRayLeft, _sharedRayRight, _poolFrustum, _poolMat4 } from '../../utils/mathPool';
 
 interface ClericNPCProps {
   colorTint?: string;
@@ -108,6 +109,13 @@ export const ClericNPC = ({
       return;
     }
 
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 40;
+    if (containerRef.current.visible !== shouldBeVisible) {
+      containerRef.current.visible = shouldBeVisible;
+      if (typeof mixer !== 'undefined' && mixer) mixer.timeScale = shouldBeVisible ? 1 : 0;
+    }
+    if (!shouldBeVisible) return;
+
     const npcPos = containerRef.current.position;
     // --- SHADOW CULLING ---
     const distToCam = rootState.camera.position.distanceTo(npcPos);
@@ -201,7 +209,7 @@ export const ClericNPC = ({
              dirToTarget.normalize();
              containerRef.current.position.add(dirToTarget.clone().multiplyScalar(3 * delta));
              const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
-             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
              containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
           } else {
              nextAnim = anims.idle;
@@ -209,7 +217,7 @@ export const ClericNPC = ({
              const centerVec = new THREE.Vector3(72, npcPos.y, -77);
              const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
              const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
-             targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+             targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
              containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
           }
        } else if (ritualState === 'channeling' || ritualState === 'climax') {
@@ -217,7 +225,7 @@ export const ClericNPC = ({
           const centerVec = new THREE.Vector3(72, npcPos.y, -77);
           const dirToCenter = new THREE.Vector3().subVectors(centerVec, npcPos).normalize();
           const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
-          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
           containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
        }
     } else if (stateRef.current === 'RITUAL') {
@@ -259,7 +267,7 @@ export const ClericNPC = ({
             );
 
       // 1. DOWNWARD RAYCAST (RAPIER)
-      const ray = new RAPIER.Ray(testPos, downDir);
+      const ray = setRapierRay(_sharedRayDown, testPos, downDir);
       const hit = world.castRay(ray, 200, true);
       
       if (hit && hit.timeOfImpact < 200) {
@@ -279,7 +287,7 @@ export const ClericNPC = ({
          if (dirToTarget.lengthSq() > 0.1) {
             dirToTarget.normalize();
             const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
-            targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
             containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
          }
          if (idleTimer.current > activeSpell.duration) {
@@ -298,7 +306,7 @@ export const ClericNPC = ({
       if (dirToPlayer.lengthSq() > 0.001) {
         dirToPlayer.normalize();
         const angle = Math.atan2(dirToPlayer.x, dirToPlayer.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
       }
       
@@ -333,7 +341,7 @@ export const ClericNPC = ({
       const leftDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), Math.PI/6);
       const rightDir = dirToTarget.clone().applyAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/6);
 
-      const forwardHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.5, true);
+      const forwardHit = world.castRay(setRapierRay(_sharedRayForward, forwardRayOrigin, dirToTarget), 1.5, true);
       const leftHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, leftDir), 1.0, true);
       const rightHit = world.castRay(new RAPIER.Ray(forwardRayOrigin, rightDir), 1.0, true);
       
@@ -353,7 +361,7 @@ export const ClericNPC = ({
       } else {
         // TURN TO FACE TARGET
         const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         // MOVE FORWARD - Slower relaxed pacing speed
@@ -362,7 +370,7 @@ export const ClericNPC = ({
         
         // 3. TERRAIN SNAPPING (RAPIER)
         const snapRayOrigin = new THREE.Vector3(npcPos.x, npcPos.y + 2.0, npcPos.z);
-        const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
+        const snapRay = setRapierRay(_sharedRayDown, snapRayOrigin, downDir);
         const snapHit = world.castRay(snapRay, 50.0, true);
         
         if (snapHit && snapHit.timeOfImpact < 50.0) {
@@ -403,10 +411,20 @@ export const ClericNPC = ({
 
   return (
     <group ref={containerRef} scale={scale}>
-      {isPracticing && !activeRitual && <SpellEffect color={activeSpell.color} duration={activeSpell.duration} type={activeSpell.type} scaleMultiplier={activeSpell.scaleMultiplier} />}
-      {(activeRitual && (ritualState === 'channeling' || ritualState === 'climax')) && (
-        <SpellEffect color="#ffd700" duration={8.0} type="holy" scaleMultiplier={1.5} />
-      )}
+      <SpellEffect 
+        visible={isPracticing && !activeRitual} 
+        color={activeSpell.color} 
+        duration={activeSpell.duration} 
+        type={activeSpell.type} 
+        scaleMultiplier={activeSpell.scaleMultiplier} 
+      />
+      <SpellEffect 
+        visible={Boolean(activeRitual && (ritualState === 'channeling' || ritualState === 'climax'))} 
+        color="#ffd700" 
+        duration={8.0} 
+        type="holy" 
+        scaleMultiplier={1.5} 
+      />
       <primitive ref={modelRef} object={clone} />
 
       {/* DIALOG BOX (Only renders when player is nearby and NPC is stopped) */}

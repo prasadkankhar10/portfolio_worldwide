@@ -17,6 +17,8 @@ export const Birds = ({ count = 50 }) => {
   const _cohesion = useMemo(() => new THREE.Vector3(), []);
   const _push = useMemo(() => new THREE.Vector3(), []);
   const _playerScatter = useMemo(() => new THREE.Vector3(), []);
+  const _bankVec = useMemo(() => new THREE.Vector3(), []);
+  const boidFrameCounter = useRef(0);
   
   // Create skeletal structure
   const skeleton = useMemo(() => {
@@ -243,7 +245,7 @@ export const Birds = ({ count = 50 }) => {
       _dir.normalize();
       
       // --- FLIGHT PHYSICS ---
-      const bankAngle = bird.velocity.clone().cross(_dir).y;
+      const bankAngle = _bankVec.copy(bird.velocity).cross(_dir).y;
       bird.velocity.lerp(_dir, bird.turnSpeed).normalize();
       bird.position.addScaledVector(bird.velocity, bird.speed);
       

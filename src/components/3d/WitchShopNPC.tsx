@@ -8,6 +8,7 @@ import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
 
 import { globalPlayerState } from './Character';
+import { UP_AXIS, setRapierRay, _sharedRayDown, _sharedRayForward, _sharedRayLeft, _sharedRayRight, _poolFrustum, _poolMat4 } from '../../utils/mathPool';
 
 interface WitchShopNPCProps {
   position?: [number, number, number];
@@ -116,7 +117,7 @@ export function WitchShopNPC({
         if (dir.lengthSq() > 0.001) {
           dir.normalize();
           const angle = Math.atan2(dir.x, dir.z);
-          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
           containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
         }
       }
@@ -137,7 +138,7 @@ export function WitchShopNPC({
         if (dir.lengthSq() > 0.001) {
           dir.normalize();
           const angle = Math.atan2(dir.x, dir.z);
-          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
           containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
         }
       }
@@ -153,7 +154,7 @@ export function WitchShopNPC({
         containerRef.current.position.addScaledVector(dir, moveSpeed * delta);
         
         const angle = Math.atan2(dir.x, dir.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         nextAnim = 'Walking_A';
       } else {

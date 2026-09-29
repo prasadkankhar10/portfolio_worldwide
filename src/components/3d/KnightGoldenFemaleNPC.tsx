@@ -11,6 +11,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useNpcRegistry } from '../../hooks/useNpcRegistry';
 import { NpcChatBubble } from './NpcChatBubble';
 import { DistanceNameTag } from './DistanceNameTag';
+import { UP_AXIS, setRapierRay, _sharedRayDown, _sharedRayForward, _sharedRayLeft, _sharedRayRight, _poolFrustum, _poolMat4 } from '../../utils/mathPool';
 
 // GC Optimization: Pre-allocate Vector3s outside of the render loop
 const _dirToStart = new THREE.Vector3();
@@ -224,7 +225,7 @@ export const KnightGoldenFemaleNPC = ({
          
          // Always face forward along the fixed lane
          const angle = Math.atan2(fixedDirToCenter.x, fixedDirToCenter.z);
-         targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+         targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
          containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
          
          // Event-Driven, Animation-Synced Math Clock
@@ -367,7 +368,7 @@ export const KnightGoldenFemaleNPC = ({
         
         const testPos = _testPos.set(pickTargetX, 100, pickTargetZ);
         
-        const ray = new RAPIER.Ray(testPos, downDir);
+        const ray = setRapierRay(_sharedRayDown, testPos, downDir);
         const hit = world.castRay(ray, 200, true);
         if (hit) {
           targetPosRef.current = testPos.clone().add(downDir.clone().multiplyScalar(hit.timeOfImpact));
@@ -386,7 +387,7 @@ export const KnightGoldenFemaleNPC = ({
         if (dir.lengthSq() > 0.001) {
           dir.normalize();
           const angle = Math.atan2(dir.x, dir.z);
-          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
           containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
         }
       }
@@ -402,8 +403,8 @@ export const KnightGoldenFemaleNPC = ({
        nextAnim = anims.idle;
        
        // Check if camera is looking at the NPC
-       const frustum = new THREE.Frustum();
-       const projScreenMatrix = new THREE.Matrix4();
+       const frustum = _poolFrustum;
+       const projScreenMatrix = _poolMat4;
        projScreenMatrix.multiplyMatrices(rootState.camera.projectionMatrix, rootState.camera.matrixWorldInverse);
        frustum.setFromProjectionMatrix(projScreenMatrix);
        
@@ -465,7 +466,7 @@ export const KnightGoldenFemaleNPC = ({
         }
         
         const testPos = _testPos.set(pickTargetX, 100, pickTargetZ);
-        const ray = new RAPIER.Ray(testPos, downDir);
+        const ray = setRapierRay(_sharedRayDown, testPos, downDir);
         const hit = world.castRay(ray, 200, true);
         
         if (hit && hit.timeOfImpact < 200) {
@@ -490,7 +491,7 @@ export const KnightGoldenFemaleNPC = ({
     
         const angle = Math.atan2(dirToCenter.x, dirToCenter.z);
     
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
     
         containerRef.current.quaternion.slerp(targetQuaternion.current, 5 * delta);
     
@@ -536,7 +537,7 @@ export const KnightGoldenFemaleNPC = ({
       if (dirToPlayer.lengthSq() > 0.001) {
         dirToPlayer.normalize();
         const angle = Math.atan2(dirToPlayer.x, dirToPlayer.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
       }
       
@@ -563,9 +564,9 @@ export const KnightGoldenFemaleNPC = ({
       const leftShoulder = _leftShoulder.set(npcPos.x - dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z + dirToTarget.x * shoulderWidth);
       const rightShoulder = _rightShoulder.set(npcPos.x + dirToTarget.z * shoulderWidth, npcPos.y + 0.6, npcPos.z - dirToTarget.x * shoulderWidth);
       
-      const fHit = world.castRayAndGetNormal(new RAPIER.Ray(forwardRayOrigin, dirToTarget), 1.0, true);
-      const lHit = world.castRayAndGetNormal(new RAPIER.Ray(leftShoulder, dirToTarget), 1.0, true);
-      const rHit = world.castRayAndGetNormal(new RAPIER.Ray(rightShoulder, dirToTarget), 1.0, true);
+      const fHit = world.castRayAndGetNormal(setRapierRay(_sharedRayForward, forwardRayOrigin, dirToTarget), 1.0, true);
+      const lHit = world.castRayAndGetNormal(setRapierRay(_sharedRayLeft, leftShoulder, dirToTarget), 1.0, true);
+      const rHit = world.castRayAndGetNormal(setRapierRay(_sharedRayRight, rightShoulder, dirToTarget), 1.0, true);
       
       // Determine if a hit is a steep wall (normal.y < 0.7). Hills/stairs (>= 0.7) are ignored!
       const isWall = (hit: any) => hit && hit.timeOfImpact < 1.0 && hit.normal && hit.normal.y < 0.7;
@@ -589,7 +590,7 @@ export const KnightGoldenFemaleNPC = ({
         failedTargetCount.current = 0; // Reset failures on success!
       } else {
         const angle = Math.atan2(dirToTarget.x, dirToTarget.z);
-        targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        targetQuaternion.current.setFromAxisAngle(UP_AXIS, angle);
         containerRef.current.quaternion.slerp(targetQuaternion.current, 10 * delta);
         
         const speed = (stateRef.current === 'SUMMONED') ? 5.0 : 2.0;
@@ -601,7 +602,7 @@ export const KnightGoldenFemaleNPC = ({
     // GRAVITY & GROUND SNAPPING (Runs every frame for EVERY NPC)
     // Cast from slightly above the NPC to prevent them from teleporting onto tree canopies above them!
     const snapRayOrigin = _snapRayOrigin.set(npcPos.x, npcPos.y + 2.0, npcPos.z);
-    const snapRay = new RAPIER.Ray(snapRayOrigin, downDir);
+    const snapRay = setRapierRay(_sharedRayDown, snapRayOrigin, downDir);
     const snapHit = world.castRay(snapRay, 50.0, true);
     
     if (snapHit && snapHit.timeOfImpact < 50.0) {

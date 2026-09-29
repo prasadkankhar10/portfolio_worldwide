@@ -14,6 +14,16 @@ export const dialogData: Record<string, DialogNode> = {
     npcName: 'System',
     text: 'You have approached a building! (Text will be added here later).'
   },
+  moonwell_commune: {
+    id: 'moonwell_commune',
+    npcName: 'Enchanted Moonwell Spirit',
+    text: 'You gaze into the iridescent cyan pool. Pure celestial energy courses through your veins, blessing you with restorative wisdom!'
+  },
+  rift_ascend: {
+    id: 'rift_ascend',
+    npcName: 'Ancient Celestial Rift',
+    text: 'The cosmic rift crackles with electric violet lightning, bending space to transport you across the island realm!'
+  },
   // --- WIZARD (Personal Profile) ---
   wizard_intro_1: {
     id: 'wizard_intro_1',

@@ -9,6 +9,9 @@ import { DialogOverlay } from './components/ui/DialogOverlay';
 import { MobileControls } from './components/ui/MobileControls';
 import { RotateDeviceOverlay } from './components/ui/RotateDeviceOverlay';
 import { PortfolioTracker } from './components/ui/PortfolioTracker';
+import { PerformanceProfilerHUD } from './components/ui/PerformanceProfilerHUD';
+import { StationPortfolioModal } from './components/ui/StationPortfolioModal';
+import { StationHUDPrompt } from './components/ui/StationHUDPrompt';
 
 export const Controls = {
   forward: 'forward',
@@ -26,17 +29,28 @@ function App() {
   const toggleTracker = useGameStore((state) => state.toggleTracker);
   const hasStarted = useGameStore((state) => state.hasStarted);
   const setIsMobile = useGameStore((state) => state.setIsMobile);
+  const setIsLowPowerGpu = useGameStore((state) => state.setIsLowPowerGpu);
   const isMobile = useGameStore((state) => state.isMobile);
+  const performanceMode = useGameStore((state) => state.performanceMode);
 
   useEffect(() => {
-    // Basic mobile detection based on pointer type (coarse = touch)
-    const mediaQuery = window.matchMedia('(pointer: coarse)');
-    setIsMobile(mediaQuery.matches);
+    // 1. Is this definitely a Desktop OS (Windows, Mac, Linux desktop)?
+    // Touchscreen laptops (e.g. Surface, Yoga, touch monitors) MUST use desktop controls, not mobile virtual joysticks!
+    const isDesktopOS = /Windows NT|Macintosh|X11; Linux x86_64/i.test(navigator.userAgent) && !/Android|Quest|OculusBrowser/i.test(navigator.userAgent);
     
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [setIsMobile]);
+    // 2. Is this an actual mobile phone or tablet (Android phone/tablet, iPhone, iPad)?
+    const isMobileDevice = !isDesktopOS && (
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      (window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 1024)
+    );
+
+    // On any PC / laptop, isMobile is strictly FALSE so desktop keyboard WASD & mouse controls are active
+    setIsMobile(isMobileDevice);
+
+    // 3. Low-power GPU detection (standalone VR headsets like Quest 3 or mobile phones) for postprocessing
+    const isLowPowerGpu = isMobileDevice || /Quest|OculusBrowser/i.test(navigator.userAgent);
+    setIsLowPowerGpu(isLowPowerGpu);
+  }, [setIsMobile, setIsLowPowerGpu]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -82,16 +96,19 @@ function App() {
   return (
     <KeyboardControls map={map}>
       <Layout />
+      <PerformanceProfilerHUD />
+      <StationHUDPrompt />
+      <StationPortfolioModal />
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
       {hasStarted && <PortfolioTracker />}
       {isMobile && <RotateDeviceOverlay />}
       <div className="absolute inset-0 z-0">
         <Canvas
-          shadows
+          shadows={!performanceMode}
           camera={{ position: [0, 5, 10], fov: 60 }}
-          gl={{ antialias: true }}
-          dpr={[1, 1.5]}
+          gl={{ antialias: !performanceMode, powerPreference: 'high-performance' }}
+          dpr={performanceMode ? 1 : [1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.5)]}
         >
           <Suspense fallback={null}>
             <Scene />
