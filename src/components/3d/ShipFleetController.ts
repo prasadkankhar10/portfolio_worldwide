@@ -27,15 +27,13 @@ export const BAKED_WAYPOINTS: [number, number, number][] = [
 // 2. CREATE CLOSED CURVE FROM GLB OBJECT OR PRE-EXTRACTED POINTS
 // -------------------------------------------------------------
 export function createShipPath(scene: THREE.Object3D): THREE.CatmullRomCurve3 {
-  // Option A: Extract directly from the exported GLB mesh
   const pathMesh = scene.getObjectByName('ship_path') as THREE.Mesh | undefined;
   if (pathMesh && pathMesh.geometry && pathMesh.geometry.attributes && pathMesh.geometry.attributes.position) {
-    pathMesh.visible = false; // Hide guide mesh ribbon from rendering
+    pathMesh.visible = false;
     pathMesh.updateMatrixWorld(true);
     const pos = pathMesh.geometry.attributes.position;
     const waypoints: THREE.Vector3[] = [];
 
-    // Sample centerline points from the ribbon vertices
     for (let i = 0; i < pos.count; i += 2) {
       const p1 = new THREE.Vector3().fromBufferAttribute(pos, i);
       const p2 = new THREE.Vector3().fromBufferAttribute(pos, Math.min(i + 1, pos.count - 1));
@@ -44,55 +42,55 @@ export function createShipPath(scene: THREE.Object3D): THREE.CatmullRomCurve3 {
       waypoints.push(mid);
     }
     if (waypoints.length >= 3) {
-      return new THREE.CatmullRomCurve3(waypoints, true); // true = closed loop
+      return new THREE.CatmullRomCurve3(waypoints, true);
     }
   }
 
-  // Option B: Fallback pre-calculated waypoint array (Exact island coordinates)
   const points = BAKED_WAYPOINTS.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
   return new THREE.CatmullRomCurve3(points, true);
 }
 
 // -------------------------------------------------------------
-// 3. SHIP VARIANT INTERFACE & HELPERS
+// 3. SHIP INSTANCE INTERFACE
 // -------------------------------------------------------------
-export interface GalleonVariant {
+export interface ShipInstance {
   name: string;
   object: THREE.Object3D;
-  progressOffset: number;
-  wavePhase: number;
-  speed: number;
-  primaryColor: number;
+  progress: number;
+  speed: number;             // Independent cruising speed (m/s)
+  lateralOffset: number;     // Sea lane offset to prevent overlapping
+  waveFreq: number;          // Unique wave bobbing frequency
+  wavePhase: number;         // Wave phase offset
+  heaveScale: number;        // Vertical wave heave amplitude
+  pitchScale: number;        // Pitch wave tilt amplitude
+  rollScale: number;         // Roll wave roll amplitude
+  bankMultiplier: number;    // Centrifugal banking multiplier
+  yawOffset: number;         // Forward heading angular correction
+  yOffset: number;           // Vertical elevation waterline adjustment
   lanternLights: THREE.PointLight[];
   lanternMeshes: THREE.Mesh[];
 }
 
 /**
- * Attaches glowing crystal beacons and point lights to the ship
- * (Main Masthead, Bowsprit Tip, and Stern Castle) for long-range night visibility.
+ * Attaches glowing crystal beacons and point lights for long-range night visibility.
  */
-function attachShipGlowBeacons(
+function attachGlowBeacons(
   shipObj: THREE.Object3D,
-  colorHex: number
+  colorHex: number,
+  points: { pos: [number, number, number]; size: number; lightIntensity: number; lightDist: number }[]
 ): { lights: THREE.PointLight[]; meshes: THREE.Mesh[] } {
   const lights: THREE.PointLight[] = [];
   const meshes: THREE.Mesh[] = [];
 
-  const beaconConfigs = [
-    { pos: [0, 10.3, 0.2] as const, size: 0.45, lightIntensity: 3.8, lightDist: 35 }, // Main Masthead Beacon
-    { pos: [0, 3.4, -7.6] as const, size: 0.32, lightIntensity: 2.2, lightDist: 24 }, // Bowsprit Lantern
-    { pos: [0, 5.2, 7.2] as const, size: 0.38, lightIntensity: 2.8, lightDist: 30 },  // Stern Castle Lantern
-  ];
-
-  beaconConfigs.forEach((cfg, idx) => {
-    // 1. Faceted glowing arcane crystal core
+  points.forEach((cfg, idx) => {
+    // 1. Faceted glowing crystal
     const gemGeo = new THREE.OctahedronGeometry(cfg.size, 0);
     const gemMat = new THREE.MeshStandardMaterial({
       color: colorHex,
       emissive: new THREE.Color(colorHex),
-      emissiveIntensity: 5.5,
-      roughness: 0.15,
-      metalness: 0.85,
+      emissiveIntensity: 6.0,
+      roughness: 0.1,
+      metalness: 0.9,
     });
     const gemMesh = new THREE.Mesh(gemGeo, gemMat);
     gemMesh.name = `${shipObj.name}_BeaconGem_${idx}`;
@@ -102,7 +100,7 @@ function attachShipGlowBeacons(
     shipObj.add(gemMesh);
     meshes.push(gemMesh);
 
-    // 2. PointLight illuminating sails, deck, and reflecting across water at night
+    // 2. PointLight casting radiant glow across sails and ripples on water
     const light = new THREE.PointLight(colorHex, cfg.lightIntensity, cfg.lightDist, 1.4);
     light.name = `${shipObj.name}_BeaconLight_${idx}`;
     light.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
@@ -115,7 +113,7 @@ function attachShipGlowBeacons(
 }
 
 /**
- * Deep-clones the galleon mesh with tinted palette and custom emissive highlights.
+ * Deep-clones a ship hierarchy with custom scale, material tint, and emissive shading.
  */
 function cloneShipWithMaterial(
   source: THREE.Object3D,
@@ -127,7 +125,7 @@ function cloneShipWithMaterial(
 ): THREE.Object3D {
   const clone = source.clone(true);
   clone.name = name;
-  clone.scale.set(...scale);
+  clone.scale.set(scale[0], scale[1], scale[2]);
   clone.matrixAutoUpdate = true;
 
   clone.traverse((child) => {
@@ -158,205 +156,249 @@ function cloneShipWithMaterial(
 }
 
 // -------------------------------------------------------------
-// 4. SHIP FLEET CONTROLLER (Multi-Ship Convoy + Night Beacons)
+// 4. SHIP FLEET CONTROLLER (Multi-Ship Autonomous Moving Fleet)
 // -------------------------------------------------------------
 export class ShipFleetController {
   curve: THREE.CatmullRomCurve3;
-  curveLength: number; // approx total distance in meters
-  progress: number = 0.0;
-  baseSpeed: number = 4.5; // sailing speed in meters per second
+  curveLength: number;
+  ships: ShipInstance[] = [];
 
-  // 3 Traveling Ships (Flagship + 2 Unique Variants spaced out on the loop)
-  variants: GalleonVariant[] = [];
-
-  // Moored Vessels at Harbor Pier
-  mooredArrival: THREE.Object3D | null = null;
-  mooredTender: THREE.Object3D | null = null;
-
-  // Cache initial base positions for moored ships
-  arrivalBase: THREE.Vector3 = new THREE.Vector3();
-  arrivalRot: THREE.Euler = new THREE.Euler();
-  tenderBase: THREE.Vector3 = new THREE.Vector3();
-  tenderRot: THREE.Euler = new THREE.Euler();
-
-  // Reusable math objects (zero GC allocations per frame)
+  // Zero-allocation reusable math vectors
   private _pos: THREE.Vector3 = new THREE.Vector3();
   private _tangent: THREE.Vector3 = new THREE.Vector3();
   private _nextTangent: THREE.Vector3 = new THREE.Vector3();
+  private _normal: THREE.Vector3 = new THREE.Vector3();
 
   constructor(scene: THREE.Object3D) {
     this.curve = createShipPath(scene);
     this.curveLength = this.curve.getLength();
 
-    // Base Galleon from 3D Model
+    // Find base ship models
     const baseGalleon = scene.getObjectByName('Ship_Sea_Galleon');
+    const mooredArrival = scene.getObjectByName('Ship_Moored_Arrival');
+    const mooredTender = scene.getObjectByName('Ship_Moored_Tender');
 
+    const galleonBeaconPositions = [
+      { pos: [0, 10.3, 0.2] as [number, number, number], size: 0.45, lightIntensity: 3.8, lightDist: 36 }, // Masthead
+      { pos: [0, 3.4, -7.6] as [number, number, number], size: 0.32, lightIntensity: 2.2, lightDist: 24 }, // Bowsprit
+      { pos: [0, 5.2, 7.2] as [number, number, number], size: 0.38, lightIntensity: 2.8, lightDist: 30 },  // Stern
+    ];
+
+    // ---------------------------------------------------------
+    // Ship 1: "The Golden Sovereign" (Flagship Galleon)
+    // ---------------------------------------------------------
     if (baseGalleon) {
       baseGalleon.matrixAutoUpdate = true;
-      baseGalleon.traverse((child) => {
-        child.matrixAutoUpdate = true;
-      });
+      baseGalleon.traverse((c) => { c.matrixAutoUpdate = true; });
 
-      // ---------------------------------------------------------
-      // Ship 1: "The Golden Sovereign" (Flagship, Warm Golden Amber)
-      // ---------------------------------------------------------
-      const flagBeacons = attachShipGlowBeacons(baseGalleon, 0xffaa22);
-      this.variants.push({
+      const beacons = attachGlowBeacons(baseGalleon, 0xffaa22, galleonBeaconPositions);
+      this.ships.push({
         name: 'The Golden Sovereign (Flagship)',
         object: baseGalleon,
-        progressOffset: 0.0,
+        progress: 0.05,            // Spawns off Harbor Arrival Coast
+        speed: 4.4,               // 4.4 m/s
+        lateralOffset: 0.0,       // Center shipping lane
+        waveFreq: 2.0,
         wavePhase: 0.0,
-        speed: this.baseSpeed,
-        primaryColor: 0xffaa22,
-        lanternLights: flagBeacons.lights,
-        lanternMeshes: flagBeacons.meshes,
+        heaveScale: 0.14,
+        pitchScale: 0.035,
+        rollScale: 0.045,
+        bankMultiplier: 18.0,
+        yawOffset: Math.PI,
+        yOffset: 0.0,
+        lanternLights: beacons.lights,
+        lanternMeshes: beacons.meshes,
       });
 
       // ---------------------------------------------------------
-      // Ship 2: "The Celestial Moonwhisper" (Variant 1: Ethereal Cyan / Azure)
+      // Ship 2: "The Celestial Moonwhisper" (Variant 1: Ethereal Cyan Frigate)
       // ---------------------------------------------------------
       const celestialShip = cloneShipWithMaterial(
         baseGalleon,
         'Ship_Sea_Galleon_Variant1_Celestial',
-        new THREE.Color(0.7, 0.95, 1.25), // Luminous azure tint
+        new THREE.Color(0.70, 0.95, 1.25),
         new THREE.Color(0x003366),
-        0.6,
-        [0.92, 0.95, 0.92] // Sleek, nimble arcane frigate
+        0.7,
+        [0.92, 0.95, 0.92]
       );
       scene.add(celestialShip);
 
-      const celestialBeacons = attachShipGlowBeacons(celestialShip, 0x00e5ff); // Radiant neon cyan beacons
-      this.variants.push({
+      const celestialBeacons = attachGlowBeacons(celestialShip, 0x00e5ff, galleonBeaconPositions);
+      this.ships.push({
         name: 'The Celestial Moonwhisper',
         object: celestialShip,
-        progressOffset: 0.3333, // Spaced 1/3 ahead on the island loop
-        wavePhase: 2.1,
-        speed: this.baseSpeed,
-        primaryColor: 0x00e5ff,
+        progress: 0.28,            // Spawns off Eastern Cape & Cliffs
+        speed: 5.1,               // 5.1 m/s (Fast cruising arcane corsair)
+        lateralOffset: 7.5,       // Outer deep-water lane (+7.5m)
+        waveFreq: 2.3,
+        wavePhase: 1.8,
+        heaveScale: 0.16,
+        pitchScale: 0.040,
+        rollScale: 0.055,
+        bankMultiplier: 22.0,
+        yawOffset: Math.PI,
+        yOffset: 0.0,
         lanternLights: celestialBeacons.lights,
         lanternMeshes: celestialBeacons.meshes,
       });
 
       // ---------------------------------------------------------
-      // Ship 3: "The Crimson Phoenix" (Variant 2: Blazing Ruby / Molten Ember)
+      // Ship 3: "The Crimson Phoenix" (Variant 2: Blazing Ruby Dreadnought)
       // ---------------------------------------------------------
       const crimsonShip = cloneShipWithMaterial(
         baseGalleon,
         'Ship_Sea_Galleon_Variant2_Crimson',
-        new THREE.Color(1.25, 0.72, 0.68), // Fiery crimson warmth
+        new THREE.Color(1.25, 0.70, 0.65),
         new THREE.Color(0x661100),
-        0.6,
-        [1.10, 1.08, 1.10] // Stately, heavy dreadnought
+        0.7,
+        [1.12, 1.08, 1.12]
       );
       scene.add(crimsonShip);
 
-      const crimsonBeacons = attachShipGlowBeacons(crimsonShip, 0xff2828); // Blazing ruby red beacons
-      this.variants.push({
+      const crimsonBeacons = attachGlowBeacons(crimsonShip, 0xff2828, galleonBeaconPositions);
+      this.ships.push({
         name: 'The Crimson Phoenix',
         object: crimsonShip,
-        progressOffset: 0.6667, // Spaced 2/3 ahead on the island loop
-        wavePhase: 4.2,
-        speed: this.baseSpeed,
-        primaryColor: 0xff2828,
+        progress: 0.52,            // Spawns off Northern Citadel Bay
+        speed: 3.8,               // 3.8 m/s (Heavy stately dreadnought)
+        lateralOffset: -7.0,      // Inner coastward lane (-7.0m)
+        waveFreq: 1.7,
+        wavePhase: 3.5,
+        heaveScale: 0.12,
+        pitchScale: 0.028,
+        rollScale: 0.038,
+        bankMultiplier: 15.0,
+        yawOffset: Math.PI,
+        yOffset: 0.0,
         lanternLights: crimsonBeacons.lights,
         lanternMeshes: crimsonBeacons.meshes,
       });
     }
 
-    // Moored Vessels at Harbor Pier
-    this.mooredArrival = scene.getObjectByName('Ship_Moored_Arrival') || null;
-    this.mooredTender = scene.getObjectByName('Ship_Moored_Tender') || null;
+    // ---------------------------------------------------------
+    // Ship 4: "The Emerald Voyager" (Arrival Vessel in Active Motion)
+    // ---------------------------------------------------------
+    if (mooredArrival) {
+      const arrivalPivot = new THREE.Group();
+      arrivalPivot.name = 'Arrival_Ship_Sail_Pivot';
+      scene.add(arrivalPivot);
 
-    if (this.mooredArrival) {
-      this.mooredArrival.matrixAutoUpdate = true;
-      this.mooredArrival.traverse((child) => {
-        child.matrixAutoUpdate = true;
+      arrivalPivot.add(mooredArrival);
+      mooredArrival.position.set(0, -3.2, 0); // Position waterline cleanly
+      mooredArrival.rotation.set(-Math.PI / 2, 0, 0); // Preserve Blender export tilt
+      mooredArrival.matrixAutoUpdate = true;
+      mooredArrival.traverse((c) => { c.matrixAutoUpdate = true; });
+
+      const arrivalBeaconPositions = [
+        { pos: [0, 8.5, 0.0] as [number, number, number], size: 0.40, lightIntensity: 3.2, lightDist: 30 },
+        { pos: [0, 2.5, -4.5] as [number, number, number], size: 0.30, lightIntensity: 2.0, lightDist: 22 },
+        { pos: [0, 3.2, 4.0] as [number, number, number], size: 0.32, lightIntensity: 2.4, lightDist: 25 },
+      ];
+      const arrivalBeacons = attachGlowBeacons(arrivalPivot, 0x10b981, arrivalBeaconPositions);
+
+      this.ships.push({
+        name: 'The Emerald Voyager',
+        object: arrivalPivot,
+        progress: 0.72,            // Spawns off Western Blacksmith Cove
+        speed: 4.2,               // 4.2 m/s
+        lateralOffset: 13.0,      // Far outer merchant channel (+13.0m)
+        waveFreq: 2.1,
+        wavePhase: 4.9,
+        heaveScale: 0.13,
+        pitchScale: 0.032,
+        rollScale: 0.042,
+        bankMultiplier: 16.0,
+        yawOffset: Math.PI,
+        yOffset: 0.0,
+        lanternLights: arrivalBeacons.lights,
+        lanternMeshes: arrivalBeacons.meshes,
       });
-      this.arrivalBase = this.mooredArrival.position.clone();
-      this.arrivalRot = this.mooredArrival.rotation.clone();
-      // Add subtle dock lanterns to moored ship as well
-      attachShipGlowBeacons(this.mooredArrival, 0xffaa33);
     }
 
-    if (this.mooredTender) {
-      this.mooredTender.matrixAutoUpdate = true;
-      this.mooredTender.traverse((child) => {
-        child.matrixAutoUpdate = true;
+    // ---------------------------------------------------------
+    // Ship 5: "The Starlight Scout" (Tender Cutter in Active Motion)
+    // ---------------------------------------------------------
+    if (mooredTender) {
+      const tenderPivot = new THREE.Group();
+      tenderPivot.name = 'Tender_Ship_Sail_Pivot';
+      scene.add(tenderPivot);
+
+      tenderPivot.add(mooredTender);
+      mooredTender.position.set(0, 0, 0);
+      mooredTender.rotation.set(0, Math.PI, 0); // Align pointed bow forward
+      mooredTender.matrixAutoUpdate = true;
+      mooredTender.traverse((c) => { c.matrixAutoUpdate = true; });
+
+      const tenderBeaconPositions = [
+        { pos: [0, 1.4, -1.8] as [number, number, number], size: 0.28, lightIntensity: 2.5, lightDist: 24 }, // Prow
+        { pos: [0, 1.1, 1.7] as [number, number, number], size: 0.28, lightIntensity: 2.2, lightDist: 22 },  // Stern
+      ];
+      const tenderBeacons = attachGlowBeacons(tenderPivot, 0xc084fc, tenderBeaconPositions);
+
+      this.ships.push({
+        name: 'The Starlight Scout (Tender)',
+        object: tenderPivot,
+        progress: 0.88,            // Spawns off Southern Shoals
+        speed: 5.5,               // 5.5 m/s (Fast agile scout)
+        lateralOffset: -10.5,     // Shallow inner coastal channel (-10.5m)
+        waveFreq: 2.6,
+        wavePhase: 2.7,
+        heaveScale: 0.11,
+        pitchScale: 0.045,
+        rollScale: 0.065,
+        bankMultiplier: 25.0,
+        yawOffset: 0,             // Already aligned inside tenderPivot
+        yOffset: 0.0,
+        lanternLights: tenderBeacons.lights,
+        lanternMeshes: tenderBeacons.meshes,
       });
-      this.tenderBase = this.mooredTender.position.clone();
-      this.tenderRot = this.mooredTender.rotation.clone();
     }
   }
 
   update(delta: number, elapsedTime: number) {
     if (!this.curve || this.curveLength <= 0) return;
 
-    // 1. Advance master convoy progress along closed curve [0, 1)
-    const step = (this.baseSpeed * delta) / this.curveLength;
-    this.progress = (this.progress + step) % 1.0;
+    for (const ship of this.ships) {
+      // 1. Advance individual ship along closed curve with its own speed
+      const step = (ship.speed * delta) / this.curveLength;
+      ship.progress = (ship.progress + step) % 1.0;
 
-    // -----------------------------------------------------------
-    // A. TRAVELING FLEET (Flagship + 2 Unique Variants)
-    // -----------------------------------------------------------
-    for (const v of this.variants) {
-      const shipProgress = (this.progress + v.progressOffset) % 1.0;
+      // 2. Sample centerline point and tangent
+      this.curve.getPointAt(ship.progress, this._pos);
+      this.curve.getTangentAt(ship.progress, this._tangent);
 
-      // Sample curve position and tangent vector
-      this.curve.getPointAt(shipProgress, this._pos);
-      this.curve.getTangentAt(shipProgress, this._tangent);
+      // 3. Compute perpendicular normal in XZ plane for lateral sea lane separation
+      this._normal.set(-this._tangent.z, 0, this._tangent.x).normalize();
+      this._pos.addScaledVector(this._normal, ship.lateralOffset);
 
-      // Compute forward heading yaw angle (bow points in direction of travel)
-      // Note: The ship mesh was authored with its bow along -Z (glTF forward convention),
-      // so Math.PI is added so the bow (not stern) faces along the curve tangent.
-      const yaw = Math.atan2(this._tangent.x, this._tangent.z) + Math.PI;
+      // 4. Compute forward heading yaw angle
+      const yaw = Math.atan2(this._tangent.x, this._tangent.z) + ship.yawOffset;
 
-      // Calculate centrifugal turn banking (ship leans slightly into turns)
-      const lookAheadT = (shipProgress + 0.008) % 1.0;
+      // 5. Centrifugal turn banking (leans organically into curves)
+      const lookAheadT = (ship.progress + 0.008) % 1.0;
       this.curve.getTangentAt(lookAheadT, this._nextTangent);
       const turnRate = this._tangent.x * this._nextTangent.z - this._tangent.z * this._nextTangent.x;
-      const bank = THREE.MathUtils.clamp(-turnRate * 18.0, -0.08, 0.08);
+      const bank = THREE.MathUtils.clamp(-turnRate * ship.bankMultiplier, -0.10, 0.10);
 
-      // Ocean wave dynamics (heave, pitch, roll) with unique phase per ship
-      const waveFreq = 2.0;
-      const heave = Math.sin(elapsedTime * waveFreq + v.wavePhase + shipProgress * 25.0) * 0.14;
-      const pitch = Math.sin(elapsedTime * waveFreq * 1.1 + v.wavePhase) * 0.035;
-      const roll = Math.cos(elapsedTime * waveFreq * 0.85 + v.wavePhase) * 0.045 + bank;
+      // 6. Independent ocean wave dynamics (heave, pitch, roll)
+      const heave = Math.sin(elapsedTime * ship.waveFreq + ship.wavePhase + ship.progress * 30.0) * ship.heaveScale;
+      const pitch = Math.sin(elapsedTime * ship.waveFreq * 1.1 + ship.wavePhase) * ship.pitchScale;
+      const roll = Math.cos(elapsedTime * ship.waveFreq * 0.85 + ship.wavePhase) * ship.rollScale + bank;
 
-      // Apply to ship transform
-      v.object.position.set(this._pos.x, this._pos.y + heave, this._pos.z);
-      v.object.rotation.set(pitch, yaw, roll, 'YXZ');
+      // 7. Apply transform to ship (or parent pivot)
+      ship.object.position.set(this._pos.x, this._pos.y + ship.yOffset + heave, this._pos.z);
+      ship.object.rotation.set(pitch, yaw, roll, 'YXZ');
 
-      // Breathing luminous pulse for night visibility
-      const pulse = Math.sin(elapsedTime * 2.8 + v.wavePhase) * 0.25;
-      for (const light of v.lanternLights) {
-        const base = (light.userData.baseIntensity as number) || 3.0;
+      // 8. Breathing luminous pulse for long-range night visibility
+      const pulse = Math.sin(elapsedTime * 2.8 + ship.wavePhase) * 0.25;
+      for (const light of ship.lanternLights) {
+        const base = (light.userData.baseIntensity as number) || 2.5;
         light.intensity = base * (1.0 + pulse);
       }
-      for (const mesh of v.lanternMeshes) {
+      for (const mesh of ship.lanternMeshes) {
         const mat = mesh.material as THREE.MeshStandardMaterial;
-        mat.emissiveIntensity = 5.0 + pulse * 2.0;
+        mat.emissiveIntensity = 5.5 + pulse * 2.0;
       }
-    }
-
-    // -----------------------------------------------------------
-    // B. MOORED SHIPS (Gentle harbor swell at the dock)
-    // -----------------------------------------------------------
-    if (this.mooredArrival) {
-      const heave = Math.sin(elapsedTime * 1.5) * 0.05;
-      const pitch = Math.sin(elapsedTime * 1.1) * 0.015;
-      const roll = Math.cos(elapsedTime * 0.9) * 0.02;
-      this.mooredArrival.position.y = this.arrivalBase.y + heave;
-      this.mooredArrival.rotation.x = this.arrivalRot.x + pitch;
-      this.mooredArrival.rotation.z = this.arrivalRot.z + roll;
-    }
-
-    if (this.mooredTender) {
-      const heave = Math.sin(elapsedTime * 2.2 + 0.8) * 0.04;
-      const pitch = Math.sin(elapsedTime * 1.8 + 0.4) * 0.025;
-      const roll = Math.cos(elapsedTime * 1.6 + 0.2) * 0.035;
-      this.mooredTender.position.y = this.tenderBase.y + heave;
-      this.mooredTender.rotation.x = this.tenderRot.x + pitch;
-      this.mooredTender.rotation.z = this.tenderRot.z + roll;
     }
   }
 }
