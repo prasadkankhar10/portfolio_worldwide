@@ -145,7 +145,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
   portalIntensity,
   moonwellIntensity
 }) => {
-  const { scene } = useGLTF('./models/threejs_game_assets/island_world_complete_draco.glb', true);
+  const { scene } = useGLTF('./models/threejs_game_assets/island_world_complete.glb');
 
   // Animation targets cached directly on scene mount
   const targets = useRef<Record<string, THREE.Object3D>>({});
@@ -309,8 +309,12 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
       node.matrixAutoUpdate = true;
     });
 
-    // Initialize Ship Fleet Controller (moving Galleon + moored arrival / tender vessels)
+    // Initialize Ship Fleet Controller (moving Galleons + moored pier vessels)
     shipFleetRef.current = new ShipFleetController(scene);
+
+    return () => {
+      shipFleetRef.current?.destroy();
+    };
   }, [scene, lampColor, lampIntensity]);
 
   // Update crystal emissive glow when slider changes
@@ -990,6 +994,6 @@ export const Environment: React.FC = () => {
 };
 
 // Preload unified complete world, collision proxies, and trees
-useGLTF.preload('./models/threejs_game_assets/island_world_complete_draco.glb', true);
+useGLTF.preload('./models/threejs_game_assets/island_world_complete.glb');
 useGLTF.preload('./models/threejs_game_assets/base/collision.glb');
 useGLTF.preload('./models/threejs_game_assets/trees.glb');
