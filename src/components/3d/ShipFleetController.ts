@@ -128,7 +128,9 @@ export class ShipFleetController {
       this.curve.getTangentAt(this.progress, this._tangent);
 
       // 3. Compute forward heading yaw angle (bow points in direction of travel)
-      const yaw = Math.atan2(this._tangent.x, this._tangent.z);
+      // Note: The ship mesh was authored with its bow along -Z (glTF forward convention),
+      // so Math.PI is added so the bow (not stern) faces along the curve tangent.
+      const yaw = Math.atan2(this._tangent.x, this._tangent.z) + Math.PI;
 
       // 4. Calculate centrifugal turn banking (ship leans slightly into turns)
       const lookAheadT = (this.progress + 0.008) % 1.0;
