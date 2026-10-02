@@ -93,8 +93,8 @@ const CollisionWorld: React.FC = () => {
           triggers.push(child);
           toRemove.push(child);
         } else {
-          // Physical obstacle (COL_...)
-          child.visible = true;
+          // Physical obstacle (COL_...) - physics uses trimesh, keep mesh completely invisible
+          child.visible = false;
           child.material = invisibleColliderMaterial;
           child.castShadow = false;
           child.receiveShadow = false;
@@ -182,9 +182,29 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
         child.intensity = 0;
       }
 
-      const name = (child.name || '').toLowerCase();
+      const origName = child.name || '';
+      const name = origName.toLowerCase();
+      const matName = (child.material?.name || '').toLowerCase();
 
       if (child.isMesh) {
+        // ALWAYS hide any collision proxies, trigger zones, or green debug hulls in visual world
+        if (
+          origName.startsWith('COL_') ||
+          origName.startsWith('TRIGGER_') ||
+          name.startsWith('col_') ||
+          name.startsWith('trigger_') ||
+          matName.includes('collider') ||
+          matName.includes('debug')
+        ) {
+          child.visible = false;
+          child.castShadow = false;
+          child.receiveShadow = false;
+          if (child.material) {
+            child.material.visible = false;
+          }
+          return;
+        }
+
         child.castShadow = false;
         child.receiveShadow = true;
 
@@ -192,7 +212,6 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
           child.material.map.colorSpace = THREE.SRGBColorSpace;
         }
 
-        const matName = (child.material?.name || '').toLowerCase();
         // Street lamps emissive
         if (matName.includes('lamp_material') || matName.includes('lamp')) {
           child.material = child.material.clone();
