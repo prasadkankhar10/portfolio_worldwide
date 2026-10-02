@@ -24,6 +24,42 @@ type AtmospherePreset = {
 };
 
 const presets: Record<string, AtmospherePreset> = {
+  'Sunny Day': {
+    ambientColor: '#dbeafe', // Soft sky blue ambient
+    ambientIntensity: 1.0,
+    sunColor: '#fffbeb', // Warm bright golden sunlight
+    sunIntensity: 1.6,
+    sunPosition: [100, 180, 80], // High natural sun angle
+    bgColor: '#7dd3fc', // Clear daylight sky blue
+    fogColor: '#bae6fd', // Soft atmospheric aerial perspective haze
+    fogNear: 60,
+    fogFar: 450,
+    hasSky: true,
+    skyMieCoefficient: 0.005,
+    skyRayleigh: 0.8,
+    skyTurbidity: 3.5,
+    showStars: false,
+    showCosmicDust: false,
+    showNebula: false
+  },
+  'Golden Sunset': {
+    ambientColor: '#fed7aa',
+    ambientIntensity: 0.9,
+    sunColor: '#ea580c',
+    sunIntensity: 1.4,
+    sunPosition: [180, 30, -120], // Low horizon sunset
+    bgColor: '#fb923c',
+    fogColor: '#fdba74',
+    fogNear: 40,
+    fogFar: 350,
+    hasSky: true,
+    skyMieCoefficient: 0.015,
+    skyRayleigh: 2.2,
+    skyTurbidity: 8.0,
+    showStars: false,
+    showCosmicDust: false,
+    showNebula: false
+  },
   'Cosmic Nebula': {
     ambientColor: '#8a4ca8', // Slightly darker, richer purple
     ambientIntensity: 0.8, // Increased ambient to lighten the ground naturally

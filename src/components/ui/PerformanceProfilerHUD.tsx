@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { frameProfiler } from '../../utils/frameProfiler';
 import { PerformanceProfilerModal } from './PerformanceProfilerModal';
-import { Play, Square, FileText, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { Play, Square, FileText, ChevronDown, ChevronUp, Zap, Sun, Moon } from 'lucide-react';
 import { useGameStore } from '../../store/useGameStore';
 
 export const PerformanceProfilerHUD: React.FC = () => {
@@ -17,6 +17,8 @@ export const PerformanceProfilerHUD: React.FC = () => {
   const performanceMode = useGameStore((state) => state.performanceMode);
   const togglePerformanceMode = useGameStore((state) => state.togglePerformanceMode);
   const setStationModalOpen = useGameStore((state) => state.setStationModalOpen);
+  const currentAtmosphere = useGameStore((state) => state.currentAtmosphere);
+  const setAtmosphere = useGameStore((state) => state.setAtmosphere);
 
   useEffect(() => {
     const unsubscribe = frameProfiler.subscribe((state) => {
@@ -156,6 +158,27 @@ export const PerformanceProfilerHUD: React.FC = () => {
             >
               <Zap className={`w-3 h-3 ${performanceMode ? 'fill-stone-950 text-stone-950' : 'text-amber-400'}`} />
               <span>{performanceMode ? '60 FPS: ON' : '60 FPS'}</span>
+            </button>
+
+            {/* Day / Night Environment Toggle Button */}
+            <button
+              onClick={() => {
+                const nextAtmosphere = currentAtmosphere === 'Sunny Day' ? 'Cosmic Nebula' : 'Sunny Day';
+                setAtmosphere(nextAtmosphere);
+              }}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-bold transition-all cursor-pointer border ${
+                currentAtmosphere === 'Sunny Day'
+                  ? 'bg-amber-400/90 hover:bg-amber-300 text-stone-950 border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]'
+                  : 'bg-stone-800 hover:bg-stone-700 text-cyan-300 border-cyan-500/40'
+              }`}
+              title={`Switch Environment (Current: ${currentAtmosphere})`}
+            >
+              {currentAtmosphere === 'Sunny Day' ? (
+                <Sun className="w-3.5 h-3.5 text-stone-950 fill-current" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-cyan-300 fill-current" />
+              )}
+              <span>{currentAtmosphere === 'Sunny Day' ? '☀️ Day' : '🌙 Night'}</span>
             </button>
           </div>
 
