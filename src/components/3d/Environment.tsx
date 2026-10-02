@@ -193,15 +193,11 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
           origName.startsWith('TRIGGER_') ||
           name.startsWith('col_') ||
           name.startsWith('trigger_') ||
-          matName.includes('collider') ||
-          matName.includes('debug')
+          matName.includes('collider')
         ) {
           child.visible = false;
           child.castShadow = false;
           child.receiveShadow = false;
-          if (child.material) {
-            child.material.visible = false;
-          }
           return;
         }
 
