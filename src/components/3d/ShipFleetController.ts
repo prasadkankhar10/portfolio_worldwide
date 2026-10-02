@@ -30,7 +30,7 @@ export function createShipPath(scene: THREE.Object3D): THREE.CatmullRomCurve3 {
   // Option A: Extract directly from the exported GLB mesh
   const pathMesh = scene.getObjectByName('ship_path') as THREE.Mesh | undefined;
   if (pathMesh && pathMesh.geometry && pathMesh.geometry.attributes && pathMesh.geometry.attributes.position) {
-    pathMesh.visible = false; // Hide guide mesh from rendering
+    pathMesh.visible = false; // Hide guide mesh ribbon from rendering
     pathMesh.updateMatrixWorld(true);
     const pos = pathMesh.geometry.attributes.position;
     const waypoints: THREE.Vector3[] = [];
@@ -54,14 +54,120 @@ export function createShipPath(scene: THREE.Object3D): THREE.CatmullRomCurve3 {
 }
 
 // -------------------------------------------------------------
-// 3. SHIP CONTROLLER WITH WAVE PITCH, ROLL, AND TURNING BANK
+// 3. SHIP VARIANT INTERFACE & HELPERS
+// -------------------------------------------------------------
+export interface GalleonVariant {
+  name: string;
+  object: THREE.Object3D;
+  progressOffset: number;
+  wavePhase: number;
+  speed: number;
+  primaryColor: number;
+  lanternLights: THREE.PointLight[];
+  lanternMeshes: THREE.Mesh[];
+}
+
+/**
+ * Attaches glowing crystal beacons and point lights to the ship
+ * (Main Masthead, Bowsprit Tip, and Stern Castle) for long-range night visibility.
+ */
+function attachShipGlowBeacons(
+  shipObj: THREE.Object3D,
+  colorHex: number
+): { lights: THREE.PointLight[]; meshes: THREE.Mesh[] } {
+  const lights: THREE.PointLight[] = [];
+  const meshes: THREE.Mesh[] = [];
+
+  const beaconConfigs = [
+    { pos: [0, 10.3, 0.2] as const, size: 0.45, lightIntensity: 3.8, lightDist: 35 }, // Main Masthead Beacon
+    { pos: [0, 3.4, -7.6] as const, size: 0.32, lightIntensity: 2.2, lightDist: 24 }, // Bowsprit Lantern
+    { pos: [0, 5.2, 7.2] as const, size: 0.38, lightIntensity: 2.8, lightDist: 30 },  // Stern Castle Lantern
+  ];
+
+  beaconConfigs.forEach((cfg, idx) => {
+    // 1. Faceted glowing arcane crystal core
+    const gemGeo = new THREE.OctahedronGeometry(cfg.size, 0);
+    const gemMat = new THREE.MeshStandardMaterial({
+      color: colorHex,
+      emissive: new THREE.Color(colorHex),
+      emissiveIntensity: 5.5,
+      roughness: 0.15,
+      metalness: 0.85,
+    });
+    const gemMesh = new THREE.Mesh(gemGeo, gemMat);
+    gemMesh.name = `${shipObj.name}_BeaconGem_${idx}`;
+    gemMesh.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
+    gemMesh.castShadow = false;
+    gemMesh.receiveShadow = false;
+    shipObj.add(gemMesh);
+    meshes.push(gemMesh);
+
+    // 2. PointLight illuminating sails, deck, and reflecting across water at night
+    const light = new THREE.PointLight(colorHex, cfg.lightIntensity, cfg.lightDist, 1.4);
+    light.name = `${shipObj.name}_BeaconLight_${idx}`;
+    light.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
+    light.userData.baseIntensity = cfg.lightIntensity;
+    shipObj.add(light);
+    lights.push(light);
+  });
+
+  return { lights, meshes };
+}
+
+/**
+ * Deep-clones the galleon mesh with tinted palette and custom emissive highlights.
+ */
+function cloneShipWithMaterial(
+  source: THREE.Object3D,
+  name: string,
+  tintColor: THREE.Color,
+  emissiveColor: THREE.Color,
+  emissiveIntensity: number,
+  scale: [number, number, number]
+): THREE.Object3D {
+  const clone = source.clone(true);
+  clone.name = name;
+  clone.scale.set(...scale);
+  clone.matrixAutoUpdate = true;
+
+  clone.traverse((child) => {
+    child.matrixAutoUpdate = true;
+    if ((child as THREE.Mesh).isMesh) {
+      const mesh = child as THREE.Mesh;
+      if (mesh.material) {
+        if (Array.isArray(mesh.material)) {
+          mesh.material = mesh.material.map((m) => {
+            const cm = m.clone() as THREE.MeshStandardMaterial;
+            if (cm.color) cm.color.multiply(tintColor);
+            cm.emissive = emissiveColor;
+            cm.emissiveIntensity = emissiveIntensity;
+            return cm;
+          });
+        } else {
+          const cm = (mesh.material as THREE.MeshStandardMaterial).clone();
+          if (cm.color) cm.color.multiply(tintColor);
+          cm.emissive = emissiveColor;
+          cm.emissiveIntensity = emissiveIntensity;
+          mesh.material = cm;
+        }
+      }
+    }
+  });
+
+  return clone;
+}
+
+// -------------------------------------------------------------
+// 4. SHIP FLEET CONTROLLER (Multi-Ship Convoy + Night Beacons)
 // -------------------------------------------------------------
 export class ShipFleetController {
   curve: THREE.CatmullRomCurve3;
   curveLength: number; // approx total distance in meters
-  seaShip: THREE.Object3D | null = null;
   progress: number = 0.0;
-  speed: number = 4.5; // sailing speed in meters per second
+  baseSpeed: number = 4.5; // sailing speed in meters per second
+
+  // 3 Traveling Ships (Flagship + 2 Unique Variants spaced out on the loop)
+  variants: GalleonVariant[] = [];
 
   // Moored Vessels at Harbor Pier
   mooredArrival: THREE.Object3D | null = null;
@@ -73,7 +179,7 @@ export class ShipFleetController {
   tenderBase: THREE.Vector3 = new THREE.Vector3();
   tenderRot: THREE.Euler = new THREE.Euler();
 
-  // Reusable math objects (zero GC pressure)
+  // Reusable math objects (zero GC allocations per frame)
   private _pos: THREE.Vector3 = new THREE.Vector3();
   private _tangent: THREE.Vector3 = new THREE.Vector3();
   private _nextTangent: THREE.Vector3 = new THREE.Vector3();
@@ -82,12 +188,78 @@ export class ShipFleetController {
     this.curve = createShipPath(scene);
     this.curveLength = this.curve.getLength();
 
-    // Moving Galleon
-    this.seaShip = scene.getObjectByName('Ship_Sea_Galleon') || null;
-    if (this.seaShip) {
-      this.seaShip.matrixAutoUpdate = true;
-      this.seaShip.traverse((child) => {
+    // Base Galleon from 3D Model
+    const baseGalleon = scene.getObjectByName('Ship_Sea_Galleon');
+
+    if (baseGalleon) {
+      baseGalleon.matrixAutoUpdate = true;
+      baseGalleon.traverse((child) => {
         child.matrixAutoUpdate = true;
+      });
+
+      // ---------------------------------------------------------
+      // Ship 1: "The Golden Sovereign" (Flagship, Warm Golden Amber)
+      // ---------------------------------------------------------
+      const flagBeacons = attachShipGlowBeacons(baseGalleon, 0xffaa22);
+      this.variants.push({
+        name: 'The Golden Sovereign (Flagship)',
+        object: baseGalleon,
+        progressOffset: 0.0,
+        wavePhase: 0.0,
+        speed: this.baseSpeed,
+        primaryColor: 0xffaa22,
+        lanternLights: flagBeacons.lights,
+        lanternMeshes: flagBeacons.meshes,
+      });
+
+      // ---------------------------------------------------------
+      // Ship 2: "The Celestial Moonwhisper" (Variant 1: Ethereal Cyan / Azure)
+      // ---------------------------------------------------------
+      const celestialShip = cloneShipWithMaterial(
+        baseGalleon,
+        'Ship_Sea_Galleon_Variant1_Celestial',
+        new THREE.Color(0.7, 0.95, 1.25), // Luminous azure tint
+        new THREE.Color(0x003366),
+        0.6,
+        [0.92, 0.95, 0.92] // Sleek, nimble arcane frigate
+      );
+      scene.add(celestialShip);
+
+      const celestialBeacons = attachShipGlowBeacons(celestialShip, 0x00e5ff); // Radiant neon cyan beacons
+      this.variants.push({
+        name: 'The Celestial Moonwhisper',
+        object: celestialShip,
+        progressOffset: 0.3333, // Spaced 1/3 ahead on the island loop
+        wavePhase: 2.1,
+        speed: this.baseSpeed,
+        primaryColor: 0x00e5ff,
+        lanternLights: celestialBeacons.lights,
+        lanternMeshes: celestialBeacons.meshes,
+      });
+
+      // ---------------------------------------------------------
+      // Ship 3: "The Crimson Phoenix" (Variant 2: Blazing Ruby / Molten Ember)
+      // ---------------------------------------------------------
+      const crimsonShip = cloneShipWithMaterial(
+        baseGalleon,
+        'Ship_Sea_Galleon_Variant2_Crimson',
+        new THREE.Color(1.25, 0.72, 0.68), // Fiery crimson warmth
+        new THREE.Color(0x661100),
+        0.6,
+        [1.10, 1.08, 1.10] // Stately, heavy dreadnought
+      );
+      scene.add(crimsonShip);
+
+      const crimsonBeacons = attachShipGlowBeacons(crimsonShip, 0xff2828); // Blazing ruby red beacons
+      this.variants.push({
+        name: 'The Crimson Phoenix',
+        object: crimsonShip,
+        progressOffset: 0.6667, // Spaced 2/3 ahead on the island loop
+        wavePhase: 4.2,
+        speed: this.baseSpeed,
+        primaryColor: 0xff2828,
+        lanternLights: crimsonBeacons.lights,
+        lanternMeshes: crimsonBeacons.meshes,
       });
     }
 
@@ -102,6 +274,8 @@ export class ShipFleetController {
       });
       this.arrivalBase = this.mooredArrival.position.clone();
       this.arrivalRot = this.mooredArrival.rotation.clone();
+      // Add subtle dock lanterns to moored ship as well
+      attachShipGlowBeacons(this.mooredArrival, 0xffaa33);
     }
 
     if (this.mooredTender) {
@@ -115,38 +289,53 @@ export class ShipFleetController {
   }
 
   update(delta: number, elapsedTime: number) {
-    // -----------------------------------------------------------
-    // A. TRAVELING SHIP (Ship_Sea_Galleon)
-    // -----------------------------------------------------------
-    if (this.seaShip && this.curve && this.curveLength > 0) {
-      // 1. Advance progress along closed curve [0, 1)
-      const step = (this.speed * delta) / this.curveLength;
-      this.progress = (this.progress + step) % 1.0;
+    if (!this.curve || this.curveLength <= 0) return;
 
-      // 2. Sample curve position and tangent vector
-      this.curve.getPointAt(this.progress, this._pos);
-      this.curve.getTangentAt(this.progress, this._tangent);
+    // 1. Advance master convoy progress along closed curve [0, 1)
+    const step = (this.baseSpeed * delta) / this.curveLength;
+    this.progress = (this.progress + step) % 1.0;
 
-      // 3. Compute forward heading yaw angle (bow points in direction of travel)
+    // -----------------------------------------------------------
+    // A. TRAVELING FLEET (Flagship + 2 Unique Variants)
+    // -----------------------------------------------------------
+    for (const v of this.variants) {
+      const shipProgress = (this.progress + v.progressOffset) % 1.0;
+
+      // Sample curve position and tangent vector
+      this.curve.getPointAt(shipProgress, this._pos);
+      this.curve.getTangentAt(shipProgress, this._tangent);
+
+      // Compute forward heading yaw angle (bow points in direction of travel)
       // Note: The ship mesh was authored with its bow along -Z (glTF forward convention),
       // so Math.PI is added so the bow (not stern) faces along the curve tangent.
       const yaw = Math.atan2(this._tangent.x, this._tangent.z) + Math.PI;
 
-      // 4. Calculate centrifugal turn banking (ship leans slightly into turns)
-      const lookAheadT = (this.progress + 0.008) % 1.0;
+      // Calculate centrifugal turn banking (ship leans slightly into turns)
+      const lookAheadT = (shipProgress + 0.008) % 1.0;
       this.curve.getTangentAt(lookAheadT, this._nextTangent);
       const turnRate = this._tangent.x * this._nextTangent.z - this._tangent.z * this._nextTangent.x;
       const bank = THREE.MathUtils.clamp(-turnRate * 18.0, -0.08, 0.08);
 
-      // 5. Ocean wave dynamics (heave, pitch, roll)
+      // Ocean wave dynamics (heave, pitch, roll) with unique phase per ship
       const waveFreq = 2.0;
-      const heave = Math.sin(elapsedTime * waveFreq + this.progress * 25.0) * 0.14;
-      const pitch = Math.sin(elapsedTime * waveFreq * 1.1) * 0.035;
-      const roll = Math.cos(elapsedTime * waveFreq * 0.85) * 0.045 + bank;
+      const heave = Math.sin(elapsedTime * waveFreq + v.wavePhase + shipProgress * 25.0) * 0.14;
+      const pitch = Math.sin(elapsedTime * waveFreq * 1.1 + v.wavePhase) * 0.035;
+      const roll = Math.cos(elapsedTime * waveFreq * 0.85 + v.wavePhase) * 0.045 + bank;
 
-      // 6. Apply to ship transform
-      this.seaShip.position.set(this._pos.x, this._pos.y + heave, this._pos.z);
-      this.seaShip.rotation.set(pitch, yaw, roll, 'YXZ');
+      // Apply to ship transform
+      v.object.position.set(this._pos.x, this._pos.y + heave, this._pos.z);
+      v.object.rotation.set(pitch, yaw, roll, 'YXZ');
+
+      // Breathing luminous pulse for night visibility
+      const pulse = Math.sin(elapsedTime * 2.8 + v.wavePhase) * 0.25;
+      for (const light of v.lanternLights) {
+        const base = (light.userData.baseIntensity as number) || 3.0;
+        light.intensity = base * (1.0 + pulse);
+      }
+      for (const mesh of v.lanternMeshes) {
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        mat.emissiveIntensity = 5.0 + pulse * 2.0;
+      }
     }
 
     // -----------------------------------------------------------
