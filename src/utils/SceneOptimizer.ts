@@ -65,7 +65,12 @@ export class SceneOptimizer {
           lower.includes('orrery') ||
           lower.includes('mill-wind') ||
           lower.includes('wind_fan') ||
-          lower.includes('observatory')
+          lower.includes('observatory') ||
+          lower.includes('ship') ||
+          lower.includes('galleon') ||
+          lower.includes('tender') ||
+          lower.includes('boat') ||
+          lower.includes('station')
         ) {
           continue;
         }
@@ -128,7 +133,11 @@ export class SceneOptimizer {
           lower.includes('rune') ||
           lower.includes('orrery') ||
           lower.includes('mill-wind') ||
-          lower.includes('wind_fan');
+          lower.includes('wind_fan') ||
+          lower.includes('ship') ||
+          lower.includes('galleon') ||
+          lower.includes('tender') ||
+          lower.includes('boat');
 
         if (!isDynamic) {
           child.matrixAutoUpdate = false;

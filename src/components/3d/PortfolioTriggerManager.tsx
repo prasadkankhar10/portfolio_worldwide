@@ -17,6 +17,18 @@ interface PortfolioTriggerManagerProps {
   triggerZones: THREE.Mesh[];
 }
 
+const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, number]; radius: number }[] = [
+  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier Welcome', pos: [107.0, 3.5, 125.0], radius: 6.5 },
+  { id: 'TRIGGER_Village_About', name: 'Village Square About', pos: [45.0, 3.5, -4.0], radius: 6.0 },
+  { id: 'TRIGGER_Project_ExamPlatform', name: 'Exam Platform Project', pos: [-2.5, 3.5, -4.0], radius: 5.5 },
+  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana App Project', pos: [0.5, 3.5, -4.0], radius: 5.5 },
+  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Extension Project', pos: [3.5, 3.5, -4.0], radius: 5.5 },
+  { id: 'TRIGGER_Forge_GameDev', name: 'Blacksmith Forge Game Dev', pos: [-100.0, 3.5, -11.5], radius: 6.5 },
+  { id: 'TRIGGER_Moonwell_Skills', name: 'Moonwell Skills Grove', pos: [-45.0, 3.5, 32.0], radius: 6.5 },
+  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [35.0, 3.5, 58.0], radius: 7.0 },
+  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 58.5, -100.0], radius: 8.0 },
+];
+
 export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = ({ triggerZones }) => {
   const setActiveStationId = useGameStore((state) => state.setActiveStationId);
   const setActiveStationPrompt = useGameStore((state) => state.setActiveStationPrompt);
@@ -27,24 +39,49 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
 
   // Compute trigger bounding volumes and center coordinates
   const triggerItems = useMemo<TriggerItem[]>(() => {
-    return triggerZones.map((mesh) => {
+    const items: TriggerItem[] = [];
+    const addedIds = new Set<string>();
+
+    // 1. From GLTF trigger meshes if available
+    for (const mesh of triggerZones) {
       mesh.geometry.computeBoundingBox();
       const box = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrixWorld);
       const center = new THREE.Vector3();
       box.getCenter(center);
       const size = new THREE.Vector3();
       box.getSize(size);
-      // Generous interaction radius so player doesn't have to be pixel-perfect
-      const radius = Math.max(size.x * 0.7, size.z * 0.7, 4.0);
+      const radius = Math.max(size.x * 0.7, size.z * 0.7, 5.0);
 
-      return {
+      items.push({
         id: mesh.name,
         name: mesh.name,
         box,
         center,
         radius,
-      };
-    });
+      });
+      addedIds.add(mesh.name);
+    }
+
+    // 2. Add fallback station triggers so detection is guaranteed
+    for (const fallback of FALLBACK_STATIONS) {
+      if (!addedIds.has(fallback.id)) {
+        const center = new THREE.Vector3(...fallback.pos);
+        const halfR = fallback.radius * 0.8;
+        const box = new THREE.Box3(
+          new THREE.Vector3(center.x - halfR, center.y - 3, center.z - halfR),
+          new THREE.Vector3(center.x + halfR, center.y + 4, center.z + halfR)
+        );
+        items.push({
+          id: fallback.id,
+          name: fallback.name,
+          box,
+          center,
+          radius: fallback.radius,
+        });
+      }
+    }
+
+    return items;
   }, [triggerZones]);
 
   // Check player distance to all 9 station triggers every frame
@@ -56,13 +93,18 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
     let minDistance = Infinity;
 
     for (const item of triggerItems) {
-      // Fast 2D/3D distance check from center
-      const dist = playerPos.distanceTo(item.center);
+      // 2D horizontal distance check + vertical tolerance
+      const dX = playerPos.x - item.center.x;
+      const dZ = playerPos.z - item.center.z;
+      const dY = Math.abs(playerPos.y - item.center.y);
+      const horizDist = Math.sqrt(dX * dX + dZ * dZ);
       const isInsideBox = item.box.containsPoint(playerPos);
 
-      if ((dist < item.radius || isInsideBox) && dist < minDistance) {
-        minDistance = dist;
-        nearestTrigger = item;
+      if ((horizDist < item.radius && dY < 5.0) || isInsideBox) {
+        if (horizDist < minDistance) {
+          minDistance = horizDist;
+          nearestTrigger = item;
+        }
       }
     }
 

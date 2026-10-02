@@ -11,6 +11,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { SceneOptimizer } from '../../utils/SceneOptimizer';
 import { PortfolioTriggerManager } from './PortfolioTriggerManager';
+import { ShipFleetController } from './ShipFleetController';
 
 const STATIC_LAMP_POSITIONS: [number, number, number][] = [
   [-54.45, 6.3, 49], [-79.5, 6.3, -1.47], [-49.39, 6.3, -12.37], [-46.43, 6.3, -23.69], [-63.25, 6.3, -80.27],
@@ -165,6 +166,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
   const wayDocksLightRef = useRef<THREE.PointLight | null>(null);
   const portalLightRef = useRef<THREE.PointLight | null>(null);
   const moonwellLightRef = useRef<THREE.PointLight | null>(null);
+  const shipFleetRef = useRef<ShipFleetController | null>(null);
 
   // One-time initialization of scene hierarchy, lights & emissives
   useEffect(() => {
@@ -306,6 +308,9 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
     Object.values(targets.current).forEach((node) => {
       node.matrixAutoUpdate = true;
     });
+
+    // Initialize Ship Fleet Controller (moving Galleon + moored arrival / tender vessels)
+    shipFleetRef.current = new ShipFleetController(scene);
   }, [scene, lampColor, lampIntensity]);
 
   // Update crystal emissive glow when slider changes
@@ -318,7 +323,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
   // Celestial Magic Animation Loop
   const animClockRef = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const fDelta = delta * (fanSpeed || 1.8);
     const mDelta = delta * (magicSpeed || 1.0);
     animClockRef.current += mDelta;
@@ -471,6 +476,11 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
     if (moonwellLightRef.current) {
       moonwellLightRef.current.intensity =
         moonwellIntensity + Math.sin(time * 1.8) * (moonwellIntensity * 0.25);
+    }
+
+    // 10. Traveling Ship (Galleon) along island coastline + moored pier vessels
+    if (shipFleetRef.current) {
+      shipFleetRef.current.update(delta, state.clock.elapsedTime);
     }
   });
 
