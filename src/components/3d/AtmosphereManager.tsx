@@ -145,12 +145,103 @@ const CleanStarField: React.FC = () => {
 };
 
 /**
- * CelestialMoon: Majestic, prominent glowing 3D moon with multi-layered celestial halos.
- * Immune to scene fog, positioned prominently in the northern sky overlooking the Citadel.
+ * CelestialMoon: Photorealistic 3D Moon using real NASA LRO albedo mapping,
+ * Lommel-Seeliger lunar disk scattering, limb darkening, and continuous radial atmospheric halos.
  */
 const CelestialMoon: React.FC = () => {
   const { camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
+
+  // Load NASA Lunar Orbiter texture without triggering Suspense stalls
+  const moonTexture = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load(`${import.meta.env.BASE_URL}textures/moon_1024.jpg`);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
+  // Procedural soft-radial celestial glow texture (zero hard polygonal ring edges)
+  const glowTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+    gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(0.18, 'rgba(224, 242, 254, 0.75)');
+    gradient.addColorStop(0.38, 'rgba(125, 211, 252, 0.35)');
+    gradient.addColorStop(0.65, 'rgba(56, 189, 248, 0.12)');
+    gradient.addColorStop(0.85, 'rgba(99, 102, 241, 0.03)');
+    gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
+
+  // Custom Lunar Shader Material: simulates opposition surge, basaltic maria contrast, and limb darkening
+  const moonShaderMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uMap: { value: moonTexture },
+        uGlowColor: { value: new THREE.Color('#bae6fd') },
+        uLuminosity: { value: 1.12 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+
+        void main() {
+          vUv = uv;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vViewPosition = -mvPosition.xyz;
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uMap;
+        uniform vec3 uGlowColor;
+        uniform float uLuminosity;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+
+        void main() {
+          vec3 normal = normalize(vNormal);
+          vec3 viewDir = normalize(vViewPosition);
+
+          vec4 texColor = texture2D(uMap, vUv);
+          float hasTex = step(0.01, texColor.r + texColor.g + texColor.b);
+          float rawLuma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+          float luma = mix(0.72, rawLuma, hasTex);
+
+          // Deepen the iconic lunar maria (basalt seas) and brighten ray craters (Tycho/Copernicus)
+          float contrastLuma = pow(luma, 1.25);
+          vec3 lunarSurface = mix(vec3(0.22, 0.25, 0.32), vec3(1.0, 0.99, 0.97), contrastLuma);
+
+          // Lommel-Seeliger / Minnaert style lunar disk illumination & gentle edge falloff
+          float NdotV = clamp(dot(normal, viewDir), 0.0, 1.0);
+          float limbDarkening = pow(NdotV, 0.28);
+
+          // Ethereal rim glow scattering
+          float fresnel = pow(1.0 - NdotV, 3.2);
+          vec3 rimGlow = uGlowColor * fresnel * 0.65;
+
+          vec3 finalColor = (lunarSurface * limbDarkening * uLuminosity) + rimGlow;
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `,
+      fog: false,
+      toneMapped: false
+    });
+  }, [moonTexture]);
 
   useFrame(() => {
     if (groupRef.current && camera) {
@@ -160,70 +251,46 @@ const CelestialMoon: React.FC = () => {
         camera.position.y + 160,
         camera.position.z - 250
       );
+      // Tidally locked to camera: ensures the iconic lunar face is always oriented towards viewer
+      groupRef.current.lookAt(camera.position);
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* 1. Luminous Main Moon Orb - Refined elegant scale */}
-      <mesh>
-        <sphereGeometry args={[5.5, 32, 32]} />
-        <meshBasicMaterial color="#ffffff" fog={false} toneMapped={false} />
+      {/* 1. Photorealistic NASA Lunar Orb */}
+      <mesh material={moonShaderMaterial} renderOrder={2}>
+        <sphereGeometry args={[5.2, 64, 64]} />
       </mesh>
 
-      {/* 2. Soft Lunar Surface Shadow Detail */}
-      <mesh position={[-0.7, 0.5, 0.5]}>
-        <sphereGeometry args={[5.53, 32, 32]} />
-        <meshBasicMaterial 
-          color="#94a3b8" 
-          transparent 
-          opacity={0.25} 
-          fog={false} 
-          depthWrite={false} 
-        />
-      </mesh>
+      {/* 2. Soft Continuous Atmospheric Halo (Billboard sprite with zero polygonal banding) */}
+      {glowTexture && (
+        <>
+          {/* Inner Rayleigh Corona */}
+          <sprite scale={[22, 22, 1]} position={[0, 0, -0.4]} renderOrder={1}>
+            <spriteMaterial
+              map={glowTexture}
+              transparent
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+              fog={false}
+              opacity={0.8}
+            />
+          </sprite>
 
-      {/* 3. Inner Lunar Corona Atmosphere Glow */}
-      <mesh>
-        <sphereGeometry args={[7.8, 32, 32]} />
-        <meshBasicMaterial
-          color="#7dd3fc"
-          transparent
-          opacity={0.35}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          side={THREE.BackSide}
-          fog={false}
-        />
-      </mesh>
-
-      {/* 4. Outer Ethereal Celestial Halo */}
-      <mesh>
-        <sphereGeometry args={[12.0, 32, 32]} />
-        <meshBasicMaterial
-          color="#38bdf8"
-          transparent
-          opacity={0.16}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          side={THREE.BackSide}
-          fog={false}
-        />
-      </mesh>
-
-      {/* 5. Majestic Distant Ambient Halo */}
-      <mesh>
-        <sphereGeometry args={[18.0, 32, 32]} />
-        <meshBasicMaterial
-          color="#818cf8"
-          transparent
-          opacity={0.07}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          side={THREE.BackSide}
-          fog={false}
-        />
-      </mesh>
+          {/* Majestic Celestial Atmospheric Aura */}
+          <sprite scale={[48, 48, 1]} position={[0, 0, -0.8]} renderOrder={0}>
+            <spriteMaterial
+              map={glowTexture}
+              transparent
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+              fog={false}
+              opacity={0.32}
+            />
+          </sprite>
+        </>
+      )}
     </group>
   );
 };
