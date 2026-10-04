@@ -59,7 +59,7 @@ export const Character = () => {
     rollThreshold: { value: -10, min: -30, max: 0 },
     minPitch: { value: -Math.PI / 2 + 0.1, min: -Math.PI, max: 0 },
     maxPitch: { value: Math.PI / 2 - 0.1, min: 0, max: Math.PI },
-    cameraCollision: { value: false, label: 'Camera Wall Collision' },
+    cameraCollision: { value: true, label: 'Camera Wall Collision' },
   });
   
   const rigidBodyRef = useRef<RapierRigidBody>(null);
@@ -71,14 +71,14 @@ export const Character = () => {
   const cameraPosition = useRef(new THREE.Vector3());
   const yaw = useRef(0);
   const pitch = useRef(0);
-  const zoomDistance = useRef(12); // Increased default distance
+  const zoomDistance = useRef(5.5); // Comfortable third-person distance
   
   // AAA Camera Refs
   const bobTimer = useRef(0);
   const shakeIntensity = useRef(0);
   const wasGrounded = useRef(true);
   const prevVelY = useRef(0);
-  const currentCameraDist = useRef(12);
+  const currentCameraDist = useRef(5.5);
   
   const [, get] = useKeyboardControls<ControlsType>();
   const [animation, setAnimation] = useState('CharacterArmature|Idle');
@@ -302,11 +302,9 @@ export const Character = () => {
       prevVelY.current = currentVelY;
 
       // 3. Update Camera Position & LookAt
-      const baseLookAt = _baseLookAt.set(0, 1.5, 0).applyMatrix4(characterRef.current.matrixWorld);
-      
-      // AAA: Over-the-shoulder offset (1 unit to the right of the camera's yaw)
+      // Subtle shoulder offset (0.4 units) to prevent lateral wall clipping
       const rightVector = _rightVector.set(1, 0, 0).applyAxisAngle(_UP_AXIS, yaw.current);
-      const shoulderOffset = _shoulderOffset.copy(rightVector).multiplyScalar(1.2);
+      const shoulderOffset = _shoulderOffset.copy(rightVector).multiplyScalar(0.4);
       
       // AAA: Camera Bobbing when moving on ground
       if (isGrounded && isMoving) {
@@ -315,7 +313,7 @@ export const Character = () => {
         // Gently return to 0 when stopped
         bobTimer.current = THREE.MathUtils.lerp(bobTimer.current, 0, delta * 5);
       }
-      const bobOffset = Math.sin(bobTimer.current) * (run ? 0.08 : 0.04);
+      const bobOffset = Math.sin(bobTimer.current) * (run ? 0.06 : 0.03);
       
       // AAA: Screen Shake
       let shakeOffset = 0;
@@ -324,7 +322,7 @@ export const Character = () => {
         shakeIntensity.current = Math.max(0, shakeIntensity.current - delta * 3);
       }
 
-      const idealLookAt = _idealLookAt.copy(baseLookAt).add(shoulderOffset);
+      const idealLookAt = _idealLookAt.copy(headPosition).add(shoulderOffset);
       idealLookAt.y += bobOffset + shakeOffset;
       
       // Calculate spherical coordinates for camera position
@@ -334,7 +332,9 @@ export const Character = () => {
       const z = radius * Math.cos(pitch.current) * Math.cos(yaw.current);
       const idealOffset = _idealOffset.set(x, y, z);
       
-      const rayOrigin = _rayOrigin.copy(idealLookAt);
+      // Ray origin: ALWAYS cast from character's center head position (inside player capsule)
+      // This guarantees the ray origin is NEVER inside an external wall or model!
+      const rayOrigin = _rayOrigin.copy(headPosition);
       const rayDirection = _rayDirection.copy(idealOffset).normalize();
       const maxRayDistance = radius;
 
@@ -358,24 +358,42 @@ export const Character = () => {
         );
 
         if (hit && hit.timeOfImpact < maxRayDistance) {
-          targetCameraDist = Math.max(0.5, hit.timeOfImpact - 0.2);
+          // Keep a strict 0.45m cushion from the hit point so camera near-plane (0.1m) never penetrates the model
+          targetCameraDist = Math.max(0.8, hit.timeOfImpact - 0.45);
         }
 
         if (targetCameraDist < currentCameraDist.current) {
+          // Instant pull-in when an obstacle is detected: zero latency into walls
           currentCameraDist.current = targetCameraDist;
         } else {
-          currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 5 * delta));
+          // Smooth zoom-out when moving away from obstacles into open air
+          currentCameraDist.current = THREE.MathUtils.lerp(
+            currentCameraDist.current,
+            targetCameraDist,
+            Math.min(1, 6 * delta)
+          );
         }
       } else {
-        currentCameraDist.current = THREE.MathUtils.lerp(currentCameraDist.current, targetCameraDist, Math.min(1, 8 * delta));
+        currentCameraDist.current = THREE.MathUtils.lerp(
+          currentCameraDist.current,
+          targetCameraDist,
+          Math.min(1, 8 * delta)
+        );
       }
 
-      const finalCameraPosition = _finalCameraPosition.copy(rayOrigin).addScaledVector(rayDirection, currentCameraDist.current);
+      const finalCameraPosition = _finalCameraPosition
+        .copy(rayOrigin)
+        .add(shoulderOffset)
+        .addScaledVector(rayDirection, currentCameraDist.current);
 
-      // Smooth camera lag
-      cameraPosition.current.lerp(finalCameraPosition, Math.min(1, 10 * delta));
-      cameraTarget.current.copy(idealLookAt); // Instant lookat tracking to prevent pan wobble
-      
+      // If camera was clamped by obstacle, prevent any lagging into the wall
+      if (targetCameraDist < maxRayDistance) {
+        cameraPosition.current.copy(finalCameraPosition);
+      } else {
+        cameraPosition.current.lerp(finalCameraPosition, Math.min(1, 14 * delta));
+      }
+
+      cameraTarget.current.copy(idealLookAt);
       state.camera.position.copy(cameraPosition.current);
       state.camera.lookAt(cameraTarget.current);
 

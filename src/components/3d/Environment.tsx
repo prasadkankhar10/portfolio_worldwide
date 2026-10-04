@@ -37,7 +37,7 @@ const STATIC_DEPOSIT_PLOTS: [number, number, number][] = [
 ];
 
 const lampPresets: Record<string, { color: string; intensity: number }> = {
-  'Warm Vintage': { color: '#ffaa00', intensity: 2.5 },
+  'Warm Vintage': { color: '#ffaa00', intensity: 3.8 },
   'Neon Cyberpunk': { color: '#00ffff', intensity: 4.0 },
   'Ghostly Blue': { color: '#88aaff', intensity: 2.0 },
   'Magical Purple': { color: '#d58be8', intensity: 3.5 },
@@ -218,7 +218,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
         if (matName.includes('window')) {
           child.material = child.material.clone();
           child.material.emissive = new THREE.Color('#ffcc88');
-          child.material.emissiveIntensity = 2.0;
+          child.material.emissiveIntensity = 3.5;
         }
       }
 
@@ -310,8 +310,8 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
         }
       }
 
-      // Windmill fan in Farmland (internal node Mill-wind from unchunked island model)
-      if (name.includes('mill-wind') || name.includes('wind_fan') || name === 'mill_wind') {
+      // Windmill fan in Farmland - match ONLY the fan blades, NEVER the Mill-wind tower building
+      if (name === 'wind_fan' || name.startsWith('wind_fan')) {
         targets.current['wind_fan'] = child;
       }
     });
@@ -408,7 +408,6 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
     }
     if (t['citadel_arcane_portal_floating_keystones']) {
       t['citadel_arcane_portal_floating_keystones'].position.y = Math.sin(time * 1.6) * 0.08;
-      t['citadel_arcane_portal_floating_keystones'].rotation.y -= 0.20 * mDelta;
     }
 
     // 6. Bioluminescent Enchanted Moonwell
@@ -419,10 +418,10 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
 
     // 7. Citadel Arcane Ward Shield (Summit)
     if (t['citadel_arcane_ward_shield_runering1']) {
-      t['citadel_arcane_ward_shield_runering1'].rotation.y += 0.25 * mDelta;
+      t['citadel_arcane_ward_shield_runering1'].rotateY(0.25 * mDelta);
     }
     if (t['citadel_arcane_ward_shield_runering2']) {
-      t['citadel_arcane_ward_shield_runering2'].rotation.y -= 0.35 * mDelta;
+      t['citadel_arcane_ward_shield_runering2'].rotateY(-0.35 * mDelta);
     }
     if (domeMaterialRef.current) {
       domeMaterialRef.current.opacity = 0.30 + Math.sin(time * 2.5) * 0.08;
@@ -885,7 +884,7 @@ export const Environment: React.FC = () => {
       }
     },
     lampColor: { value: '#ffaa00', label: 'Lamp Color' },
-    lampIntensity: { value: 1.5, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
+    lampIntensity: { value: 3.8, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
   })) as any;
 
   // Lamps state for dynamic point light illumination

@@ -95,10 +95,9 @@ export const Scene = () => {
              edgeStrength={activeOutlineMesh ? 3 : 0} 
           />
           <Bloom 
-            intensity={0.4} 
+            intensity={0.35} 
             luminanceThreshold={1.2} 
             luminanceSmoothing={0.3} 
-            mipmapBlur 
           />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>

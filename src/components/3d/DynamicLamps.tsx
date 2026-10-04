@@ -59,7 +59,7 @@ export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: Dynami
           const fadeFactor = 1.0 - (dist / CULL_DISTANCE);
           const easedFade = fadeFactor * fadeFactor;
           
-          light.intensity = lampIntensity * easedFade;
+          light.intensity = lampIntensity * 1.5 * easedFade;
           light.visible = true;
         } else {
           // Too far, hide it to save GPU
@@ -79,7 +79,8 @@ export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: Dynami
           key={i}
           ref={(el) => (lightRefs.current[i] = el)}
           color={lampColor}
-          distance={20}
+          distance={25}
+          decay={1.8}
           castShadow={false}
           visible={false}
           intensity={0}

@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { KeyboardControls } from '@react-three/drei';
 import type { KeyboardControlsEntry } from '@react-three/drei';
 import { Suspense, useMemo, useEffect } from 'react';
+import * as THREE from 'three';
 import { Layout } from './components/Layout';
 import { Scene } from './components/3d/Scene';
 import { useGameStore } from './store/useGameStore';
@@ -106,9 +107,14 @@ function App() {
       <div className="absolute inset-0 z-0">
         <Canvas
           shadows={!performanceMode}
-          camera={{ position: [0, 5, 10], fov: 60 }}
-          gl={{ antialias: !performanceMode, powerPreference: 'high-performance' }}
-          dpr={performanceMode ? 1 : [1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.5)]}
+          camera={{ position: [0, 5, 10], fov: 60, near: 0.1, far: 1000 }}
+          gl={{ 
+            antialias: !performanceMode, 
+            powerPreference: 'high-performance',
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.25
+          }}
+          dpr={performanceMode ? 1 : [1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.2)]}
         >
           <Suspense fallback={null}>
             <Scene />

@@ -66,7 +66,7 @@ export function CompanionOrb() {
     lightRef.current.position.copy(meshRef.current.position);
     
     // Light flicker effect
-    lightRef.current.intensity = 1.5 + Math.sin(state.clock.elapsedTime * 10) * 0.2;
+    lightRef.current.intensity = 3.2 + Math.sin(state.clock.elapsedTime * 10) * 0.3;
   });
 
   return (
@@ -123,10 +123,10 @@ export function CompanionOrb() {
       
       <pointLight 
         ref={lightRef} 
-        color="#ff7700" 
-        intensity={2} 
-        distance={8} 
-        decay={2}
+        color="#ffaa33" 
+        intensity={3.2} 
+        distance={16} 
+        decay={1.6} 
       />
     </group>
   );
