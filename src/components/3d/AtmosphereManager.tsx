@@ -165,15 +165,15 @@ const CelestialMoon: React.FC = () => {
 
   return (
     <group ref={groupRef}>
-      {/* 1. Luminous Main Moon Orb */}
+      {/* 1. Luminous Main Moon Orb - Refined elegant scale */}
       <mesh>
-        <sphereGeometry args={[20, 32, 32]} />
+        <sphereGeometry args={[5.5, 32, 32]} />
         <meshBasicMaterial color="#ffffff" fog={false} toneMapped={false} />
       </mesh>
 
       {/* 2. Soft Lunar Surface Shadow Detail */}
-      <mesh position={[-2.5, 2, 2]}>
-        <sphereGeometry args={[20.08, 32, 32]} />
+      <mesh position={[-0.7, 0.5, 0.5]}>
+        <sphereGeometry args={[5.53, 32, 32]} />
         <meshBasicMaterial 
           color="#94a3b8" 
           transparent 
@@ -185,7 +185,7 @@ const CelestialMoon: React.FC = () => {
 
       {/* 3. Inner Lunar Corona Atmosphere Glow */}
       <mesh>
-        <sphereGeometry args={[28, 32, 32]} />
+        <sphereGeometry args={[7.8, 32, 32]} />
         <meshBasicMaterial
           color="#7dd3fc"
           transparent
@@ -199,11 +199,11 @@ const CelestialMoon: React.FC = () => {
 
       {/* 4. Outer Ethereal Celestial Halo */}
       <mesh>
-        <sphereGeometry args={[44, 32, 32]} />
+        <sphereGeometry args={[12.0, 32, 32]} />
         <meshBasicMaterial
           color="#38bdf8"
           transparent
-          opacity={0.18}
+          opacity={0.16}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.BackSide}
@@ -213,11 +213,11 @@ const CelestialMoon: React.FC = () => {
 
       {/* 5. Majestic Distant Ambient Halo */}
       <mesh>
-        <sphereGeometry args={[65, 32, 32]} />
+        <sphereGeometry args={[18.0, 32, 32]} />
         <meshBasicMaterial
           color="#818cf8"
           transparent
-          opacity={0.08}
+          opacity={0.07}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.BackSide}
