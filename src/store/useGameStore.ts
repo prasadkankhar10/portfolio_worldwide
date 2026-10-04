@@ -105,7 +105,7 @@ export const useGameStore = create<GameStore>((set) => ({
   setStonehengeSolved: (solved) => set({ stonehengeSolved: solved }),
   stonehengeStep: 0,
   setStonehengeStep: (step) => set({ stonehengeStep: step }),
-  currentAtmosphere: 'Sunny Day',
+  currentAtmosphere: 'Cosmic Nebula',
   setAtmosphere: (atmosphere) => set({ currentAtmosphere: atmosphere }),
   isLoaded: false,
   setIsLoaded: (loaded) => set({ isLoaded: loaded }),
