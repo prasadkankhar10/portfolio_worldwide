@@ -20,44 +20,44 @@ interface PortfolioTriggerManagerProps {
 
 const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, number]; radius: number }[] = [
   // 1. Core & Accreditations (Spaced across Harbor & Town)
-  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier Welcome', pos: [107.0, 3.06, 125.0], radius: 6.5 },
+  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier Welcome', pos: [107.0, 3.06, 120.58], radius: 6.5 },
   { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [85.0, 3.0, 118.0], radius: 6.5 },
   { id: 'TRIGGER_Hall_Certifications', name: 'Harvard CS50x Hall', pos: [65.0, 3.0, 95.0], radius: 6.5 },
   { id: 'TRIGGER_Village_About', name: 'Village Square About', pos: [45.0, 3.0, -4.0], radius: 6.0 },
   { id: 'TRIGGER_Leadership_Pavilion', name: 'Leadership Pavilion', pos: [35.0, 3.0, 12.0], radius: 6.0 },
-  { id: 'TRIGGER_Arena_Algorithms', name: 'Algorithmic Arena', pos: [18.0, 3.0, -30.0], radius: 6.5 },
+  { id: 'TRIGGER_Arena_Algorithms', name: 'Algorithmic Arena', pos: [19.12, 3.0, -27.01], radius: 6.5 },
 
   // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
   { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [6.0, 3.0, -17.5], radius: 6.0 },
   { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [22.0, 3.0, -6.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [58.0, 3.0, 8.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [48.0, 3.0, -22.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [46.0, 3.0, -19.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana Habit PWA Plinth', pos: [-12.0, 3.0, -12.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Chrome Ext Plinth', pos: [-5.0, 3.0, 8.0], radius: 6.0 },
+  { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [81.88, 3.0, -68.15], radius: 6.0 },
+  { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [56.64, 3.0, -27.05], radius: 6.0 },
+  { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [42.22, 3.0, -16.48], radius: 6.0 },
+  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana Habit PWA Plinth', pos: [-9.01, 3.0, -19.83], radius: 6.0 },
+  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Chrome Ext Plinth', pos: [-5.0, 3.0, 16.89], radius: 6.0 },
   { id: 'TRIGGER_Project_Nishtha', name: 'Nishtha Gamified RPG Bazaar', pos: [98.0, 3.0, 25.0], radius: 6.0 },
 
   // 3. Forge & Industrial Quarter
-  { id: 'TRIGGER_Forge_GameDev', name: 'On The Way UE5 Forge', pos: [-102.0, 3.0, -11.5], radius: 6.5 },
+  { id: 'TRIGGER_Forge_GameDev', name: 'On The Way UE5 Forge', pos: [-97.55, 3.0, -5.20], radius: 6.5 },
   { id: 'TRIGGER_Project_OneMoreMove', name: 'One More Move C++17 Keep', pos: [-78.0, 3.0, -28.0], radius: 6.5 },
 
   // 4. Windmill & Highlands
-  { id: 'TRIGGER_Project_KnightsAdventure', name: 'Knight Adventure Windmill', pos: [-58.0, 3.0, -58.0], radius: 6.5 },
+  { id: 'TRIGGER_Project_KnightsAdventure', name: 'Knight Adventure Windmill', pos: [-58.0, 3.0, -55.04], radius: 6.5 },
 
   // 5. Nature, Grove & Western Meadows
   { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-18.0, 3.0, 58.0], radius: 6.5 },
-  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.6, 34.0], radius: 6.5 },
-  { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Tabletop Beacon', pos: [-32.0, 3.0, 20.0], radius: 6.5 },
+  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.85, 53.47], radius: 6.5 },
+  { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Tabletop Beacon', pos: [-32.0, 3.0, 22.17], radius: 6.5 },
   { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-72.0, 3.0, 12.0], radius: 6.5 },
 
   // 6. Historic Megaliths & Cliff Overlook
-  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [35.0, 3.0, 58.0], radius: 7.0 },
+  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 1.87, 52.85], radius: 7.0 },
   { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [72.0, 3.0, 18.0], radius: 6.5 },
 
   // 7. Mountain Pass & High Citadel
   { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [0.0, 3.0, -92.0], radius: 6.5 },
   { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-30.0, 3.0, -80.0], radius: 7.0 },
-  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.0, -100.0], radius: 8.0 },
+  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.5, -100.0], radius: 8.0 },
 ];
 
 export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = ({ triggerZones }) => {
@@ -187,5 +187,5 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
     }
   }, [triggerInteractEvent, setStationModalOpen]);
 
-  return <StationMonuments />;
+  return <StationMonuments triggerZones={triggerZones} />;
 };
