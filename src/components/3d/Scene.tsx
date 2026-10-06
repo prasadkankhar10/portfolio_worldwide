@@ -119,7 +119,7 @@ export const Scene = () => {
               {/* Building Triggers */}
               <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
 
-              {/* Phase 2: Marketplace Shopkeepers (+100ms) */}
+              {/* Phase 2: Marketplace Shopkeepers (+100ms) - Preserved completely */}
               {loadPhase >= 2 && (
                 <>
                   <VikingBlacksmithNPC position={[121.5, 3.0, 1.2]} rotation={[0, -Math.PI/2, 0]} />
@@ -130,56 +130,34 @@ export const Scene = () => {
                 </>
               )}
 
-              {/* Phase 3: Market Visitors (+250ms) */}
+              {/* Phase 4: Curated Town Citizens & Dock Workers (+300ms) - Zero duplicates for smooth 60 FPS */}
               {loadPhase >= 3 && (
                 <>
-                  <MarketVisitorNPC modelFile="Casual3_Male.glb" startPosition={[115, 3.0, 0]} />
-                  <MarketVisitorNPC modelFile="Knight_Male.glb" startPosition={[112, 3.0, -3]} />
-                  <MarketVisitorNPC modelFile="Cowboy_Female.glb" startPosition={[118, 3.0, 5]} />
-                </>
-              )}
-
-              {/* Phase 4: Dock workers & Town Wanderers (+400ms) */}
-              {loadPhase >= 4 && (
-                <>
+                  {/* Town Gate Guard & Iconic Citizens */}
                   <BlueSoldierFemaleNPC startPosition={new THREE.Vector3(10, 30, -10)} dialogId="world_guide_1" maxWanderRadius={5} />
-                  <BlueSoldierMaleNPC startPosition={new THREE.Vector3(-10, 30, 10)} dialogId="world_guide_1" maxWanderRadius={5} />
-                  <Casual3FemaleNPC startPosition={new THREE.Vector3(15, 30, 5)} maxWanderRadius={5} />
                   <Casual3MaleNPC startPosition={new THREE.Vector3(-15, 30, -5)} maxWanderRadius={5} />
-                  <CowboyFemaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-                  <CowboyFemaleNPC startPosition={new THREE.Vector3(80, 30, 55)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-                  <CowboyFemaleNPC startPosition={new THREE.Vector3(88, 30, 60)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-                  <CowboyHairNPC startPosition={new THREE.Vector3(25, 30, 0)} maxWanderRadius={5} />
                   <CowboyMaleNPC startPosition={new THREE.Vector3(84, 30, 58)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-                  <CowboyMaleNPC startPosition={new THREE.Vector3(82, 30, 62)} dialogId="cowboy_events_1" maxWanderRadius={5} />
-                  <CowboyMaleNPC startPosition={new THREE.Vector3(86, 30, 54)} dialogId="cowboy_events_1" maxWanderRadius={5} />
                   <ElfNPC startPosition={new THREE.Vector3(5, 30, 25)} dialogId="elf_tech_1" maxWanderRadius={5} />
                   <VikingHelmetNPC startPosition={new THREE.Vector3(40, 30, 0)} maxWanderRadius={5} />
-                  <VikingFemaleNPC startPosition={new THREE.Vector3(-40, 30, 0)} maxWanderRadius={5} />
-                  <VikingMaleNPC startPosition={new THREE.Vector3(20, 30, 20)} maxWanderRadius={5} />
 
-                  {/* DOCK WORKERS ROUTINE (WITH SITTING) */}
+                  {/* Dock Workers Pair (Active & Resting) */}
                   <PirateFemaleNPC startPosition={new THREE.Vector3(101, 30, 117)} startState="RESTING_SITTING" dialogId="pirate_web_1" />
                   <PirateMaleNPC startPosition={new THREE.Vector3(103, 30, 117)} startState="WORKING_PORT" dialogId="pirate_web_1" />
-                  <PirateMaleNPC startPosition={new THREE.Vector3(104, 30, 115)} startState="WORKING_PORT" />
-                  <PirateFemaleNPC startPosition={new THREE.Vector3(102, 30, 118)} startState="WORKING_STORAGE" />
-                  <PirateFemaleNPC startPosition={new THREE.Vector3(100, 30, 116)} startState="WORKING_STORAGE" />
                 </>
               )}
 
-              {/* Phase 5: Forest Goblins, Sparring Knights, Mages & Ritual (+600ms) */}
-              {loadPhase >= 5 && (
+              {/* Phase 5: Forest Camp, Arena & SANCTUARY / SHRINE (All Sanctuary NPCs 100% Preserved) */}
+              {loadPhase >= 4 && (
                 <>
+                  {/* Forest Goblins Pair */}
                   <GoblinFemaleNPC startPosition={new THREE.Vector3(-85, 30, -93)} dialogId="goblin_forest_1" maxWanderRadius={4} />
                   <GoblinMaleNPC startPosition={new THREE.Vector3(-83, 30, -90)} dialogId="goblin_forest_2" maxWanderRadius={4} />
-                  <GoblinFemaleNPC startPosition={new THREE.Vector3(-87, 30, -91)} dialogId="goblin_forest_3" maxWanderRadius={4} />
-                  <GoblinMaleNPC startPosition={new THREE.Vector3(-84, 30, -95)} dialogId="goblin_forest_4" maxWanderRadius={4} />
-                  <ElfNPC startPosition={new THREE.Vector3(-55, 3, 76)} maxWanderRadius={0} startState="WATCHING" dialogId="world_guide_1" />
-                  <WizardNPC startPosition={new THREE.Vector3(-55, 3, 72)} maxWanderRadius={0} startState="WATCHING" dialogId="wizard_quest_1" />
-                  <KnightGoldenFemaleNPC startPosition={new THREE.Vector3(-64, 3, 74)} maxWanderRadius={0} startState="WATCHING" dialogId="knight_academics_1" />
+
+                  {/* Sparring Knights (Attacker vs Defender) */}
                   <KnightGoldenMaleNPC startPosition={new THREE.Vector3(-60, 3, 72)} dialogId="knight_academics_1" startState="SPARRING" sparringRole="ATTACKER" maxWanderRadius={5} />
                   <KnightMaleNPC startPosition={new THREE.Vector3(-60, 3, 76)} startState="SPARRING" sparringRole="DEFENDER" maxWanderRadius={5} />
 
+                  {/* Sanctuary & Shrine NPCs - 100% Intact as requested */}
                   <ClericNPC roleName="Cleric" startPosition={new THREE.Vector3(101, 30, -76)} />
                   <WitchNPC startPosition={new THREE.Vector3(100, 30, -75)} dialogId="witch_creative_1" maxWanderRadius={5} />
                   <WizardNPC startPosition={new THREE.Vector3(102, 30, -77)} dialogId="wizard_intro_1" maxWanderRadius={5} participatesInRitual={true} />
