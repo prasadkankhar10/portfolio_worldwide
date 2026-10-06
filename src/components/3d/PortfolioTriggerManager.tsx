@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { portfolioData } from '../../data/portfolioData';
+import { StationMonuments } from './StationMonuments';
 
 interface TriggerItem {
   id: string;
@@ -184,5 +185,5 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
     }
   }, [triggerInteractEvent, setStationModalOpen]);
 
-  return null;
+  return <StationMonuments />;
 };
