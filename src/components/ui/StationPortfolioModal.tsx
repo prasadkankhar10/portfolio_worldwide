@@ -61,36 +61,44 @@ const STATION_KEYS = [
 ];
 
 const STATION_TELEPORT_COORDS: Record<string, { x: number; y: number; z: number }> = {
+  // 1. Core & Accreditations (Spaced across Harbor & Town)
   TRIGGER_Harbor_Welcome: { x: 107.0, y: 4.0, z: 125.0 },
-  TRIGGER_Village_About: { x: 45.0, y: 4.0, z: -4.0 },
+  TRIGGER_Project_CMEDetector: { x: 85.0, y: 4.0, z: 118.0 },
   TRIGGER_Hall_Certifications: { x: 65.0, y: 4.0, z: 95.0 },
+  TRIGGER_Village_About: { x: 45.0, y: 4.0, z: -4.0 },
+  TRIGGER_Leadership_Pavilion: { x: 35.0, y: 4.0, z: 12.0 },
   TRIGGER_Arena_Algorithms: { x: 18.0, y: 4.0, z: -30.0 },
-  TRIGGER_Leadership_Pavilion: { x: 38.0, y: 4.0, z: 12.0 },
 
-  TRIGGER_Project_ButlerOS: { x: -35.0, y: 45.0, z: -85.0 },
-  TRIGGER_Project_MaraRAG: { x: 75.0, y: 12.0, z: 20.0 },
-  TRIGGER_Project_Akshayanidhi: { x: 52.0, y: 6.0, z: -15.0 },
-  TRIGGER_Project_LifeManager: { x: 10.0, y: 25.0, z: -60.0 },
-  TRIGGER_Project_Sahaj: { x: -15.0, y: 4.0, z: 65.0 },
+  // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
+  TRIGGER_Project_ExamPlatform: { x: 8.0, y: 4.0, z: -17.5 },
+  TRIGGER_Project_SmartCampus: { x: 22.0, y: 4.0, z: -6.0 },
+  TRIGGER_Project_GameStore: { x: 58.0, y: 4.0, z: 8.0 },
+  TRIGGER_Project_SchoolWebsite: { x: 48.0, y: 4.0, z: -22.0 },
+  TRIGGER_Project_Akshayanidhi: { x: 52.0, y: 6.5, z: -15.0 },
+  TRIGGER_Project_Sadhana: { x: -12.0, y: 4.0, z: -12.0 },
+  TRIGGER_Project_Vyuham: { x: -5.0, y: 4.0, z: 8.0 },
+  TRIGGER_Project_Nishtha: { x: 98.0, y: 4.0, z: 25.0 },
 
-  TRIGGER_Project_OneMoreMove: { x: -85.0, y: 4.0, z: -25.0 },
-  TRIGGER_Forge_GameDev: { x: -100.0, y: 4.0, z: -11.5 },
-  TRIGGER_Project_KnightsAdventure: { x: -60.0, y: 18.0, z: -60.0 },
+  // 3. Forge & Industrial Quarter
+  TRIGGER_Forge_GameDev: { x: -95.0, y: 4.0, z: -6.0 },
+  TRIGGER_Project_OneMoreMove: { x: -78.0, y: 4.0, z: -28.0 },
 
-  TRIGGER_Project_RealmWebAR: { x: -35.0, y: 4.0, z: 30.0 },
-  TRIGGER_Project_TraceMateAR: { x: -75.0, y: 4.0, z: 15.0 },
+  // 4. Windmill & Highlands
+  TRIGGER_Project_KnightsAdventure: { x: -58.0, y: 18.5, z: -58.0 },
 
-  TRIGGER_Project_ExamPlatform: { x: -2.5, y: 4.0, z: -4.0 },
-  TRIGGER_Project_CMEDetector: { x: 95.0, y: 4.0, z: 110.0 },
-  TRIGGER_Project_Sadhana: { x: 0.5, y: 4.0, z: -4.0 },
-  TRIGGER_Project_Nishtha: { x: 125.6, y: 3.5, z: 7.4 },
-  TRIGGER_Project_Vyuham: { x: 3.5, y: 4.0, z: -4.0 },
-  TRIGGER_Project_SmartCampus: { x: 115.0, y: 3.5, z: 0.0 },
-  TRIGGER_Project_GameStore: { x: 112.3, y: 3.5, z: 7.2 },
-  TRIGGER_Project_SchoolWebsite: { x: 103.8, y: 3.5, z: -7.5 },
+  // 5. Nature, Grove & Western Meadows
+  TRIGGER_Project_Sahaj: { x: -18.0, y: 4.0, z: 58.0 },
+  TRIGGER_Moonwell_Skills: { x: -48.0, y: 4.0, z: 34.0 },
+  TRIGGER_Project_RealmWebAR: { x: -32.0, y: 4.0, z: 20.0 },
+  TRIGGER_Project_TraceMateAR: { x: -72.0, y: 4.0, z: 12.0 },
 
-  TRIGGER_Moonwell_Skills: { x: -45.0, y: 4.0, z: 32.0 },
+  // 6. Historic Megaliths & Cliff Overlook
   TRIGGER_Stonehenge_Puzzle: { x: 35.0, y: 4.0, z: 58.0 },
+  TRIGGER_Project_MaraRAG: { x: 72.0, y: 12.5, z: 18.0 },
+
+  // 7. Mountain Pass & High Citadel
+  TRIGGER_Project_LifeManager: { x: 0.0, y: 4.0, z: -92.0 },
+  TRIGGER_Project_ButlerOS: { x: -30.0, y: 28.5, z: -80.0 },
   TRIGGER_Citadel_Contact: { x: -15.0, y: 58.5, z: -100.0 },
 };
 

@@ -26,42 +26,44 @@ export interface StationMonumentDef {
 }
 
 export const STATION_MONUMENT_DEFS: StationMonumentDef[] = [
-  // 1. Core & Accreditations
+  // 1. Core & Accreditations (Spaced across Harbor & Town)
   { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Welcome', pos: [107.0, 3.5, 125.0], type: 'astrolabe', color: '#fbbf24', secondaryColor: '#38bdf8' },
-  { id: 'TRIGGER_Village_About', name: 'Village Journey', pos: [45.0, 3.5, -4.0], type: 'chronicler', color: '#f59e0b', secondaryColor: '#fef08a' },
+  { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [85.0, 3.5, 118.0], type: 'web_project', color: '#f59e0b', secondaryColor: '#ef4444' },
   { id: 'TRIGGER_Hall_Certifications', name: 'Harvard CS50x Hall', pos: [65.0, 3.5, 95.0], type: 'harvard', color: '#ef4444', secondaryColor: '#f59e0b' },
+  { id: 'TRIGGER_Village_About', name: 'Village Journey', pos: [45.0, 3.5, -4.0], type: 'chronicler', color: '#f59e0b', secondaryColor: '#fef08a' },
+  { id: 'TRIGGER_Leadership_Pavilion', name: 'Leadership Pavilion', pos: [35.0, 3.5, 12.0], type: 'leadership', color: '#eab308', secondaryColor: '#ca8a04' },
   { id: 'TRIGGER_Arena_Algorithms', name: 'Algorithmic Arena', pos: [18.0, 3.5, -30.0], type: 'arena', color: '#f43f5e', secondaryColor: '#f97316' },
-  { id: 'TRIGGER_Leadership_Pavilion', name: 'Leadership Pavilion', pos: [38.0, 3.5, 12.0], type: 'leadership', color: '#eab308', secondaryColor: '#ca8a04' },
 
-  // 2. AI & Autonomous Systems
-  { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-35.0, 45.0, -85.0], type: 'ai_project', color: '#a855f7', secondaryColor: '#c084fc' },
-  { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [75.0, 12.0, 20.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#6366f1' },
-  { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [52.0, 6.0, -15.0], type: 'ai_project', color: '#9333ea', secondaryColor: '#38bdf8' },
-  { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [10.0, 25.0, -60.0], type: 'ai_project', color: '#7c3aed', secondaryColor: '#a78bfa' },
-  { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-15.0, 3.5, 65.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#10b981' },
+  // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
+  { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [8.0, 3.5, -17.5], type: 'web_project', color: '#14b8a6', secondaryColor: '#2dd4bf' },
+  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [22.0, 3.5, -6.0], type: 'web_project', color: '#3b82f6', secondaryColor: '#60a5fa' },
+  { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [58.0, 3.5, 8.0], type: 'web_project', color: '#f97316', secondaryColor: '#e11d48' },
+  { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [48.0, 3.5, -22.0], type: 'web_project', color: '#0284c7', secondaryColor: '#38bdf8' },
+  { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [52.0, 6.2, -15.0], type: 'ai_project', color: '#9333ea', secondaryColor: '#38bdf8' },
+  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana Habit PWA Plinth', pos: [-12.0, 3.5, -12.0], type: 'web_project', color: '#10b981', secondaryColor: '#34d399' },
+  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Chrome Ext Plinth', pos: [-5.0, 3.5, 8.0], type: 'web_project', color: '#06b6d4', secondaryColor: '#0ea5e9' },
+  { id: 'TRIGGER_Project_Nishtha', name: 'Nishtha Gamified RPG Bazaar', pos: [98.0, 3.5, 25.0], type: 'web_project', color: '#84cc16', secondaryColor: '#eab308' },
 
-  // 3. Low-Level Systems & Game Engines
-  { id: 'TRIGGER_Project_OneMoreMove', name: 'One More Move Keep', pos: [-85.0, 3.5, -25.0], type: 'game_engine', color: '#f97316', secondaryColor: '#fbbf24' },
-  { id: 'TRIGGER_Forge_GameDev', name: 'On The Way Forge', pos: [-100.0, 3.5, -11.5], type: 'game_engine', color: '#ea580c', secondaryColor: '#f59e0b' },
-  { id: 'TRIGGER_Project_KnightsAdventure', name: 'Knight Adventure Windmill', pos: [-60.0, 18.0, -60.0], type: 'game_engine', color: '#d97706', secondaryColor: '#fb923c' },
+  // 3. Forge & Industrial Quarter
+  { id: 'TRIGGER_Forge_GameDev', name: 'On The Way Forge', pos: [-95.0, 3.5, -6.0], type: 'game_engine', color: '#ea580c', secondaryColor: '#f59e0b' },
+  { id: 'TRIGGER_Project_OneMoreMove', name: 'One More Move Keep', pos: [-78.0, 3.5, -28.0], type: 'game_engine', color: '#f97316', secondaryColor: '#fbbf24' },
 
-  // 4. Spatial Computing & WebAR
-  { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Beacon', pos: [-35.0, 3.5, 30.0], type: 'spatial_project', color: '#06b6d4', secondaryColor: '#38bdf8' },
-  { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-75.0, 3.5, 15.0], type: 'spatial_project', color: '#0ea5e9', secondaryColor: '#67e8f9' },
+  // 4. Windmill & Highlands
+  { id: 'TRIGGER_Project_KnightsAdventure', name: 'Knight Adventure Windmill', pos: [-58.0, 18.0, -58.0], type: 'game_engine', color: '#d97706', secondaryColor: '#fb923c' },
 
-  // 5. Full-Stack Web & Cloud Systems
-  { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [-2.5, 3.5, -4.0], type: 'web_project', color: '#14b8a6', secondaryColor: '#2dd4bf' },
-  { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [95.0, 3.5, 110.0], type: 'web_project', color: '#f59e0b', secondaryColor: '#ef4444' },
-  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana Habit PWA Plinth', pos: [0.5, 3.5, -4.0], type: 'web_project', color: '#10b981', secondaryColor: '#34d399' },
-  { id: 'TRIGGER_Project_Nishtha', name: 'Nishtha Gamified RPG Bazaar', pos: [125.6, 3.0, 7.4], type: 'web_project', color: '#84cc16', secondaryColor: '#eab308' },
-  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Chrome Ext Plinth', pos: [3.5, 3.5, -4.0], type: 'web_project', color: '#06b6d4', secondaryColor: '#0ea5e9' },
-  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [115.0, 3.0, 0.0], type: 'web_project', color: '#3b82f6', secondaryColor: '#60a5fa' },
-  { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [112.3, 3.0, 7.2], type: 'web_project', color: '#f97316', secondaryColor: '#e11d48' },
-  { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [103.8, 3.0, -7.5], type: 'web_project', color: '#0284c7', secondaryColor: '#38bdf8' },
+  // 5. Nature, Grove & Western Meadows
+  { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-18.0, 3.5, 58.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#10b981' },
+  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.5, 34.0], type: 'mana_well', color: '#10b981', secondaryColor: '#06b6d4' },
+  { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Beacon', pos: [-32.0, 3.5, 20.0], type: 'spatial_project', color: '#06b6d4', secondaryColor: '#38bdf8' },
+  { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-72.0, 3.5, 12.0], type: 'spatial_project', color: '#0ea5e9', secondaryColor: '#67e8f9' },
 
-  // 6. Landmarks & Finale
-  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-45.0, 3.5, 32.0], type: 'mana_well', color: '#10b981', secondaryColor: '#06b6d4' },
+  // 6. Historic Megaliths & Cliff Overlook
   { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [35.0, 3.5, 58.0], type: 'stonehenge', color: '#d97706', secondaryColor: '#8b5cf6' },
+  { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [72.0, 12.0, 18.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#6366f1' },
+
+  // 7. Mountain Pass & High Citadel
+  { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [0.0, 3.5, -92.0], type: 'ai_project', color: '#7c3aed', secondaryColor: '#a78bfa' },
+  { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-30.0, 28.0, -80.0], type: 'ai_project', color: '#a855f7', secondaryColor: '#c084fc' },
   { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 58.5, -100.0], type: 'citadel_rift', color: '#06b6d4', secondaryColor: '#a855f7' },
 ];
 
