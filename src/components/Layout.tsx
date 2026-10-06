@@ -13,6 +13,10 @@ export const Layout = () => {
   // Handle escape key to open menu
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const store = useGameStore.getState();
+      if (store.isStationModalOpen || store.isTrackerOpen) {
+        return;
+      }
       if (e.key === 'Escape' && gameState === 'playing') {
         setGameState('menu');
       }

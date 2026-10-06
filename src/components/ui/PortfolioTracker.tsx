@@ -80,6 +80,19 @@ export const PortfolioTracker: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'map' | 'journal'>('journal');
   const [selectedSectionId, setSelectedSectionId] = useState<string>('profile');
 
+  // Handle ESC key to close tracker
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isTrackerOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        setTrackerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isTrackerOpen, setTrackerOpen]);
+
   if (!isTrackerOpen) return null;
 
   const discoveredCount = PORTFOLIO_SECTIONS.filter(s => dialogFlags[s.flag]).length;

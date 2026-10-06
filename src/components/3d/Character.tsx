@@ -79,6 +79,7 @@ export const Character = () => {
   const wasGrounded = useRef(true);
   const prevVelY = useRef(0);
   const currentCameraDist = useRef(5.5);
+  const lastRespawnTime = useRef(0);
   
   const [, get] = useKeyboardControls<ControlsType>();
   const [animation, setAnimation] = useState('CharacterArmature|Idle');
@@ -172,9 +173,11 @@ export const Character = () => {
     const charTranslation = rigidBodyRef.current.translation();
     const playerCollider = rigidBodyRef.current.collider(0);
 
-    // Fall protection: If player falls into the sea, respawn at Harbor Pier
-    if (charTranslation.y < 1.0) {
-      rigidBodyRef.current.setTranslation({ x: 109.45, y: 4.0, z: 133.0 }, true);
+    // Fall protection: If player falls into the sea, respawn at Harbor Pier (debounced)
+    const now = performance.now();
+    if (charTranslation.y < 0.0 && now - lastRespawnTime.current > 1500) {
+      lastRespawnTime.current = now;
+      rigidBodyRef.current.setTranslation({ x: 107.0, y: 4.5, z: 125.0 }, true);
       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       return;
     }
@@ -410,7 +413,7 @@ export const Character = () => {
       ref={rigidBodyRef} 
       colliders={false} 
       type="dynamic" 
-      position={[109.45, 4.0, 133.0]} 
+      position={[107.0, 4.5, 125.0]} 
       enabledRotations={[false, false, false]} 
       gravityScale={gravityScale}
     >

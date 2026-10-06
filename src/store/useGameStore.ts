@@ -212,7 +212,12 @@ export const useGameStore = create<GameStore>((set) => ({
   activeStationId: null,
   setActiveStationId: (id) => set({ activeStationId: id }),
   isStationModalOpen: false,
-  setStationModalOpen: (open) => set({ isStationModalOpen: open }),
+  setStationModalOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isStationModalOpen: open });
+  },
   activeStationPrompt: null,
   setActiveStationPrompt: (prompt) => set({ activeStationPrompt: prompt }),
 }));

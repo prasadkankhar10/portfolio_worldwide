@@ -9,12 +9,21 @@ export const HUD = () => {
   const magicPrompt = useGameStore((state) => state.magicPrompt);
   const stonehengeBanner = useGameStore((state) => state.stonehengeBanner);
   const setStonehengeBanner = useGameStore((state) => state.setStonehengeBanner);
+  const isStationModalOpen = useGameStore((state) => state.isStationModalOpen);
+  const isTrackerOpen = useGameStore((state) => state.isTrackerOpen);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     const handleLockChange = () => {
       setIsLocked(!!document.pointerLockElement);
-      if (!document.pointerLockElement && gameState === 'playing' && !useGameStore.getState().debugMenuOpen) {
+      const store = useGameStore.getState();
+      if (
+        !document.pointerLockElement && 
+        gameState === 'playing' && 
+        !store.debugMenuOpen &&
+        !store.isStationModalOpen &&
+        !store.isTrackerOpen
+      ) {
         setGameState('menu');
       }
     };
@@ -48,7 +57,7 @@ export const HUD = () => {
   return (
     <div className="absolute inset-0 z-30 flex flex-col justify-between" style={{ pointerEvents: (isLocked || isMobile) ? 'none' : 'auto' }}>
       
-      {!isLocked && !debugMenuOpen && !isMobile && (
+      {!isLocked && !debugMenuOpen && !isMobile && !isStationModalOpen && !isTrackerOpen && (
         <div 
           className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center cursor-pointer z-50"
           onClick={requestLock}
