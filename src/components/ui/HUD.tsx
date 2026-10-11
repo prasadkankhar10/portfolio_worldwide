@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
-import { Leva } from 'leva';
+import { Compass, BookOpen, Layers, Menu, Navigation, Sparkles, Ship, Eye, X } from 'lucide-react';
 
-export const HUD = () => {
+export const HUD: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
   const setGameState = useGameStore((state) => state.setGameState);
   const isMobile = useGameStore((state) => state.isMobile);
@@ -10,167 +10,287 @@ export const HUD = () => {
   const stonehengeBanner = useGameStore((state) => state.stonehengeBanner);
   const setStonehengeBanner = useGameStore((state) => state.setStonehengeBanner);
   const isStationModalOpen = useGameStore((state) => state.isStationModalOpen);
+  const setStationModalOpen = useGameStore((state) => state.setStationModalOpen);
   const isTrackerOpen = useGameStore((state) => state.isTrackerOpen);
+  const setTrackerOpen = useGameStore((state) => state.setTrackerOpen);
+  const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
+  
+  // Royal Courier Vessel & Cinematic View State
+  const courierShipState = useGameStore((state) => state.courierShipState);
+  const isWatchingVessel = useGameStore((state) => state.isWatchingVessel);
+  const setIsWatchingVessel = useGameStore((state) => state.setIsWatchingVessel);
+  const resetCourierShip = useGameStore((state) => state.resetCourierShip);
+
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     const handleLockChange = () => {
       setIsLocked(!!document.pointerLockElement);
-      const store = useGameStore.getState();
-      if (
-        !document.pointerLockElement && 
-        gameState === 'playing' && 
-        !store.debugMenuOpen &&
-        !store.isStationModalOpen &&
-        !store.isTrackerOpen
-      ) {
-        setGameState('menu');
-      }
     };
     document.addEventListener('pointerlockchange', handleLockChange);
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
-  }, [gameState, setGameState]);
+  }, []);
 
-  const debugMenuOpen = useGameStore((state) => state.debugMenuOpen);
-  const setDebugMenuOpen = useGameStore((state) => state.setDebugMenuOpen);
-
+  // Escape key handler to exit vessel cinematic mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '`') {
-        const willOpen = !useGameStore.getState().debugMenuOpen;
-        setDebugMenuOpen(willOpen);
-        if (willOpen && document.pointerLockElement) {
-          document.exitPointerLock();
-        }
+      if (e.key === 'Escape' && isWatchingVessel) {
+        setIsWatchingVessel(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setDebugMenuOpen]);
+  }, [isWatchingVessel, setIsWatchingVessel]);
 
   const requestLock = () => {
-    document.body.requestPointerLock();
+    if (typeof document !== 'undefined') {
+      try {
+        document.body.requestPointerLock();
+      } catch (err) {
+        console.warn('Pointer lock request error:', err);
+      }
+    }
   };
 
   if (gameState !== 'playing') return null;
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col justify-between" style={{ pointerEvents: (isLocked || isMobile) ? 'none' : 'auto' }}>
+    <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between select-none">
       
-      {!isLocked && !debugMenuOpen && !isMobile && !isStationModalOpen && !isTrackerOpen && (
+      {/* Click-to-Play Glass Overlay (Organic Forest & Gold) */}
+      {!isLocked && !isMobile && !isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen && (
         <div 
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center cursor-pointer z-50"
+          className="absolute inset-0 bg-[#101a18]/45 backdrop-blur-[2px] flex items-center justify-center cursor-pointer z-40 select-none animate-in fade-in duration-300 pointer-events-auto"
           onClick={requestLock}
         >
-          <div className="bg-stone-900 border border-amber-500/50 p-8 text-center animate-pulse">
-            <p className="text-amber-500 text-xl tracking-widest uppercase font-serif mb-2">Click to Play</p>
-            <p className="text-stone-400 text-sm">Lock mouse to look around</p>
-          </div>
-        </div>
-      )}
-      
-      {!isLocked && debugMenuOpen && !isMobile && (
-        <div 
-          className="absolute inset-0 cursor-pointer z-0"
-          onClick={requestLock}
-        >
-          {/* Clickable background to re-lock pointer when in debug mode */}
-        </div>
-      )}
-
-      
-      {!isMobile && (
-        <div className="p-6 flex flex-col gap-2">
-          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-              <span className="text-amber-500 font-bold">W A S D</span> Move
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-              <span className="text-amber-500 font-bold">Shift</span> Run
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-              <span className="text-amber-500 font-bold">Scroll</span> Zoom
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-              <span className="text-amber-500 font-bold">M</span> Map / Journal
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-sm border border-white/10 w-fit">
-            <span className="text-stone-300 font-mono text-sm tracking-wider uppercase">
-              <span className="text-amber-500 font-bold">` (Backtick)</span> Debug Menu
-            </span>
+          <div 
+            className="bg-[#182522]/95 border border-[#D4B777]/35 p-7 sm:p-8 rounded-2xl max-w-sm text-center shadow-[0_20px_50px_rgba(10,18,16,0.7)] backdrop-blur-xl transition-all hover:scale-[1.02] cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              requestLock();
+            }}
+          >
+            <div className="w-10 h-10 mx-auto mb-3.5 rounded-full bg-[#527C68]/20 border border-[#D4B777]/30 flex items-center justify-center text-[#D4B777]">
+              <Compass className="w-5 h-5 animate-spin-slow" />
+            </div>
+            <h2 className="text-[#D4B777] text-lg sm:text-xl font-heading font-bold tracking-tight mb-2">
+              Click to Control Camera
+            </h2>
+            <p className="text-[#E9E4D7]/80 text-xs sm:text-sm font-sans mb-4 leading-relaxed">
+              Click anywhere to lock camera control and explore the 3D portfolio.
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#101a18]/80 border border-[#527C68]/30 text-[11px] font-mono text-[#E9E4D7]/75">
+              <span><kbd className="text-[#D4B777] font-bold">M</kbd> Journal</span>
+              <span>•</span>
+              <span><kbd className="text-[#D4B777] font-bold">E</kbd> Stations</span>
+              <span>•</span>
+              <span><kbd className="text-[#D4B777] font-bold">Esc</kbd> Menu</span>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="absolute top-20 right-6 pointer-events-auto z-50" style={{ display: debugMenuOpen ? 'block' : 'none' }}>
-        {/* Leva handles its own styling but we wrap it to control positioning and visibility manually just in case */}
+      {/* TOP NAVIGATION BAR */}
+      <div className="relative z-50 p-4 sm:p-6 flex items-start justify-between w-full pointer-events-none">
+        
+        {/* Left: Understated Key Controls Pill */}
+        {!isMobile && (
+          <div className="pointer-events-auto flex flex-col gap-1.5 animate-in fade-in duration-500">
+            <div className="bg-[#182522]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D4B777]/20 shadow-sm flex items-center gap-2.5 text-xs text-[#E9E4D7]/85 font-sans">
+              <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
+                <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">W A S D</kbd>
+                <span>Move</span>
+              </span>
+              <span className="text-[#527C68]/60">·</span>
+              <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
+                <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">Shift</kbd>
+                <span>Run</span>
+              </span>
+              <span className="text-[#527C68]/60">·</span>
+              <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
+                <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">M</kbd>
+                <span>Journal</span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Center: Understated Organic Compass & Telemetry */}
+        <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 pointer-events-none animate-in fade-in duration-500">
+          <div className="bg-[#182522]/85 backdrop-blur-md px-4 sm:px-6 py-2 rounded-full border border-[#D4B777]/25 shadow-lg flex items-center gap-3.5 text-xs font-mono text-[#E9E4D7]">
+            <div className="flex items-center gap-1.5 font-bold border-r border-[#527C68]/30 pr-3">
+              <span id="hud-fps-dot" className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span id="hud-fps" className="text-[#D4B777]">60</span>
+              <span className="text-[10px] text-[#E9E4D7]/70 font-semibold">FPS</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[#D4B777] font-bold border-r border-[#527C68]/30 pr-3">
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Facing <span id="hud-dir" className="text-[#E9E4D7]">N</span></span>
+            </div>
+            <div className="flex items-center gap-2.5 text-[11px] text-[#E9E4D7]/80">
+              <span>X <span id="hud-x" className="text-[#E9E4D7] font-semibold">0.0</span></span>
+              <span className="text-[#527C68]/60">·</span>
+              <span>Y <span id="hud-y" className="text-[#E9E4D7] font-semibold">0.0</span></span>
+              <span className="text-[#527C68]/60">·</span>
+              <span>Z <span id="hud-z" className="text-[#E9E4D7] font-semibold">0.0</span></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Courier Vessel Sailing Notification Pill */}
+        {courierShipState !== 'moored' && !isWatchingVessel && (
+          <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 pointer-events-auto animate-in slide-in-from-top-2 duration-500 z-40">
+            <div className="bg-[#182522]/95 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#D4B777]/40 shadow-lg flex items-center gap-3 text-xs font-sans text-[#E9E4D7]">
+              <span className="flex items-center gap-1.5 font-mono text-[#D4B777] text-[11px] font-bold">
+                <Ship className="w-3.5 h-3.5 animate-pulse text-[#D4B777]" />
+                <span>Courier Vessel</span>
+              </span>
+              <span className="text-[#527C68]/60">·</span>
+              <span className="text-[11px] text-[#E9E4D7]/85 hidden sm:inline">
+                {courierShipState === 'delivered' ? 'Scroll delivered to open ocean!' : 'Voyaging to deliver message'}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsWatchingVessel(true);
+                }}
+                className="px-2.5 py-0.5 rounded-full bg-[#D4B777]/20 hover:bg-[#D4B777]/35 text-[#D4B777] font-mono text-[10px] font-bold border border-[#D4B777]/40 transition-all cursor-pointer flex items-center gap-1"
+              >
+                <Eye className="w-3 h-3" />
+                <span>Watch Depart</span>
+              </button>
+              {courierShipState === 'delivered' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    resetCourierShip();
+                  }}
+                  className="text-[11px] font-mono text-[#E9E4D7]/40 hover:text-[#E9E4D7] ml-0.5"
+                  title="Dismiss notice"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Cinematic "Watch Vessel Depart" Overlook Controls */}
+        {isWatchingVessel && (
+          <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 pointer-events-auto animate-in zoom-in-95 duration-300 z-50">
+            <div className="bg-[#182522]/95 border border-[#D4B777]/50 px-5 sm:px-6 py-2.5 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center gap-4 text-center">
+              <div className="w-7 h-7 rounded-lg bg-[#D4B777]/20 border border-[#D4B777]/40 flex items-center justify-center text-[#D4B777] shrink-0">
+                <Ship className="w-4 h-4 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-xs font-heading font-bold text-[#D4B777] tracking-wider uppercase">
+                  Observing Royal Courier Vessel
+                </h4>
+                <p className="text-[11px] text-[#E9E4D7]/80 font-sans">
+                  Sailing past Harbor Pier into open waters to deliver your scroll.
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsWatchingVessel(false);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-[#527C68]/30 hover:bg-[#527C68]/50 border border-[#D4B777]/40 text-[#E9E4D7] hover:text-[#D4B777] text-xs font-mono font-semibold transition-all cursor-pointer"
+              >
+                Return [ESC]
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Right: Quick Navigation Hub */}
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof document !== 'undefined' && document.pointerLockElement) {
+                document.exitPointerLock();
+              }
+              setTrackerOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Open Field Journal (M)"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span className="hidden sm:inline">Journal</span>
+          </button>
+
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof document !== 'undefined' && document.pointerLockElement) {
+                document.exitPointerLock();
+              }
+              setStationModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Open Stations Directory"
+          >
+            <Layers className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span className="hidden sm:inline">Stations</span>
+          </button>
+
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof document !== 'undefined' && document.pointerLockElement) {
+                document.exitPointerLock();
+              }
+              setGameState('menu');
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Open Main Menu (Esc)"
+          >
+            <Menu className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span>Menu</span>
+          </button>
+        </div>
+
       </div>
-      <Leva hidden={!debugMenuOpen} collapsed={false} />
 
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-none">
-        <div className="bg-black/60 backdrop-blur-md px-6 py-2 border border-white/20 rounded-md shadow-xl">
-          <p className="text-stone-300 font-mono text-sm tracking-widest font-semibold flex gap-3">
-            <span className="text-red-400">X <span id="hud-x" className="text-white">0.0</span></span>
-            <span className="text-green-400">Y <span id="hud-y" className="text-white">0.0</span></span>
-            <span className="text-blue-400">Z <span id="hud-z" className="text-white">0.0</span></span>
-            <span className="text-amber-400 ml-2 border-l border-white/20 pl-4">Facing <span id="hud-dir" className="text-white">N</span></span>
-          </p>
-        </div>
-      </div>
-
-      {/* Interactive Celestial Magic Prompt */}
+      {/* Exploration Prompt Bubble */}
       {magicPrompt && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 pointer-events-none animate-bounce z-40">
-          <div className="bg-stone-950/85 backdrop-blur-md px-6 py-3 border border-cyan-400/80 rounded-full shadow-[0_0_25px_rgba(0,229,255,0.5)] flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-            <p className="text-cyan-200 font-mono text-sm tracking-wider font-semibold">
+          <div className="bg-[#182522]/90 backdrop-blur-md px-5 py-2.5 border border-[#D4B777]/40 rounded-full shadow-lg flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-[#D4B777] animate-ping" />
+            <p className="text-[#E9E4D7] font-heading text-xs sm:text-sm font-semibold tracking-wide">
               {magicPrompt}
             </p>
           </div>
         </div>
       )}
 
-      {/* 3.G Stonehenge Ancient Sanctuary Completion Banner Modal */}
+      {/* Stonehenge Ancient Sanctuary Blessing Plaque */}
       {stonehengeBanner && (
-        <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-50 max-w-[560px] w-[92%] text-center pointer-events-auto animate-in fade-in zoom-in-95 duration-500">
-          <div className="bg-gradient-to-b from-stone-950/98 via-slate-950/95 to-stone-950/98 backdrop-blur-xl border-2 border-amber-400/90 rounded-2xl p-6 sm:p-8 shadow-[0_0_40px_rgba(255,213,79,0.5),0_0_70px_rgba(0,229,255,0.25)] flex flex-col items-center">
-            <div className="w-12 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mb-3" />
-            <h2 className="text-xl sm:text-2xl font-serif tracking-widest text-amber-300 uppercase font-bold drop-shadow-[0_0_14px_rgba(255,213,79,0.7)] mb-3">
+        <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-50 max-w-[540px] w-[92%] text-center pointer-events-auto animate-in fade-in zoom-in-95 duration-400">
+          <div className="bg-[#182522]/95 backdrop-blur-xl border border-[#D4B777]/40 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(10,18,16,0.8)] flex flex-col items-center">
+            <div className="w-10 h-0.5 bg-[#D4B777]/60 mb-3 rounded-full" />
+            <div className="flex items-center gap-2 text-[#D4B777] text-xs font-mono uppercase tracking-widest mb-1">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Ancient Megalith Discovery</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-heading font-bold text-[#E9E4D7] tracking-tight mb-3">
               {stonehengeBanner.title}
             </h2>
             <div 
-              className="text-cyan-100 text-sm sm:text-base leading-relaxed font-sans mb-5 drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]"
+              className="text-[#E9E4D7]/85 text-xs sm:text-sm leading-relaxed font-sans mb-5"
               dangerouslySetInnerHTML={{ __html: stonehengeBanner.bodyHtml }}
             />
             <button
               onClick={() => setStonehengeBanner(null)}
-              className="px-6 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-300 text-stone-950 font-bold uppercase tracking-wider text-sm rounded-lg shadow-[0_0_20px_rgba(255,213,79,0.7)] transition-all transform hover:scale-105 cursor-pointer"
+              className="px-6 py-2.5 bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
             >
-              ACCEPT BLESSING
+              Accept Blessing
             </button>
           </div>
         </div>
       )}
 
-      <div className="absolute top-6 right-6">
-        <button 
-          onClick={() => {
-            if (document.pointerLockElement) document.exitPointerLock();
-            setGameState('menu');
-          }}
-          className="px-4 py-2 bg-black/60 hover:bg-amber-600/80 backdrop-blur-md border border-white/20 text-white font-semibold uppercase tracking-wider text-sm transition-all pointer-events-auto"
-        >
-          Menu (Esc)
-        </button>
-      </div>
     </div>
   );
 };
-

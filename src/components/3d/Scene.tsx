@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Stats, useGLTF } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { EffectComposer, Outline, Bloom, Vignette } from '@react-three/postprocessing';
 import { Environment } from './Environment';
 import { AtmosphereManager } from './AtmosphereManager';
@@ -57,34 +57,35 @@ export const Scene = () => {
   const [loadPhase, setLoadPhase] = React.useState(0);
   useEffect(() => {
     if (hasStarted) {
-      setLoadPhase(1); // Phase 1: Player character immediately (0ms)
-      const t1 = setTimeout(() => setLoadPhase(2), 100); // Phase 2: Marketplace shopkeepers (+100ms)
-      const t2 = setTimeout(() => setLoadPhase(3), 250); // Phase 3: Market visitors (+250ms)
-      const t3 = setTimeout(() => setLoadPhase(4), 400); // Phase 4: Dock workers & wanderers (+400ms)
-      const t4 = setTimeout(() => setLoadPhase(5), 600); // Phase 5: Forest goblins, sparring knights, mages & ritual (+600ms)
+      setLoadPhase(1); // Phase 1: Immediate surroundings (0ms)
+      const t1 = setTimeout(() => setLoadPhase(2), 600);  // Phase 2: Marketplace shopkeepers (+600ms)
+      const t2 = setTimeout(() => setLoadPhase(3), 1600); // Phase 3: Town citizens & dock workers (+1600ms)
+      const t3 = setTimeout(() => setLoadPhase(4), 3200); // Phase 4: Distant forest camp, arena & sanctuary (+3200ms)
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
-        clearTimeout(t4);
       };
     } else {
       setLoadPhase(0);
     }
   }, [hasStarted]);
 
-  // Pre-warm WebGL shader pipeline on mount to eliminate mid-game shader compilation hitches
+  // Pre-warm WebGL shader pipeline gently on mount during idle time to prevent startup freeze
   useEffect(() => {
-    try {
-      gl.compile(scene, camera);
-    } catch {
-      // Ignored
-    }
+    const timer = setTimeout(() => {
+      try {
+        gl.compile(scene, camera);
+      } catch {
+        // Ignored
+      }
+    }, 600);
+    return () => clearTimeout(timer);
   }, [gl, scene, camera]);
 
   return (
     <>
-      {/* Postprocessing for Interactive Outlines */}
+      {/* Postprocessing for Interactive Outlines & Bloom (bypassed in performance mode) */}
       {!isLowPowerGpu && !performanceMode && (
         <EffectComposer multisampling={0} autoClear={false}>
           <Outline 
@@ -95,7 +96,7 @@ export const Scene = () => {
              edgeStrength={activeOutlineMesh ? 3 : 0} 
           />
           <Bloom 
-            intensity={0.35} 
+            intensity={0.25} 
             luminanceThreshold={1.2} 
             luminanceSmoothing={0.3} 
           />
@@ -111,10 +112,14 @@ export const Scene = () => {
           <Environment />
           <Sea />
 
+          {/* Character pre-mounted in memory so Adventurer.glb loads during initial LoadingScreen */}
+          <Suspense fallback={null}>
+            <Character />
+          </Suspense>
+
           {/* Dynamic Characters & Interactive Gameplay Elements (loaded on game start) */}
           {hasStarted && (
             <>
-              <Character />
               <CompanionOrb />
               {/* Building Triggers */}
               <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
@@ -173,14 +178,11 @@ export const Scene = () => {
       <FreeCamManager />
 
       {/* Procedural Wildlife */}
-      <Birds count={performanceMode ? 15 : 35} />
-      <Fireflies count={performanceMode ? 40 : 120} />
+      <Birds count={performanceMode ? 8 : 18} />
+      <Fireflies count={performanceMode ? 25 : 50} />
 
       {/* Frame & Lag Performance Profiler */}
       <FrameLagTracker />
-
-      {/* Performance Monitor */}
-      <Stats />
     </>
   );
 };

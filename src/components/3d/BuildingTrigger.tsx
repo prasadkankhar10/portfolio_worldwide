@@ -10,7 +10,7 @@ interface BuildingTriggerProps {
 }
 
 export function BuildingTrigger({ position, radius = 8, dialogId }: BuildingTriggerProps) {
-  const triggerPos = new THREE.Vector3(...position);
+  const triggerPos = React.useMemo(() => new THREE.Vector3(...position), [position]);
   const hasTriggered = useRef(false);
 
   useFrame((state) => {

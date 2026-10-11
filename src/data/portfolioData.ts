@@ -122,10 +122,10 @@ export const portfolioData: Record<string, StationData> = {
 
   TRIGGER_Harbor_Welcome: {
     stationId: "TRIGGER_Harbor_Welcome",
-    category: "Core & Accreditations",
-    title: "Prasad Anil Kankhar",
-    subtitle: "Software Development Engineer (SDE) | Full-Stack & AI Systems | 3D Graphics",
-    badge: "Level 0 • Harbor Arrival",
+    category: "Landmarks & Interactive",
+    title: "Harbor Pier • Connect With Me",
+    subtitle: "Software Development Engineer (SDE) | Direct Inquiries & Royal Courier Dispatch",
+    badge: "Harbor Arrival • Connect Station",
     shortBio: "Results-driven Software Development Engineer with deep expertise in C++, TypeScript, Python, and scalable distributed architectures. Architect of 19 verified software systems spanning bare-metal C++17 game engines, autonomous multi-agent operating systems, and production Indic RAG platforms with over 100,000+ lines of audited code. Solved 850+ algorithmic coding problems across LeetCode and GeeksforGeeks.",
     metrics: [
       "100,000+ Lines Audited Code",
@@ -142,7 +142,20 @@ export const portfolioData: Record<string, StationData> = {
       github: "https://github.com/prasadkankhar10",
       linkedin: "https://linkedin.com/in/prasad-kankhar"
     },
-    controlsHint: "WASD / Arrows to Move • Space to Jump • [E] to Inspect Stations • Click Station list to Teleport"
+    email: "prasadkankhar5@gmail.com",
+    promptText: "Connect with Prasad directly! Dispatch an in-game message scroll via the Royal Courier Vessel moored at the pier, or reach out directly via Email & LinkedIn.",
+    controlsHint: "WASD / Arrows to Move • Space to Jump • [E] to Inspect Stations • Click Station list to Teleport",
+    collaborationAreas: [
+      "Software Development Engineer (SDE) & Backend Systems Roles",
+      "AI / Machine Learning Systems & RAG Architecture Roles",
+      "3D Graphics, Game Engine & Spatial Computing Engineering",
+      "Full-Stack Web & Open-Source Collaboration"
+    ],
+    futureVision: [
+      "Architecting distributed AI agents with sub-100ms real-time conversational reasoning.",
+      "Large-scale immersive 3D spatial worlds combining C++, Unreal Engine, and WebXR.",
+      "High-performance low-level systems with zero memory overhead and deterministic execution."
+    ]
   },
 
   TRIGGER_Village_About: {

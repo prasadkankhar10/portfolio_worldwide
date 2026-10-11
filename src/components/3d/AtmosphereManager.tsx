@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore';
-import { useControls } from 'leva';
 import { Sky, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -302,29 +301,7 @@ export const AtmosphereManager = () => {
   const isLowPowerGpu = useGameStore((state) => state.isLowPowerGpu);
   const disableShadows = isLowPowerGpu || performanceMode;
 
-  const [{ Atmosphere, brightness }, set] = useControls('Environment', () => ({
-    Atmosphere: {
-      options: Object.keys(presets),
-      value: currentAtmosphere,
-      onChange: (v) => {
-        if (v && v !== useGameStore.getState().currentAtmosphere) {
-          setAtmosphere(v);
-        }
-      }
-    },
-    brightness: { value: 1.0,
-      min: 0.0,
-      max: 5.0,
-      step: 0.1,
-      label: 'Brightness'
-    }
-  })) as any;
-
-  // Ensure Leva stays synced if state changes elsewhere
-  useEffect(() => {
-    set({ Atmosphere: currentAtmosphere });
-  }, [currentAtmosphere, set]);
-
+  const brightness = 1.0;
   const preset = presets[currentAtmosphere] || presets['Cosmic Nebula'];
 
   return (
@@ -349,15 +326,15 @@ export const AtmosphereManager = () => {
         intensity={preset.sunIntensity * brightness} 
         color={preset.sunColor}
         castShadow={!disableShadows} 
-        shadow-mapSize-width={512} 
-        shadow-mapSize-height={512} 
-        shadow-camera-far={1000}
-        shadow-camera-left={-200}
-        shadow-camera-right={200}
-        shadow-camera-top={200}
-        shadow-camera-bottom={-200}
-        shadow-bias={-0.0001}
-        shadow-normalBias={0.05}
+        shadow-mapSize-width={1024} 
+        shadow-mapSize-height={1024} 
+        shadow-camera-far={350}
+        shadow-camera-left={-60}
+        shadow-camera-right={60}
+        shadow-camera-top={60}
+        shadow-camera-bottom={-60}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.04}
       />
 
       {/* Secondary Fill Light (opposite side, no shadows) to illuminate dark faces */}

@@ -122,6 +122,8 @@ export const InstancedTrees: React.FC = () => {
       if (instMesh.instanceColor) {
         instMesh.instanceColor.needsUpdate = true;
       }
+      instMesh.computeBoundingSphere();
+      instMesh.matrixAutoUpdate = false;
       meshes.push(instMesh);
     });
 

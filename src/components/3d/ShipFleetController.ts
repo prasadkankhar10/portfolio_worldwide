@@ -1,4 +1,24 @@
 import * as THREE from 'three';
+import { useGameStore } from '../../store/useGameStore';
+
+export const globalCourierShipState = {
+  position: new THREE.Vector3(106.04, 5.69, 142.04),
+  rotation: new THREE.Euler(),
+  isMoving: false,
+};
+
+// Ocean Departure Trajectory from Harbor Pier into deep sea channel
+export const COURIER_DEPARTURE_POINTS: [number, number, number][] = [
+  [106.04, 5.69, 142.04], // 0: Docked at pier (facing +Z)
+  [105.00, 5.69, 150.00], // 1: Slipping forward past pier posts
+  [100.00, 5.69, 162.00], // 2: Banking port into open harbor bay
+  [90.00, 5.69, 178.00],  // 3: Aligning through center of channel
+  [76.00, 5.69, 200.00],  // 4: Clearing harbor entrance between headlands
+  [55.00, 5.69, 235.00],  // 5: Entering wide open ocean waters
+  [25.00, 5.69, 280.00],  // 6: Cruising towards horizon
+  [-15.00, 5.69, 340.00], // 7: Deep sea horizon
+  [-60.00, 5.69, 420.00], // 8: Vanishing into sunset mist
+];
 
 // -------------------------------------------------------------
 // 1. FALLBACK PRE-CALCULATED WAYPOINT ARRAY (Exact island coordinates)
@@ -98,13 +118,7 @@ function attachGlowBeacons(
     shipObj.add(gemMesh);
     meshes.push(gemMesh);
 
-    // 2. PointLight casting radiant glow across sails and ripples on water
-    const light = new THREE.PointLight(colorHex, cfg.lightIntensity, cfg.lightDist, 1.4);
-    light.name = `${shipObj.name}_BeaconLight_${idx}`;
-    light.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
-    light.userData.baseIntensity = cfg.lightIntensity;
-    shipObj.add(light);
-    lights.push(light);
+    // 2. Glowing beacon crystal is kept; dynamic PointLight omitted to save forward lighting GPU passes
   });
 
   return { lights, meshes };
@@ -167,19 +181,31 @@ export class ShipFleetController {
   mooredTender: THREE.Object3D | null = null;
   arrivalBase: THREE.Vector3 = new THREE.Vector3();
   arrivalRot: THREE.Euler = new THREE.Euler();
+  arrivalQuat: THREE.Quaternion = new THREE.Quaternion();
   tenderBase: THREE.Vector3 = new THREE.Vector3();
   tenderRot: THREE.Euler = new THREE.Euler();
+
+  // Courier Ship Departure Spline & Beacons
+  courierCurve: THREE.CatmullRomCurve3;
+  courierCurveLength: number;
+  courierBeacons: { lights: THREE.PointLight[]; meshes: THREE.Mesh[] } | null = null;
 
   // Zero-allocation reusable math vectors
   private _pos: THREE.Vector3 = new THREE.Vector3();
   private _tangent: THREE.Vector3 = new THREE.Vector3();
   private _nextTangent: THREE.Vector3 = new THREE.Vector3();
   private _normal: THREE.Vector3 = new THREE.Vector3();
+  private _orientQuat: THREE.Quaternion = new THREE.Quaternion();
+  private _tempEuler: THREE.Euler = new THREE.Euler();
 
   constructor(scene: THREE.Object3D) {
     this.scene = scene;
     this.curve = createShipPath(scene);
     this.curveLength = this.curve.getLength();
+
+    const departureVecs = COURIER_DEPARTURE_POINTS.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
+    this.courierCurve = new THREE.CatmullRomCurve3(departureVecs, false, 'catmullrom', 0.15);
+    this.courierCurveLength = this.courierCurve.getLength();
 
     // 1. Clean up any previous clones or beacon attachments to prevent ghost/frozen duplicates
     this.cleanupOldObjects();
@@ -288,6 +314,14 @@ export class ShipFleetController {
       this.mooredArrival.matrixAutoUpdate = true;
       this.arrivalBase = this.mooredArrival.position.clone();
       this.arrivalRot = this.mooredArrival.rotation.clone();
+      this.arrivalQuat = this.mooredArrival.quaternion.clone();
+
+      const courierBeaconPositions = [
+        { pos: [0, -4.5, 7.7] as [number, number, number], size: 0.45, lightIntensity: 3.5, lightDist: 32 }, // Mast
+        { pos: [0, 2.3, -1.8] as [number, number, number], size: 0.35, lightIntensity: 2.2, lightDist: 22 }, // Bowsprit
+        { pos: [0, 1.4, 13.5] as [number, number, number], size: 0.35, lightIntensity: 2.5, lightDist: 25 }, // Stern
+      ];
+      this.courierBeacons = attachGlowBeacons(this.mooredArrival, 0xffd700, courierBeaconPositions);
     }
 
     if (this.mooredTender) {
@@ -369,15 +403,76 @@ export class ShipFleetController {
     }
 
     // -----------------------------------------------------------
-    // B. MOORED SHIPS (Remain strictly at their dock pier with gentle harbor swell)
+    // B. MOORED SHIPS / COURIER VESSEL DEPARTURE SIMULATION
     // -----------------------------------------------------------
     if (this.mooredArrival) {
-      const heave = Math.sin(elapsedTime * 1.5) * 0.05;
-      const pitch = Math.sin(elapsedTime * 1.1) * 0.015;
-      const roll = Math.cos(elapsedTime * 0.9) * 0.02;
-      this.mooredArrival.position.y = this.arrivalBase.y + heave;
-      this.mooredArrival.rotation.x = this.arrivalRot.x + pitch;
-      this.mooredArrival.rotation.z = this.arrivalRot.z + roll;
+      const store = useGameStore.getState();
+      const courierState = store.courierShipState;
+      const dispatchTime = store.courierShipDispatchTime;
+
+      if (courierState === 'moored' || dispatchTime === 0) {
+        // Idle gentle harbor swell at dock
+        const heave = Math.sin(elapsedTime * 1.5) * 0.05;
+        const pitch = Math.sin(elapsedTime * 1.1) * 0.015;
+        const roll = Math.cos(elapsedTime * 0.9) * 0.02;
+        this.mooredArrival.position.set(this.arrivalBase.x, this.arrivalBase.y + heave, this.arrivalBase.z);
+        this.mooredArrival.rotation.set(this.arrivalRot.x + pitch, this.arrivalRot.y, this.arrivalRot.z + roll);
+
+        globalCourierShipState.position.copy(this.mooredArrival.position);
+        globalCourierShipState.rotation.copy(this.mooredArrival.rotation);
+        globalCourierShipState.isMoving = false;
+
+        if (this.courierBeacons) {
+          this.courierBeacons.meshes.forEach((m) => {
+            (m.material as THREE.MeshStandardMaterial).emissiveIntensity = 2.0;
+          });
+        }
+      } else {
+        // Active Sailing Simulation across the Departure Trajectory!
+        globalCourierShipState.isMoving = true;
+        const dispatchElapsed = (performance.now() - dispatchTime) / 1000;
+        
+        // Duration to cross the full departure trajectory: 110 seconds (graceful, majestic sailing speed)
+        const totalDuration = 110.0;
+        // Smoothstep progress along trajectory: gentle easing during initial dock slip-away
+        const t = Math.min(1.0, dispatchElapsed / totalDuration);
+        const easedT = t < 0.12 ? (t / 0.12) * (t / 0.12) * 0.12 : t;
+
+        // Sample position and heading tangent along departure curve
+        this.courierCurve.getPointAt(easedT, this._pos);
+        this.courierCurve.getTangentAt(Math.min(0.999, easedT + 0.005), this._tangent);
+
+        // Compute forward heading yaw angle (bow points forward along travel tangent)
+        const targetYaw = Math.atan2(this._tangent.x, this._tangent.z);
+
+        // Dynamic ocean swells that grow stronger as the ship leaves the protected harbor
+        const seaExposure = Math.min(1.0, easedT * 2.0); // 0 in harbor, 1 in deep sea
+        const heave = Math.sin(elapsedTime * 1.3 + dispatchElapsed * 0.8) * (0.04 + 0.13 * seaExposure);
+        const pitch = Math.sin(elapsedTime * 0.9 + dispatchElapsed * 0.6) * (0.012 + 0.032 * seaExposure);
+        const roll = Math.cos(elapsedTime * 0.7 + dispatchElapsed * 0.5) * (0.015 + 0.042 * seaExposure);
+
+        this.mooredArrival.position.set(this._pos.x, this._pos.y + heave, this._pos.z);
+        this._orientQuat.setFromEuler(this._tempEuler.set(pitch, targetYaw, roll, 'YXZ'));
+        this.mooredArrival.quaternion.copy(this._orientQuat.multiply(this.arrivalQuat));
+
+        globalCourierShipState.position.copy(this.mooredArrival.position);
+        globalCourierShipState.rotation.copy(this.mooredArrival.rotation);
+
+        // Golden Arcane Pulse for Courier Lanterns
+        if (this.courierBeacons) {
+          const beaconPulse = Math.sin(elapsedTime * 3.0) * 2.0 + 5.0;
+          this.courierBeacons.meshes.forEach((m) => {
+            (m.material as THREE.MeshStandardMaterial).emissiveIntensity = beaconPulse;
+          });
+        }
+
+        // Auto-progress state when far in deep ocean
+        if (dispatchElapsed > 25 && courierState === 'departing') {
+          useGameStore.setState({ courierShipState: 'voyaging' });
+        } else if (dispatchElapsed > 110 && courierState === 'voyaging') {
+          useGameStore.setState({ courierShipState: 'delivered' });
+        }
+      }
     }
 
     if (this.mooredTender) {

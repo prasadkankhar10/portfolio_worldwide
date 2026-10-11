@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
+const NORMAL_SCALE = new THREE.Vector2(1.5, 1.5);
+
 export const Sea: React.FC = () => {
   // Load the normal map for realistic ripples
   const normalMap = useTexture('./textures/water_normal.jpg');
@@ -41,7 +43,7 @@ export const Sea: React.FC = () => {
         <meshStandardMaterial 
           color="#006994"
           normalMap={outerNormalMap}
-          normalScale={new THREE.Vector2(1.5, 1.5)}
+          normalScale={NORMAL_SCALE}
           roughness={0.1}
           metalness={0.8}
         />

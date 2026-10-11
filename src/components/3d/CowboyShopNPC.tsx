@@ -71,7 +71,7 @@ export function CowboyShopNPC({
   useFrame((rootState, delta) => {
     if (!containerRef.current) return;
 
-    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 40;
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 28;
     if (containerRef.current.visible !== shouldBeVisible) {
       containerRef.current.visible = shouldBeVisible;
       if (typeof mixer !== 'undefined' && mixer) mixer.timeScale = shouldBeVisible ? 1 : 0;
@@ -81,7 +81,7 @@ export function CowboyShopNPC({
     const npcPos = containerRef.current.position;
     // --- SHADOW CULLING ---
     const distToCam = rootState.camera.position.distanceTo(npcPos);
-    const shouldCastShadow = distToCam < 35; 
+    const shouldCastShadow = false; 
     if (clone.userData.isShadowCulled !== shouldCastShadow) {
       clone.userData.isShadowCulled = shouldCastShadow;
       clone.traverse((child: any) => {

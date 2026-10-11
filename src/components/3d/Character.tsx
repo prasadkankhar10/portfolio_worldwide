@@ -2,17 +2,16 @@ import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, RapierRigidBody, useRapier } from '@react-three/rapier';
 import * as RAPIER from '@dimforge/rapier3d-compat';
-import { useControls } from 'leva';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { ControlsType } from '../../App';
 import { useGameStore } from '../../store/useGameStore';
+import { globalCourierShipState } from './ShipFleetController';
 
 export const globalPlayerState = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion()
 };
-
 
 // Static pre-allocated vectors to prevent GC allocations in useFrame
 const _groundRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
@@ -41,26 +40,20 @@ const _groundOrigins = [
   new THREE.Vector3(),
 ];
 
+// Production tuned physics constants
+const walkSpeed = 3;
+const runSpeed = 8;
+const rotationSpeed = 10;
+const jumpForce = 6;
+const gravityScale = 2;
+const rollThreshold = -10;
+const minPitch = -Math.PI / 2 + 0.1;
+const maxPitch = Math.PI / 2 - 0.1;
+const cameraCollision = true;
+
 export const Character = () => {
   const { scene, animations } = useGLTF('./models/NPCs/Adventurer.glb');
   const { actions } = useAnimations(animations, scene);
-
-  // Live Debugging Controls
-  const {
-    walkSpeed, runSpeed, rotationSpeed,
-    jumpForce, gravityScale, rollThreshold,
-    minPitch, maxPitch, cameraCollision
-  } = useControls('Character Setup', {
-    walkSpeed: { value: 3, min: 1, max: 20 },
-    runSpeed: { value: 8, min: 1, max: 30 },
-    rotationSpeed: { value: 10, min: 1, max: 50 },
-    jumpForce: { value: 6, min: 1, max: 30 },
-    gravityScale: { value: 2, min: 0.1, max: 10 },
-    rollThreshold: { value: -10, min: -30, max: 0 },
-    minPitch: { value: -Math.PI / 2 + 0.1, min: -Math.PI, max: 0 },
-    maxPitch: { value: Math.PI / 2 - 0.1, min: 0, max: Math.PI },
-    cameraCollision: { value: true, label: 'Camera Wall Collision' },
-  });
   
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const characterRef = useRef<THREE.Group>(null);
@@ -69,7 +62,7 @@ export const Character = () => {
   
   const cameraTarget = useRef(new THREE.Vector3());
   const cameraPosition = useRef(new THREE.Vector3());
-  const yaw = useRef(0);
+  const yaw = useRef(Math.PI); // Initial yaw facing South (S)
   const pitch = useRef(0);
   const zoomDistance = useRef(5.5); // Comfortable third-person distance
   
@@ -131,6 +124,7 @@ export const Character = () => {
 
   useFrame((state, delta) => {
     if (!rigidBodyRef.current || !characterRef.current) return;
+    if (gameState !== 'playing') return;
 
     // Handle instant magical teleportation (Arcane Waystones & Rift Portals)
     const teleportTarget = useGameStore.getState().teleportTarget;
@@ -177,7 +171,7 @@ export const Character = () => {
     const now = performance.now();
     if (charTranslation.y < 0.0 && now - lastRespawnTime.current > 1500) {
       lastRespawnTime.current = now;
-      rigidBodyRef.current.setTranslation({ x: 107.0, y: 4.5, z: 125.0 }, true);
+      rigidBodyRef.current.setTranslation({ x: 93.6, y: 3.2, z: 126.1 }, true);
       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       return;
     }
@@ -290,6 +284,25 @@ export const Character = () => {
 
     // --- ONLY UPDATE CAMERA IF FREE CAM IS NOT ACTIVE ---
     if (!isFreeCam) {
+      const isWatchingVessel = useGameStore.getState().isWatchingVessel;
+      if (isWatchingVessel) {
+        if (isMoving || jump) {
+          useGameStore.getState().setIsWatchingVessel(false);
+        } else {
+          // Cinematic elevated vantage point overlooking harbor pier and tracking departing vessel
+          const vantagePos = _idealOffset.set(90.0, 11.5, 122.0);
+          cameraPosition.current.lerp(vantagePos, Math.min(1, 4 * delta));
+          
+          const shipPos = globalCourierShipState.position;
+          const targetLook = _idealLookAt.set(shipPos.x, shipPos.y + 2.5, shipPos.z);
+          cameraTarget.current.lerp(targetLook, Math.min(1, 6 * delta));
+          
+          state.camera.position.copy(cameraPosition.current);
+          state.camera.lookAt(cameraTarget.current);
+          return;
+        }
+      }
+
       // 2. Camera System Update
       const headPosition = _headPosition.set(charTranslation.x, charTranslation.y + 1.5, charTranslation.z);
       
@@ -413,7 +426,7 @@ export const Character = () => {
       ref={rigidBodyRef} 
       colliders={false} 
       type="dynamic" 
-      position={[107.0, 4.5, 125.0]} 
+      position={[93.6, 3.2, 126.1]} 
       enabledRotations={[false, false, false]} 
       gravityScale={gravityScale}
     >

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
 import { portfolioData } from '../../data/portfolioData';
+import { globalPlayerState } from './Character';
 
 export interface StationMonumentDef {
   id: string;
@@ -26,8 +27,7 @@ export interface StationMonumentDef {
 }
 
 export const STATION_MONUMENT_DEFS: StationMonumentDef[] = [
-  // 1. Core & Accreditations (Spaced across Harbor & Town, grounded on stone & docks)
-  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Welcome', pos: [107.0, 3.06, 120.58], type: 'astrolabe', color: '#fbbf24', secondaryColor: '#38bdf8' },
+  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier • Connect Station', pos: [108.89, 3.1, 118.04], type: 'astrolabe', color: '#fbbf24', secondaryColor: '#38bdf8' },
   { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [85.0, 3.0, 118.0], type: 'web_project', color: '#f59e0b', secondaryColor: '#ef4444' },
   { id: 'TRIGGER_Hall_Certifications', name: 'Harvard CS50x Hall', pos: [65.0, 3.0, 95.0], type: 'harvard', color: '#ef4444', secondaryColor: '#f59e0b' },
   { id: 'TRIGGER_Village_About', name: 'Village Journey', pos: [45.0, 3.0, -4.0], type: 'chronicler', color: '#f59e0b', secondaryColor: '#fef08a' },
@@ -36,7 +36,7 @@ export const STATION_MONUMENT_DEFS: StationMonumentDef[] = [
 
   // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
   { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [6.0, 3.0, -17.5], type: 'web_project', color: '#14b8a6', secondaryColor: '#2dd4bf' },
-  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [22.0, 3.0, -6.0], type: 'web_project', color: '#3b82f6', secondaryColor: '#60a5fa' },
+  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [18.0, 3.0, -2.0], type: 'web_project', color: '#3b82f6', secondaryColor: '#60a5fa' },
   { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [81.88, 3.0, -68.15], type: 'web_project', color: '#f97316', secondaryColor: '#e11d48' },
   { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [56.64, 3.0, -27.05], type: 'web_project', color: '#0284c7', secondaryColor: '#38bdf8' },
   { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [42.22, 3.0, -16.48], type: 'ai_project', color: '#9333ea', secondaryColor: '#38bdf8' },
@@ -53,18 +53,18 @@ export const STATION_MONUMENT_DEFS: StationMonumentDef[] = [
 
   // 5. Nature, Grove & Western Meadows
   { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-18.0, 3.0, 58.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#10b981' },
-  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.85, 53.47], type: 'mana_well', color: '#10b981', secondaryColor: '#06b6d4' },
+  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.6, 53.47], type: 'mana_well', color: '#10b981', secondaryColor: '#06b6d4' },
   { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Beacon', pos: [-32.0, 3.0, 22.17], type: 'spatial_project', color: '#06b6d4', secondaryColor: '#38bdf8' },
   { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-72.0, 3.0, 12.0], type: 'spatial_project', color: '#0ea5e9', secondaryColor: '#67e8f9' },
 
   // 6. Historic Megaliths & Cliff Overlook
-  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 1.87, 52.85], type: 'stonehenge', color: '#d97706', secondaryColor: '#8b5cf6' },
+  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 2.49, 52.85], type: 'stonehenge', color: '#d97706', secondaryColor: '#8b5cf6' },
   { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [72.0, 3.0, 18.0], type: 'ai_project', color: '#8b5cf6', secondaryColor: '#6366f1' },
 
   // 7. Mountain Pass & High Citadel
   { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [0.0, 3.0, -92.0], type: 'ai_project', color: '#7c3aed', secondaryColor: '#a78bfa' },
   { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-30.0, 3.0, -80.0], type: 'ai_project', color: '#a855f7', secondaryColor: '#c084fc' },
-  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.5, -100.0], type: 'citadel_rift', color: '#06b6d4', secondaryColor: '#a855f7' },
+  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.0, -100.0], type: 'citadel_rift', color: '#06b6d4', secondaryColor: '#a855f7' },
 ];
 
 /**
@@ -88,7 +88,26 @@ const SingleStationMonument: React.FC<{
     return (station.pos[0] * 0.17 + station.pos[2] * 0.31) % (Math.PI * 2);
   }, [station.pos]);
 
+  const checkFrameRef = useRef(Math.floor(Math.random() * 8));
+  const isVisibleRef = useRef(true);
+
   useFrame((state) => {
+    // Distance culling check every 8 frames to save CPU
+    checkFrameRef.current++;
+    if (checkFrameRef.current % 8 === 0) {
+      const p = globalPlayerState.position;
+      const dx = p.x - station.pos[0];
+      const dz = p.z - station.pos[2];
+      const distSq = dx * dx + dz * dz;
+      const shouldBeVisible = distSq < 55 * 55; // 55m radius
+      if (isVisibleRef.current !== shouldBeVisible) {
+        isVisibleRef.current = shouldBeVisible;
+        if (groupRef.current) groupRef.current.visible = shouldBeVisible;
+      }
+    }
+
+    if (!isVisibleRef.current) return;
+
     const time = state.clock.getElapsedTime();
 
     // Floating bobbing & rotation

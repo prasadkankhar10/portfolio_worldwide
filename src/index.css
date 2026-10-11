@@ -1,12 +1,81 @@
 @import "tailwindcss";
 
+@theme {
+  --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-forest: #182522;
+  --color-forest-dark: #101a18;
+  --color-forest-surface: rgba(24, 37, 34, 0.85);
+  --color-forest-glass: rgba(24, 37, 34, 0.72);
+  --color-gold: #D4B777;
+  --color-gold-light: #E5CD94;
+  --color-gold-muted: rgba(212, 183, 119, 0.22);
+  --color-moss: #527C68;
+  --color-moss-light: #689680;
+  --color-moss-muted: rgba(82, 124, 104, 0.25);
+  --color-cream: #E9E4D7;
+  --color-cream-soft: rgba(233, 228, 215, 0.85);
+  --color-cream-muted: rgba(233, 228, 215, 0.65);
+  --color-cream-faint: rgba(233, 228, 215, 0.15);
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #111;
-  color: white;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #101a18;
+  color: #E9E4D7;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Custom organic glass & scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(16, 26, 24, 0.5);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(212, 183, 119, 0.25);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 183, 119, 0.45);
+}
+
+/* Organic Glassmorphism helper */
+.organic-glass {
+  background: rgba(24, 37, 34, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 183, 119, 0.2);
+  box-shadow: 0 12px 36px -4px rgba(10, 18, 16, 0.55), 0 0 1px 1px rgba(212, 183, 119, 0.1);
+}
+
+.organic-glass-card {
+  background: rgba(20, 32, 29, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(82, 124, 104, 0.22);
+}
+
+.organic-glass-pill {
+  background: rgba(24, 37, 34, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 183, 119, 0.25);
 }

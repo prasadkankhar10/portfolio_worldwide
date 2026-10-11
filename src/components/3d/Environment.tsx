@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import { DynamicLamps } from './DynamicLamps';
 import { InstancedTrees } from './InstancedTrees';
-import { useControls } from 'leva';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { SceneOptimizer } from '../../utils/SceneOptimizer';
@@ -67,6 +66,14 @@ export const STONEHENGE_PILLARS: StonehengePillarDef[] = [
 ];
 
 export const STONEHENGE_SOLUTION = [1, 5, 4, 3, 6, 2];
+
+const LIGHT_POS_SUMMIT = new THREE.Vector3(-0.23, 57.50, -108.77);
+const LIGHT_POS_COURTYARD = new THREE.Vector3(-0.20, 4.50, -96.50);
+const LIGHT_POS_CROSSROADS = new THREE.Vector3(8.0, 5.0, 17.75);
+const LIGHT_POS_DOCKS = new THREE.Vector3(99.75, 5.0, 123.26);
+const LIGHT_POS_PORTAL = new THREE.Vector3(-15.0, 5.5, -105.0);
+const LIGHT_POS_MOONWELL = new THREE.Vector3(-50.0, 4.8, 35.0);
+const LIGHT_POS_STONEHENGE = new THREE.Vector3(35.0, 5.0, 62.0);
 
 
 // 90 Optimized low-poly physics collision proxies
@@ -175,6 +182,22 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
     // Reset targets
     targets.current = {};
 
+    // Shared materials for repeated emissive props (prevents 50+ redundant WebGL shader compilations)
+    const sharedLampMaterial = new THREE.MeshStandardMaterial({
+      name: 'Shared_Lamp_Material',
+      color: new THREE.Color('#333333'),
+      emissive: new THREE.Color(lampColor),
+      emissiveIntensity: lampIntensity,
+      roughness: 0.5,
+    });
+    const sharedWindowMaterial = new THREE.MeshStandardMaterial({
+      name: 'Shared_Window_Material',
+      color: new THREE.Color('#222222'),
+      emissive: new THREE.Color('#ffcc88'),
+      emissiveIntensity: 3.5,
+      roughness: 0.3,
+    });
+
     scene.traverse((child: any) => {
       // 1. Disable raw uncalibrated KHR punctual lights from GLB
       if (child.isLight) {
@@ -208,17 +231,13 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
           child.material.map.colorSpace = THREE.SRGBColorSpace;
         }
 
-        // Street lamps emissive
+        // Street lamps emissive (shared material to eliminate shader compile hitch)
         if (matName.includes('lamp_material') || matName.includes('lamp')) {
-          child.material = child.material.clone();
-          child.material.emissive = new THREE.Color(lampColor);
-          child.material.emissiveIntensity = lampIntensity;
+          child.material = sharedLampMaterial;
         }
-        // Glowing windows
-        if (matName.includes('window')) {
-          child.material = child.material.clone();
-          child.material.emissive = new THREE.Color('#ffcc88');
-          child.material.emissiveIntensity = 3.5;
+        // Glowing windows (shared material to eliminate shader compile hitch)
+        else if (matName.includes('window')) {
+          child.material = sharedWindowMaterial;
         }
       }
 
@@ -464,36 +483,66 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
       }
     }
 
+    const pPos = globalPlayerState.position;
+
+    // 9. Dynamic Atmospheric PointLights with Distance Culling
     if (stonehengeLightRef.current) {
-      const baseStonehenge = stonehengeSolved ? 4.5 : 2.0;
-      stonehengeLightRef.current.intensity =
-        baseStonehenge + Math.sin(time * 2.2) * (baseStonehenge * 0.2);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_STONEHENGE) < 35 * 35 : false;
+      stonehengeLightRef.current.visible = near;
+      if (near) {
+        const baseStonehenge = stonehengeSolved ? 4.5 : 2.0;
+        stonehengeLightRef.current.intensity =
+          baseStonehenge + Math.sin(time * 2.2) * (baseStonehenge * 0.2);
+      }
     }
 
-    // 9. Dynamic Atmospheric PointLights with breathing pulse animations
     if (summitLightRef.current) {
-      summitLightRef.current.intensity =
-        beaconIntensity + Math.sin(time * 2.2) * (beaconIntensity * 0.25);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_SUMMIT) < 45 * 45 : false;
+      summitLightRef.current.visible = near;
+      if (near) {
+        summitLightRef.current.intensity =
+          beaconIntensity + Math.sin(time * 2.2) * (beaconIntensity * 0.25);
+      }
     }
     if (courtyardLightRef.current) {
-      courtyardLightRef.current.intensity =
-        courtyardIntensity + Math.sin(time * 1.6) * (courtyardIntensity * 0.25);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_COURTYARD) < 25 * 25 : false;
+      courtyardLightRef.current.visible = near;
+      if (near) {
+        courtyardLightRef.current.intensity =
+          courtyardIntensity + Math.sin(time * 1.6) * (courtyardIntensity * 0.25);
+      }
     }
     if (wayCrossLightRef.current) {
-      wayCrossLightRef.current.intensity =
-        waystoneIntensity + Math.sin(time * 2.0) * (waystoneIntensity * 0.20);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_CROSSROADS) < 22 * 22 : false;
+      wayCrossLightRef.current.visible = near;
+      if (near) {
+        wayCrossLightRef.current.intensity =
+          waystoneIntensity + Math.sin(time * 2.0) * (waystoneIntensity * 0.20);
+      }
     }
     if (wayDocksLightRef.current) {
-      wayDocksLightRef.current.intensity =
-        waystoneIntensity + Math.sin(time * 2.0 + 1.2) * (waystoneIntensity * 0.20);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_DOCKS) < 22 * 22 : false;
+      wayDocksLightRef.current.visible = near;
+      if (near) {
+        wayDocksLightRef.current.intensity =
+          waystoneIntensity + Math.sin(time * 2.0 + 1.2) * (waystoneIntensity * 0.20);
+      }
     }
     if (portalLightRef.current) {
-      portalLightRef.current.intensity =
-        portalIntensity + Math.sin(time * 2.6) * (portalIntensity * 0.25);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_PORTAL) < 30 * 30 : false;
+      portalLightRef.current.visible = near;
+      if (near) {
+        portalLightRef.current.intensity =
+          portalIntensity + Math.sin(time * 2.6) * (portalIntensity * 0.25);
+      }
     }
     if (moonwellLightRef.current) {
-      moonwellLightRef.current.intensity =
-        moonwellIntensity + Math.sin(time * 1.8) * (moonwellIntensity * 0.25);
+      const near = pPos ? pPos.distanceToSquared(LIGHT_POS_MOONWELL) < 25 * 25 : false;
+      moonwellLightRef.current.visible = near;
+      if (near) {
+        moonwellLightRef.current.intensity =
+          moonwellIntensity + Math.sin(time * 1.8) * (moonwellIntensity * 0.25);
+      }
     }
 
     // 10. Traveling Ship (Galleon) along island coastline + moored pier vessels
@@ -539,7 +588,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
       {/* 4. Arcane Waystone - Harbor Docks */}
       <pointLight
         ref={wayDocksLightRef}
-        position={[102.0, 5.0, 125.0]}
+        position={[96.0, 5.0, 126.5]}
         color="#00e5ff"
         intensity={waystoneIntensity}
         distance={16.0}
@@ -582,7 +631,7 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
 
 const WAYSTONE_CROSSROADS_POS = new THREE.Vector3(8.0, 3.5, 10.0);
 const WAYSTONE_CROSSROADS_POS2 = new THREE.Vector3(8.0, 3.5, 17.75);
-const WAYSTONE_DOCKS_POS = new THREE.Vector3(102.0, 3.5, 125.0);
+const WAYSTONE_DOCKS_POS = new THREE.Vector3(99.75, 3.2, 123.26);
 const CITADEL_PORTAL_POS = new THREE.Vector3(-15.0, 3.5, -105.0);
 const WATCHTOWER_SUMMIT_POS = new THREE.Vector3(-0.23, 58.0, -108.77);
 const ENCHANTED_MOONWELL_POS = new THREE.Vector3(-50.0, 3.5, 35.0);
@@ -705,7 +754,7 @@ const InteractiveMagicLocations: React.FC = () => {
     if (!zone) return;
 
     if (zone === 'crossroads') {
-      teleportPlayer({ x: 102.0, y: 5.5, z: 125.0 });
+      teleportPlayer({ x: 99.75, y: 3.5, z: 123.26 });
     } else if (zone === 'docks') {
       teleportPlayer({ x: 8.0, y: 5.5, z: 10.0 });
     } else if (zone === 'portal') {
@@ -851,41 +900,18 @@ const InteractiveMagicLocations: React.FC = () => {
 };
 
 export const Environment: React.FC = () => {
-  const {
-    magicSpeed,
-    crystalGlow,
-    beaconIntensity,
-    courtyardIntensity,
-    waystoneIntensity,
-    portalIntensity,
-    moonwellIntensity
-  } = useControls('Celestial Magic System', {
-    magicSpeed: { value: 1.0, min: 0, max: 3.0, step: 0.1, label: 'Animation Speed' },
-    crystalGlow: { value: 0.6, min: 0.1, max: 2.5, step: 0.1, label: 'Crystal Emissive' },
-    beaconIntensity: { value: 2.5, min: 0, max: 8.0, step: 0.1, label: 'Summit Beacon' },
-    courtyardIntensity: { value: 1.8, min: 0, max: 6.0, step: 0.1, label: 'Observatory Light' },
-    waystoneIntensity: { value: 2.2, min: 0, max: 6.0, step: 0.1, label: 'Waystones Light' },
-    portalIntensity: { value: 2.8, min: 0, max: 8.0, step: 0.1, label: 'Portal Light' },
-    moonwellIntensity: { value: 2.0, min: 0, max: 6.0, step: 0.1, label: 'Moonwell Light' }
-  });
+  const magicSpeed = 1.0;
+  const crystalGlow = 0.6;
+  const beaconIntensity = 2.5;
+  const courtyardIntensity = 1.8;
+  const waystoneIntensity = 2.2;
+  const portalIntensity = 2.8;
+  const moonwellIntensity = 2.0;
 
-  const { fanSpeed } = useControls('Windmill', {
-    fanSpeed: { value: 1.8, min: 0, max: 10, step: 0.1, label: 'Fan Speed' }
-  });
+  const fanSpeed = 1.8;
 
-  const [{ lampPreset, lampColor, lampIntensity }, setLamp] = useControls('Street Lamp', () => ({
-    lampPreset: {
-      options: Object.keys(lampPresets),
-      value: 'Warm Vintage',
-      onChange: (v: string) => {
-        if (v && lampPresets[v]) {
-          setLamp({ lampColor: lampPresets[v].color, lampIntensity: lampPresets[v].intensity });
-        }
-      }
-    },
-    lampColor: { value: '#ffaa00', label: 'Lamp Color' },
-    lampIntensity: { value: 3.8, min: 0, max: 10, step: 0.1, label: 'Glow Intensity' }
-  })) as any;
+  const lampColor = '#ffaa00';
+  const lampIntensity = 3.8;
 
   // Lamps state for dynamic point light illumination
   const [allLamps, setAllLamps] = useState<THREE.Vector3[]>([]);

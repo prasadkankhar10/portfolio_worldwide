@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls } from '@react-three/drei';
 import type { KeyboardControlsEntry } from '@react-three/drei';
-import { Suspense, useMemo, useEffect } from 'react';
+import { Suspense, useMemo, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { Layout } from './components/Layout';
 import { Scene } from './components/3d/Scene';
@@ -10,9 +10,10 @@ import { DialogOverlay } from './components/ui/DialogOverlay';
 import { MobileControls } from './components/ui/MobileControls';
 import { RotateDeviceOverlay } from './components/ui/RotateDeviceOverlay';
 import { PortfolioTracker } from './components/ui/PortfolioTracker';
-import { PerformanceProfilerHUD } from './components/ui/PerformanceProfilerHUD';
 import { StationPortfolioModal } from './components/ui/StationPortfolioModal';
 import { StationHUDPrompt } from './components/ui/StationHUDPrompt';
+import { QuickPortfolioModal } from './components/ui/QuickPortfolioModal';
+import { Leva } from 'leva';
 
 export const Controls = {
   forward: 'forward',
@@ -33,6 +34,21 @@ function App() {
   const setIsLowPowerGpu = useGameStore((state) => state.setIsLowPowerGpu);
   const isMobile = useGameStore((state) => state.isMobile);
   const performanceMode = useGameStore((state) => state.performanceMode);
+
+  // Auto-pause Three.js render loop when tab is hidden to prevent Chrome background tab lag and GPU resource starvation
+  const [isTabVisible, setIsTabVisible] = useState<boolean>(
+    typeof document !== 'undefined' ? !document.hidden : true
+  );
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     // 1. Is this definitely a Desktop OS (Windows, Mac, Linux desktop)?
@@ -75,7 +91,6 @@ function App() {
           store.setActiveRitual(true);
           store.setRitualState('gathering');
         } else {
-          // Pressing Y again cancels it for testing
           store.setActiveRitual(false);
           store.setRitualState('idle');
         }
@@ -96,16 +111,18 @@ function App() {
 
   return (
     <KeyboardControls map={map}>
+      <Leva hidden />
       <Layout />
-      <PerformanceProfilerHUD />
       <StationHUDPrompt />
       <StationPortfolioModal />
+      <QuickPortfolioModal />
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
       {hasStarted && <PortfolioTracker />}
       {isMobile && <RotateDeviceOverlay />}
       <div className="absolute inset-0 z-0">
         <Canvas
+          frameloop={isTabVisible ? 'always' : 'never'}
           shadows={!performanceMode}
           camera={{ position: [0, 5, 10], fov: 60, near: 0.1, far: 1000 }}
           gl={{ 

@@ -138,7 +138,7 @@ export const ElfNPC = ({
     if (!containerRef.current || !currentAnim.current) return;
     if (startupTimer.current < 1.0) { startupTimer.current += delta; return; }
 
-    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 40;
+    const shouldBeVisible = globalPlayerState.position.distanceTo(containerRef.current.position) < 28;
     if (containerRef.current.visible !== shouldBeVisible) {
       containerRef.current.visible = shouldBeVisible;
       mixer.timeScale = shouldBeVisible ? 1 : 0;
@@ -149,7 +149,7 @@ export const ElfNPC = ({
     const npcPos = containerRef.current.position;
     // --- SHADOW CULLING ---
     const distToCam = rootState.camera.position.distanceTo(npcPos);
-    const shouldCastShadow = distToCam < 35; 
+    const shouldCastShadow = false; 
     if (clone.userData.isShadowCulled !== shouldCastShadow) {
       clone.userData.isShadowCulled = shouldCastShadow;
       clone.traverse((child: any) => {

@@ -19,8 +19,7 @@ interface PortfolioTriggerManagerProps {
 }
 
 const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, number]; radius: number }[] = [
-  // 1. Core & Accreditations (Spaced across Harbor & Town)
-  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier Welcome', pos: [107.0, 3.06, 120.58], radius: 6.5 },
+  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier • Connect Station', pos: [108.89, 3.1, 118.04], radius: 6.5 },
   { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [85.0, 3.0, 118.0], radius: 6.5 },
   { id: 'TRIGGER_Hall_Certifications', name: 'Harvard CS50x Hall', pos: [65.0, 3.0, 95.0], radius: 6.5 },
   { id: 'TRIGGER_Village_About', name: 'Village Square About', pos: [45.0, 3.0, -4.0], radius: 6.0 },
@@ -29,7 +28,7 @@ const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, numbe
 
   // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
   { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [6.0, 3.0, -17.5], radius: 6.0 },
-  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [22.0, 3.0, -6.0], radius: 6.0 },
+  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [18.0, 3.0, -2.0], radius: 6.0 },
   { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [81.88, 3.0, -68.15], radius: 6.0 },
   { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [56.64, 3.0, -27.05], radius: 6.0 },
   { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [42.22, 3.0, -16.48], radius: 6.0 },
@@ -46,18 +45,18 @@ const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, numbe
 
   // 5. Nature, Grove & Western Meadows
   { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-18.0, 3.0, 58.0], radius: 6.5 },
-  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.85, 53.47], radius: 6.5 },
+  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.6, 53.47], radius: 6.5 },
   { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Tabletop Beacon', pos: [-32.0, 3.0, 22.17], radius: 6.5 },
   { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-72.0, 3.0, 12.0], radius: 6.5 },
 
   // 6. Historic Megaliths & Cliff Overlook
-  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 1.87, 52.85], radius: 7.0 },
+  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 2.49, 52.85], radius: 7.0 },
   { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [72.0, 3.0, 18.0], radius: 6.5 },
 
   // 7. Mountain Pass & High Citadel
   { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [0.0, 3.0, -92.0], radius: 6.5 },
   { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-30.0, 3.0, -80.0], radius: 7.0 },
-  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.5, -100.0], radius: 8.0 },
+  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.0, -100.0], radius: 8.0 },
 ];
 
 export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = ({ triggerZones }) => {
@@ -115,8 +114,13 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
     return items;
   }, [triggerZones]);
 
-  // Check player distance to all 9 station triggers every frame
+  const triggerCheckFrame = useRef(0);
+
+  // Check player distance to station triggers (throttled to 15 times/sec for max performance)
   useFrame(() => {
+    triggerCheckFrame.current++;
+    if (triggerCheckFrame.current % 4 !== 0) return;
+
     const playerPos = globalPlayerState.position;
     if (!playerPos || triggerItems.length === 0) return;
 

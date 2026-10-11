@@ -21,8 +21,6 @@ interface GameStore {
   setGameState: (state: GameState) => void;
   activeSection: PortfolioSection;
   setActiveSection: (section: PortfolioSection) => void;
-  debugMenuOpen: boolean;
-  setDebugMenuOpen: (open: boolean) => void;
   isFreeCam: boolean;
   toggleFreeCam: () => void;
   hasStarted: boolean;
@@ -96,6 +94,17 @@ interface GameStore {
   setStationModalOpen: (open: boolean) => void;
   activeStationPrompt: string | null;
   setActiveStationPrompt: (prompt: string | null) => void;
+  // Quick Traditional 2D Portfolio View
+  isQuickPortfolioOpen: boolean;
+  setQuickPortfolioOpen: (open: boolean) => void;
+  // Royal Courier Vessel & Message Delivery Simulation
+  courierShipState: 'moored' | 'departing' | 'voyaging' | 'delivered';
+  courierShipDispatchTime: number;
+  courierMessageInfo: { name: string; email: string; subject?: string; message: string; timestamp: number } | null;
+  isWatchingVessel: boolean;
+  dispatchCourierShip: (info: { name: string; email: string; subject?: string; message: string }) => void;
+  setIsWatchingVessel: (watching: boolean) => void;
+  resetCourierShip: () => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -115,8 +124,6 @@ export const useGameStore = create<GameStore>((set) => ({
   setGameState: (state) => set({ gameState: state }),
   activeSection: 'none',
   setActiveSection: (section) => set({ activeSection: section }),
-  debugMenuOpen: false,
-  setDebugMenuOpen: (open) => set({ debugMenuOpen: open }),
   isFreeCam: false,
   toggleFreeCam: () => set((state) => ({ isFreeCam: !state.isFreeCam })),
   hasStarted: false,
@@ -134,7 +141,7 @@ export const useGameStore = create<GameStore>((set) => ({
   setIsMobile: (mobile) => set({ isMobile: mobile }),
   isLowPowerGpu: false,
   setIsLowPowerGpu: (lowPower) => set({ isLowPowerGpu: lowPower }),
-  performanceMode: false,
+  performanceMode: true,
   setPerformanceMode: (enabled) => set({ performanceMode: enabled }),
   togglePerformanceMode: () => set((state) => ({ performanceMode: !state.performanceMode })),
   virtualJoystick: { x: 0, y: 0 },
@@ -220,4 +227,33 @@ export const useGameStore = create<GameStore>((set) => ({
   },
   activeStationPrompt: null,
   setActiveStationPrompt: (prompt) => set({ activeStationPrompt: prompt }),
+  // Quick Traditional 2D Portfolio View
+  isQuickPortfolioOpen: false,
+  setQuickPortfolioOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isQuickPortfolioOpen: open });
+  },
+  // Royal Courier Vessel & Message Delivery Simulation
+  courierShipState: 'moored',
+  courierShipDispatchTime: 0,
+  courierMessageInfo: null,
+  isWatchingVessel: false,
+  dispatchCourierShip: (info) => {
+    set({
+      courierShipState: 'departing',
+      courierShipDispatchTime: performance.now(),
+      courierMessageInfo: { ...info, timestamp: Date.now() },
+    });
+  },
+  setIsWatchingVessel: (watching) => set({ isWatchingVessel: watching }),
+  resetCourierShip: () => {
+    set({
+      courierShipState: 'moored',
+      courierShipDispatchTime: 0,
+      courierMessageInfo: null,
+      isWatchingVessel: false,
+    });
+  },
 }));
