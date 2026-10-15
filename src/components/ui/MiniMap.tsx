@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import * as THREE from 'three';
 import { globalPlayerState } from '../3d/Character';
 import { globalCourierShipState } from '../3d/ShipFleetController';
 import { STATION_MONUMENT_DEFS, type StationMonumentDef } from '../3d/StationMonuments';
 import { useGameStore } from '../../store/useGameStore';
 import { 
-  Compass, Maximize2, Minimize2, Plus, Minus, 
+  Compass, Maximize2, Minimize2, 
   Ship, MapPin, Navigation, X, ExternalLink, Search, Locate
 } from 'lucide-react';
 
@@ -21,6 +22,23 @@ const MAP_BOUNDS = {
 
 // URL to rendered satellite island terrain texture
 const MAP_TEXTURE_URL = `${import.meta.env.BASE_URL}textures/island_map.png`;
+
+// Static vectors for telemetry heading without GC overhead
+const _charForward = new THREE.Vector3(0, 0, 1);
+const _tempForward = new THREE.Vector3();
+
+// Telemetry Cardinal Heading Helper (North = 0°, East = 90°, South = 180°, West = 270°)
+function getCardinalDirection(deg: number): string {
+  const normalized = ((deg % 360) + 360) % 360;
+  if (normalized >= 337.5 || normalized < 22.5) return 'N';
+  if (normalized >= 22.5 && normalized < 67.5) return 'NE';
+  if (normalized >= 67.5 && normalized < 112.5) return 'E';
+  if (normalized >= 112.5 && normalized < 157.5) return 'SE';
+  if (normalized >= 157.5 && normalized < 202.5) return 'S';
+  if (normalized >= 202.5 && normalized < 247.5) return 'SW';
+  if (normalized >= 247.5 && normalized < 292.5) return 'W';
+  return 'NW';
+}
 
 // Detect active region from world coordinates
 function getRegionName(x: number, z: number): string {
@@ -70,12 +88,10 @@ export const MiniMap: React.FC = () => {
         const pos = globalPlayerState.position;
         const q = globalPlayerState.quaternion;
 
-        // Calculate heading in degrees (0 = North, 90 = East, 180 = South, 270 = West)
-        const forward = {
-          x: 2 * (q.x * q.z + q.w * q.y),
-          z: 1 - 2 * (q.x * q.x + q.y * q.y)
-        };
-        const headingRad = Math.atan2(forward.x, forward.z);
+        // In Three.js, character forward is (0,0,1) rotated by characterRef.quaternion
+        // On screen: North is UP (-Z), East is RIGHT (+X), South is DOWN (+Z), West is LEFT (-X)
+        _tempForward.copy(_charForward).applyQuaternion(q);
+        const headingRad = Math.atan2(_tempForward.x, -_tempForward.z);
         const headingDeg = (headingRad * 180) / Math.PI;
 
         setPlayerCoord({
@@ -345,27 +361,11 @@ export const MiniMap: React.FC = () => {
                   <line x1="4" y1="50" x2="96" y2="50" stroke="#527C68" strokeWidth="0.3" strokeOpacity="0.3" strokeDasharray="1 4" />
                 </svg>
 
-                {/* 5. Sweeping Radar Beam */}
-                <div 
-                  className="absolute inset-0 pointer-events-none animate-spin-slow opacity-25"
-                  style={{
-                    background: 'conic-gradient(from 0deg, rgba(212,183,119,0) 0deg, rgba(212,183,119,0.35) 60deg, transparent 65deg)'
-                  }}
-                />
-
-                {/* 6. Cardinal Points (N, S, E, W) */}
+                {/* Cardinal Points (N, S, E, W) */}
                 <span className="absolute top-1.5 left-1/2 -translate-x-1/2 font-mono text-[10px] font-extrabold text-[#D4B777] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">N</span>
                 <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 font-mono text-[9px] font-bold text-[#E9E4D7]/60 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">S</span>
                 <span className="absolute left-2 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-[#E9E4D7]/60 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">W</span>
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-[#E9E4D7]/60 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">E</span>
-
-                {/* 7. Convex Lens Glass Reflection Overlay */}
-                <div 
-                  className="absolute inset-0 rounded-full pointer-events-none shadow-[inset_0_2px_8px_rgba(255,255,255,0.2),inset_0_-4px_12px_rgba(0,0,0,0.8)]"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 40%, transparent 60%)'
-                  }}
-                />
 
                 {/* Hover Tooltip */}
                 {hoveredStation && (
@@ -375,13 +375,19 @@ export const MiniMap: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Ticker: Region & Coordinates */}
-              <div className="mt-1.5 px-3.5 py-1 rounded-full bg-[#182522]/95 border border-[#D4B777]/30 shadow-md text-center max-w-[220px]">
+              {/* Bottom Ticker: Region & Real Telemetry */}
+              <div className="mt-1.5 px-3.5 py-1 rounded-full bg-[#182522]/95 border border-[#D4B777]/30 shadow-md text-center max-w-[240px]">
                 <p className="text-[10px] font-heading font-bold text-[#D4B777] truncate">
                   {currentRegion}
                 </p>
-                <p className="text-[9px] font-mono text-[#E9E4D7]/75">
-                  X: {playerCoord.x.toFixed(1)} · Z: {playerCoord.z.toFixed(1)}
+                <p className="text-[9px] font-mono text-[#E9E4D7]/85 flex items-center justify-center gap-1.5">
+                  <span className="text-[#D4B777] font-bold">
+                    Facing {getCardinalDirection(playerCoord.headingDeg)} ({Math.round(((playerCoord.headingDeg % 360) + 360) % 360)}°)
+                  </span>
+                  <span className="text-[#527C68]">·</span>
+                  <span>X: {playerCoord.x.toFixed(1)}</span>
+                  <span className="text-[#527C68]">·</span>
+                  <span>Z: {playerCoord.z.toFixed(1)}</span>
                 </p>
               </div>
 
