@@ -84,15 +84,9 @@ export const MiniMap: React.FC = () => {
       if (timestamp - lastUpdate > 32) {
         lastUpdate = timestamp;
 
-        // 1. Read player transform from 3D Character
+        // 1. Read player transform and synchronized camera heading from 3D Character
         const pos = globalPlayerState.position;
-        const q = globalPlayerState.quaternion;
-
-        // In Three.js, character forward is (0,0,1) rotated by characterRef.quaternion
-        // On screen: North is UP (-Z), East is RIGHT (+X), South is DOWN (+Z), West is LEFT (-X)
-        _tempForward.copy(_charForward).applyQuaternion(q);
-        const headingRad = Math.atan2(_tempForward.x, -_tempForward.z);
-        const headingDeg = (headingRad * 180) / Math.PI;
+        const headingDeg = globalPlayerState.headingDeg;
 
         setPlayerCoord({
           x: pos.x,
@@ -179,6 +173,36 @@ export const MiniMap: React.FC = () => {
 
   // Zoom scale for follow radar mode
   const followZoom = 3.2;
+
+  // Sleek AAA Navigator Arrow Beacon with integrated direction chevron & soft FOV wedge
+  const renderNavigatorArrow = (isOverview = false) => (
+    <div 
+      style={{ transform: `rotate(${playerCoord.headingDeg}deg)` }}
+      className="relative flex items-center justify-center transition-transform duration-75"
+    >
+      <svg 
+        viewBox="-16 -16 32 32" 
+        className={`${isOverview ? 'w-6 h-6' : 'w-8 h-8'} drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] pointer-events-none`}
+      >
+        {/* Soft forward FOV vision fan (flashlight beam) */}
+        <path 
+          d="M 0 0 L -10 -18 A 21 21 0 0 1 10 -18 Z" 
+          fill="#D4B777" 
+          fillOpacity="0.28" 
+        />
+        {/* Crisp Golden Navigator Arrow Chevron */}
+        <path 
+          d="M 0 -11 L 6.5 6 L 0 2.8 L -6.5 6 Z" 
+          fill="#D4B777" 
+          stroke="#182522" 
+          strokeWidth="1.2" 
+          strokeLinejoin="round" 
+        />
+        {/* Glowing Emerald Core */}
+        <circle cx="0" cy="0.5" r="2.2" fill="#10b981" stroke="#064e3b" strokeWidth="0.6" />
+      </svg>
+    </div>
+  );
 
   return (
     <>
@@ -320,15 +344,7 @@ export const MiniMap: React.FC = () => {
                       style={{ left: `${playerPercent.left}%`, top: `${playerPercent.top}%` }}
                       className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30 transition-all duration-75"
                     >
-                      <div 
-                        style={{ transform: `rotate(${playerCoord.headingDeg}deg)` }}
-                        className="relative flex items-center justify-center"
-                      >
-                        {/* Forward Vision Cone */}
-                        <div className="absolute -top-3 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[9px] border-b-[#D4B777]" />
-                        {/* Center Beacon Dot */}
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-[#182522] shadow-[0_0_10px_#10b981]" />
-                      </div>
+                      {renderNavigatorArrow(true)}
                     </div>
                   )}
 
@@ -337,15 +353,7 @@ export const MiniMap: React.FC = () => {
                 {/* 3. Center Fixed Player Beacon in Follow Mode */}
                 {radarMode === 'follow' && (
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30">
-                    <div 
-                      style={{ transform: `rotate(${playerCoord.headingDeg}deg)` }}
-                      className="relative flex items-center justify-center transition-transform duration-75"
-                    >
-                      {/* Sweeping FOV vision cone */}
-                      <div className="absolute -top-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[14px] border-b-[#D4B777]/90 drop-shadow-[0_0_6px_rgba(212,183,119,0.8)]" />
-                      {/* Center Beacon Dot */}
-                      <div className="w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#182522] shadow-[0_0_12px_#34d399]" />
-                    </div>
+                    {renderNavigatorArrow(false)}
                   </div>
                 )}
 
@@ -558,15 +566,7 @@ export const MiniMap: React.FC = () => {
                   style={{ left: `${playerPercent.left}%`, top: `${playerPercent.top}%` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30 transition-all duration-75"
                 >
-                  <div 
-                    style={{ transform: `rotate(${playerCoord.headingDeg}deg)` }}
-                    className="relative flex items-center justify-center"
-                  >
-                    {/* Vision Cone */}
-                    <div className="absolute -top-4 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[12px] border-b-[#D4B777] drop-shadow-[0_0_8px_#D4B777]" />
-                    {/* Player Center Node */}
-                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#182522] shadow-[0_0_12px_#34d399]" />
-                  </div>
+                  {renderNavigatorArrow(false)}
                 </div>
 
               </div>

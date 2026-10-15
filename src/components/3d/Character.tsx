@@ -10,7 +10,8 @@ import { globalCourierShipState } from './ShipFleetController';
 
 export const globalPlayerState = {
   position: new THREE.Vector3(),
-  quaternion: new THREE.Quaternion()
+  quaternion: new THREE.Quaternion(),
+  headingDeg: 0
 };
 
 // Static pre-allocated vectors to prevent GC allocations in useFrame
@@ -207,14 +208,20 @@ export const Character = () => {
       yEl.innerText = charTranslation.y.toFixed(1);
       zEl.innerText = charTranslation.z.toFixed(1);
     }
-    if (dirEl && state.camera) {
+    if (state.camera) {
       const forwardVec = _charForwardVec.set(0, 0, -1).applyQuaternion(state.camera.quaternion);
-      const angle = Math.atan2(forwardVec.x, forwardVec.z);
-      let dir = 'N';
-      if (angle >= -Math.PI/4 && angle < Math.PI/4) dir = 'S';
-      else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) dir = 'E';
-      else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) dir = 'W';
-      dirEl.innerText = dir;
+      // Synchronize exact camera heading in degrees with screen map (North = 0°, East = 90°, South = 180°, West = 270°)
+      const headingDeg = Math.atan2(forwardVec.x, -forwardVec.z) * (180 / Math.PI);
+      globalPlayerState.headingDeg = headingDeg;
+
+      if (dirEl) {
+        const angle = Math.atan2(forwardVec.x, forwardVec.z);
+        let dir = 'N';
+        if (angle >= -Math.PI/4 && angle < Math.PI/4) dir = 'S';
+        else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) dir = 'E';
+        else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) dir = 'W';
+        dirEl.innerText = dir;
+      }
     }
     
     // Export real-time position and rotation for NPCs
