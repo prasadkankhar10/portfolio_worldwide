@@ -82,6 +82,8 @@ export const HUD: React.FC = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#101a18]/80 border border-[#527C68]/30 text-[11px] font-mono text-[#E9E4D7]/75">
               <span><kbd className="text-[#D4B777] font-bold">M</kbd> Journal</span>
               <span>•</span>
+              <span><kbd className="text-[#D4B777] font-bold">N</kbd> Map</span>
+              <span>•</span>
               <span><kbd className="text-[#D4B777] font-bold">E</kbd> Stations</span>
               <span>•</span>
               <span><kbd className="text-[#D4B777] font-bold">Esc</kbd> Menu</span>
@@ -110,6 +112,11 @@ export const HUD: React.FC = () => {
               <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
                 <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">M</kbd>
                 <span>Journal</span>
+              </span>
+              <span className="text-[#527C68]/60">·</span>
+              <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
+                <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">N</kbd>
+                <span>Map</span>
               </span>
             </div>
           </div>
@@ -205,6 +212,21 @@ export const HUD: React.FC = () => {
 
         {/* Right: Quick Navigation Hub */}
         <div className="pointer-events-auto flex items-center gap-2">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof document !== 'undefined' && document.pointerLockElement) {
+                document.exitPointerLock();
+              }
+              window.dispatchEvent(new CustomEvent('toggle-world-map'));
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Open Expedition Map (N)"
+          >
+            <Compass className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span className="hidden sm:inline">Map</span>
+          </button>
+
           <button 
             onClick={(e) => {
               e.stopPropagation();
