@@ -9,7 +9,7 @@ import {
   X, ExternalLink, Mail, Download, 
   MapPin, Sparkles, Code2, Gamepad2, Award, BookOpen, 
   Compass, ChevronRight, CheckCircle2, Search, Cpu, Globe, 
-  Layers, Terminal, Trophy, Binary, ArrowUpRight
+  Layers, Terminal, Trophy, Binary, ArrowUpRight, AlertTriangle
 } from 'lucide-react';
 
 const GithubIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -376,6 +376,27 @@ export const StationPortfolioModal: React.FC = () => {
           <div className="px-4 py-2 rounded-xl border border-[#527C68]/25 bg-[#101a18]/40 text-xs font-sans text-[#E9E4D7]/80 mb-4 flex items-center gap-2">
             <span>{theme.tagline}</span>
           </div>
+
+          {/* Pending Action Items Warning Banner (Marked Left / To Add Manually) */}
+          {currentData.manualActionRequired && (
+            <div className="p-4 rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-950/60 via-[#182522] to-amber-950/40 text-amber-200 mb-5 shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+              <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-wider text-amber-400 mb-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Action Required • Pending Manual Addition</span>
+              </div>
+              <p className="text-xs text-amber-200/90 mb-2.5 font-sans leading-relaxed">
+                {currentData.manualActionRequired.summary}:
+              </p>
+              <ul className="space-y-1.5 text-xs text-amber-300 font-mono">
+                {currentData.manualActionRequired.items.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2 bg-amber-950/40 p-2 rounded-lg border border-amber-500/20">
+                    <span className="text-amber-400 font-bold shrink-0">⚠️</span>
+                    <span className="leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Quantified Performance Ribbon (Section D from Blueprint) */}
           {((theme.metricsRibbon && theme.metricsRibbon.length > 0) || (currentData.metrics && currentData.metrics.length > 0)) && (

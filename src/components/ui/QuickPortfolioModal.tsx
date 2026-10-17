@@ -8,7 +8,7 @@ import {
   Compass, Binary, ArrowUpRight, Terminal, 
   BrainCircuit, Globe, Layers, CheckCircle2,
   FileText, Briefcase, GraduationCap, ChevronRight,
-  ShieldCheck, MapPin
+  ShieldCheck, MapPin, AlertTriangle
 } from 'lucide-react';
 
 const GithubIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -411,11 +411,16 @@ export const QuickPortfolioModal: React.FC = () => {
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#527C68]/20 border border-[#527C68]/40 text-[#D4B777]">
                           {project.category}
                         </span>
-                        {project.badge && (
+                        {project.manualActionRequired ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-900/40 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3 text-amber-400" />
+                            <span>Action Pending</span>
+                          </span>
+                        ) : project.badge ? (
                           <span className="text-[10px] font-mono text-[#E9E4D7]/60">
                             {project.badge}
                           </span>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Project Title */}
@@ -431,9 +436,22 @@ export const QuickPortfolioModal: React.FC = () => {
                       )}
 
                       {/* Description */}
-                      <p className="text-xs text-[#E9E4D7]/80 font-sans leading-relaxed mb-4 line-clamp-4">
+                      <p className="text-xs text-[#E9E4D7]/80 font-sans leading-relaxed mb-3 line-clamp-3">
                         {project.description || project.shortBio || ''}
                       </p>
+
+                      {/* Pending Action Items Warning */}
+                      {project.manualActionRequired && (
+                        <div className="p-2.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-200 mb-3 text-[11px] font-mono">
+                          <span className="font-bold text-amber-400 block mb-0.5 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>Pending Manual Addition:</span>
+                          </span>
+                          <span className="text-amber-200/80 text-[10px] line-clamp-2 leading-relaxed">
+                            {project.manualActionRequired.items.join(' • ')}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Quantified Metrics Ribbon */}
                       {metrics.length > 0 && (
