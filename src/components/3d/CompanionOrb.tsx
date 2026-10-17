@@ -123,10 +123,10 @@ export function CompanionOrb() {
       
       <pointLight 
         ref={lightRef} 
-        color="#ffaa33" 
-        intensity={3.2} 
-        distance={16} 
-        decay={1.6} 
+        color="#ffcc66" 
+        intensity={4.0} 
+        distance={24} 
+        decay={1.3} 
       />
     </group>
   );

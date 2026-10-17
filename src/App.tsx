@@ -141,7 +141,7 @@ function App() {
             antialias: !performanceMode, 
             powerPreference: 'high-performance',
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.25
+            toneMappingExposure: 1.55
           }}
           dpr={performanceMode ? 1 : [1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.2)]}
         >

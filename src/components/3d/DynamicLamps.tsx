@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { globalPlayerState } from './Character';
@@ -14,8 +14,83 @@ interface LampDistance {
   distSq: number;
 }
 
-const MAX_LIGHTS = 3; // Strict limit to prevent WebGL from crashing
-const CULL_DISTANCE = 25; // How far before light fades out
+const MAX_LIGHTS = 4; // Upgraded from 3 to 4 for richer local coverage
+const CULL_DISTANCE = 32; // Expanded cull distance
+
+/**
+ * VolumetricLightBeams: Renders visible glowing light shafts and ground light pools
+ * beneath all 46 street lamps in just 2 draw calls using InstancedMesh.
+ */
+const VolumetricLightBeams: React.FC<{ lampPositions: THREE.Vector3[]; lampColor: string }> = ({ lampPositions, lampColor }) => {
+  const beamMeshRef = useRef<THREE.InstancedMesh>(null);
+  const poolMeshRef = useRef<THREE.InstancedMesh>(null);
+
+  const [coneGeo, poolGeo, beamMat, poolMat] = useMemo(() => {
+    // Inverted tapered cone geometry: radiusTop: 0.25, radiusBottom: 2.8, height: 5.0
+    const cGeo = new THREE.CylinderGeometry(0.25, 2.8, 5.0, 16, 1, true);
+    // Offset cone center so its apex attaches directly to the lamp fixture
+    cGeo.translate(0, -2.5, 0);
+
+    const pGeo = new THREE.CircleGeometry(2.8, 16);
+    pGeo.rotateX(-Math.PI / 2);
+
+    const bMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(lampColor),
+      transparent: true,
+      opacity: 0.18,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+
+    const pMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(lampColor),
+      transparent: true,
+      opacity: 0.24,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    return [cGeo, pGeo, bMat, pMat];
+  }, [lampColor]);
+
+  useEffect(() => {
+    if (!beamMeshRef.current || !poolMeshRef.current || lampPositions.length === 0) return;
+
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < lampPositions.length; i++) {
+      const pos = lampPositions[i];
+      // Volumetric beam hangs from the lamp fixture
+      dummy.position.set(pos.x, pos.y, pos.z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      beamMeshRef.current.setMatrixAt(i, dummy.matrix);
+
+      // Light pool sits at ground level beneath the lamp
+      dummy.position.set(pos.x, Math.max(0.08, pos.y - 4.95), pos.z);
+      dummy.updateMatrix();
+      poolMeshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    beamMeshRef.current.instanceMatrix.needsUpdate = true;
+    poolMeshRef.current.instanceMatrix.needsUpdate = true;
+  }, [lampPositions]);
+
+  return (
+    <group>
+      <instancedMesh
+        ref={beamMeshRef}
+        args={[coneGeo, beamMat, lampPositions.length]}
+        frustumCulled={false}
+      />
+      <instancedMesh
+        ref={poolMeshRef}
+        args={[poolGeo, poolMat, lampPositions.length]}
+        frustumCulled={false}
+      />
+    </group>
+  );
+};
 
 export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: DynamicLampsProps) => {
   const lightRefs = useRef<(THREE.PointLight | null)[]>([]);
@@ -42,7 +117,7 @@ export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: Dynami
     // 2. Sort by distance (closest first)
     distCache.sort((a: LampDistance, b: LampDistance) => a.distSq - b.distSq);
 
-    // 3. Update the 3 PointLights to sit at the closest 3 lamps
+    // 3. Update the 4 PointLights to sit at the closest 4 lamps
     for (let i = 0; i < MAX_LIGHTS; i++) {
       const light = lightRefs.current[i];
       if (!light) continue;
@@ -59,7 +134,7 @@ export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: Dynami
           const fadeFactor = 1.0 - (dist / CULL_DISTANCE);
           const easedFade = fadeFactor * fadeFactor;
           
-          light.intensity = lampIntensity * 1.5 * easedFade;
+          light.intensity = lampIntensity * 2.2 * easedFade;
           light.visible = true;
         } else {
           // Too far, hide it to save GPU
@@ -74,13 +149,17 @@ export const DynamicLamps = ({ lampPositions, lampColor, lampIntensity }: Dynami
 
   return (
     <group>
+      {/* Volumetric Light Cones & Ground Light Pools in 2 Draw Calls (Option B) */}
+      <VolumetricLightBeams lampPositions={lampPositions} lampColor={lampColor} />
+
+      {/* Dynamic PointLights (Option A: 4 closest to player) */}
       {Array.from({ length: MAX_LIGHTS }).map((_, i) => (
         <pointLight
           key={i}
           ref={(el) => (lightRefs.current[i] = el)}
           color={lampColor}
-          distance={25}
-          decay={1.8}
+          distance={30}
+          decay={1.5}
           castShadow={false}
           visible={false}
           intensity={0}

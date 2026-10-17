@@ -67,11 +67,11 @@ const presets: Record<string, AtmospherePreset> = {
     showMoon: false
   },
   'Cosmic Nebula': {
-    ambientColor: '#6c7fb5', // Clear ethereal moonlit indigo-blue ambient
-    ambientIntensity: 1.25, // Elevated ambient to illuminate ground, paths, cliffs
-    groundColor: '#1e2438', // Upward cool nocturnal slate reflection for roads and lower walls
-    sunColor: '#7ee8fa', // Luminous celestial cyan moonlight
-    sunIntensity: 0.85, // Clear crisp moonlight illuminating roofs, terrain, docks
+    ambientColor: '#7c90c7', // Clear luminous moonlit silver-blue ambient
+    ambientIntensity: 1.55, // Elevated ambient to richly illuminate ground, paths, buildings
+    groundColor: '#2b3a32', // Upward warm forest-earth reflection for roads, rocks and lower walls
+    sunColor: '#8ef0ff', // Luminous celestial cyan-white moonlight
+    sunIntensity: 1.15, // Crisp moonlight illuminating roofs, terrain, docks
     sunPosition: [-70, 160, -250], // Northern sky directly in front of player looking from harbor
     bgColor: '#080812',
     fogColor: '#080812', // Match bgColor so distant edges fade smoothly into space
@@ -317,7 +317,7 @@ export const AtmosphereManager = () => {
 
       {/* Hemisphere Light to specifically tint the sky vs ground differently and fill shadows */}
       <hemisphereLight 
-        args={[preset.ambientColor, preset.groundColor || preset.bgColor, preset.ambientIntensity * 0.85 * brightness]} 
+        args={[preset.ambientColor, preset.groundColor || preset.bgColor, preset.ambientIntensity * 1.15 * brightness]} 
       />
 
       {/* Main Directional Light (Sun/Moon) */}
@@ -340,7 +340,7 @@ export const AtmosphereManager = () => {
       {/* Secondary Fill Light (opposite side, no shadows) to illuminate dark faces */}
       <directionalLight 
         position={[-preset.sunPosition[0], preset.sunPosition[1] * 0.5, -preset.sunPosition[2]]} 
-        intensity={preset.sunIntensity * 0.6 * brightness} 
+        intensity={preset.sunIntensity * 0.75 * brightness} 
         color={preset.ambientColor} 
       />
 
