@@ -6,6 +6,7 @@ import {
   Compass, BookOpen, Layers, Menu, Navigation, Sparkles, 
   Ship, Eye, X, Volume2, VolumeX, FileText, Award, MapPin 
 } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 export const HUD: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
@@ -348,6 +349,9 @@ export const HUD: React.FC = () => {
             <FileText className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span className="hidden md:inline">Resume</span>
           </a>
+
+          {/* Theme Palette Switcher */}
+          <ThemeToggle compact={true} />
 
           {/* Audio Mute / Unmute Toggle */}
           <button 

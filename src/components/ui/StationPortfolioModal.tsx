@@ -5,6 +5,7 @@ import { getStationTheme, type StationTheme } from '../../data/stationThemes';
 import { ProjectShowcaseWidget } from './ProjectShowcaseWidget';
 import { CourierContactForm } from './CourierContactForm';
 import { STATION_MONUMENT_DEFS } from '../3d/StationMonuments';
+import { ThemeToggle } from './ThemeToggle';
 import { 
   X, ExternalLink, Mail, Download, 
   MapPin, Sparkles, Code2, Gamepad2, Award, BookOpen, 
@@ -206,14 +207,17 @@ export const StationPortfolioModal: React.FC = () => {
         }}
       >
         
-        {/* Refined Close Button */}
-        <button
-          onClick={() => setStationModalOpen(false)}
-          className="absolute top-4 right-4 z-30 p-2 rounded-full bg-[#111916]/80 hover:bg-[#1B2822] text-[#F0E9DA]/70 hover:text-[#D6BC83] border border-[#3A4B40]/30 transition-all cursor-pointer shadow-md"
-          title="Close Modal (Esc)"
-        >
-          <X className="w-5 h-5 stroke-[1.75]" />
-        </button>
+        {/* Header Controls: Theme Switcher & Close Button */}
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+          <ThemeToggle compact={true} />
+          <button
+            onClick={() => setStationModalOpen(false)}
+            className="p-2 rounded-full bg-[#111916]/80 hover:bg-[#1B2822] text-[#F0E9DA]/70 hover:text-[#D6BC83] border border-[#3A4B40]/30 transition-all cursor-pointer shadow-md"
+            title="Close Modal (Esc)"
+          >
+            <X className="w-5 h-5 stroke-[1.75]" />
+          </button>
+        </div>
 
         {/* --- LEFT SIDEBAR: STATIONS OF DISCOVERY --- */}
         <div 

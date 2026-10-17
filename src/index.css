@@ -5,31 +5,51 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-canvas: #111916;
-  --color-surface: #1B2822;
-  --color-elevated: #25352D;
-  --color-border: #3A4B40;
-  --color-champagne: #D6BC83;
-  --color-champagne-light: #E8D5A7;
-  --color-ivory: #F0E9DA;
-  --color-silver-sage: #B9C2B7;
-  --color-muted-sage: #87968A;
-
-  /* Aliased design system tokens */
   --color-forest: #1B2822;
   --color-forest-dark: #111916;
-  --color-forest-surface: rgba(27, 40, 34, 0.88);
-  --color-forest-glass: rgba(27, 40, 34, 0.75);
+  --color-forest-surface: rgba(24, 37, 34, 0.85);
+  --color-forest-glass: rgba(24, 37, 34, 0.72);
   --color-gold: #D6BC83;
   --color-gold-light: #E8D5A7;
-  --color-gold-muted: rgba(214, 188, 131, 0.22);
+  --color-gold-muted: rgba(212, 183, 119, 0.22);
   --color-moss: #3A4B40;
-  --color-moss-light: #4D6456;
-  --color-moss-muted: rgba(58, 75, 64, 0.35);
+  --color-moss-light: #689680;
+  --color-moss-muted: rgba(82, 124, 104, 0.25);
   --color-cream: #F0E9DA;
-  --color-cream-soft: #B9C2B7;
-  --color-cream-muted: #87968A;
-  --color-cream-faint: rgba(135, 150, 138, 0.25);
+  --color-cream-soft: rgba(233, 228, 215, 0.85);
+  --color-cream-muted: rgba(233, 228, 215, 0.65);
+  --color-cream-faint: rgba(233, 228, 215, 0.15);
+}
+
+/* ============================================================================
+   1. ROOT THEME TOKENS
+   ============================================================================ */
+:root, [data-theme="forest"] {
+  --theme-bg-main: #101a18;
+  --theme-bg-card: #182522;
+  --theme-bg-elevated: #14201d;
+  --theme-border: #527c68;
+  --theme-border-steel: rgba(82, 124, 104, 0.35);
+  --theme-primary: #D4B777;
+  --theme-primary-hover: #E5CD94;
+  --theme-primary-highlight: #8FB0FF;
+  --theme-text-heading: #E9E4D7;
+  --theme-text-body: rgba(233, 228, 215, 0.85);
+  --theme-text-muted: rgba(233, 228, 215, 0.65);
+}
+
+[data-theme="obsidian"] {
+  --theme-bg-main: #121417;        /* Obsidian: Main background */
+  --theme-bg-card: #1B1E24;        /* Graphite: Cards and navigation */
+  --theme-bg-elevated: #252932;    /* Elevated Slate: Modals and elevated panels */
+  --theme-border: #3B404B;         /* Steel Border: Dividers and outlines */
+  --theme-border-steel: #3B404B;
+  --theme-primary: #5684F5;        /* Electric Cobalt: Primary buttons and active states */
+  --theme-primary-hover: #8FB0FF;  /* Ice Blue: Hover states and secondary highlights */
+  --theme-primary-highlight: #8FB0FF;
+  --theme-text-heading: #F3F0E9;   /* Warm Ivory: Headings and primary text */
+  --theme-text-body: #B6BAC4;      /* Silver Grey: Body text and descriptions */
+  --theme-text-muted: #969DAA;     /* Muted Grey: Secondary labels and metadata */
 }
 
 html, body, #root {
@@ -38,11 +58,12 @@ html, body, #root {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #111916;
-  color: #F0E9DA;
+  background-color: var(--theme-bg-main, #101a18);
+  color: var(--theme-text-heading, #E9E4D7);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
@@ -56,37 +77,141 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(17, 25, 22, 0.5);
+  background: rgba(16, 26, 24, 0.5);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(214, 188, 131, 0.25);
+  background: rgba(212, 183, 119, 0.25);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(214, 188, 131, 0.45);
+  background: rgba(212, 183, 119, 0.45);
 }
 
-/* Organic Glassmorphism helper */
-.organic-glass {
-  background: rgba(24, 37, 34, 0.82);
+/* ============================================================================
+   2. OBSIDIAN COBALT THEME OVERRIDES
+   ============================================================================ */
+[data-theme="obsidian"] html,
+[data-theme="obsidian"] body,
+[data-theme="obsidian"] #root {
+  background-color: #121417 !important;
+  color: #F3F0E9 !important;
+}
+
+[data-theme="obsidian"] .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(18, 20, 23, 0.7);
+}
+
+[data-theme="obsidian"] .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(86, 132, 245, 0.35);
+}
+
+[data-theme="obsidian"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(86, 132, 245, 0.6);
+}
+
+/* 1. Main Backgrounds -> Obsidian (#121417) */
+[data-theme="obsidian"] [class*="bg-[#101a18]"],
+[data-theme="obsidian"] [class*="bg-[#111916]"] {
+  background-color: #121417 !important;
+}
+
+/* 2. Cards and Navigation -> Graphite (#1B1E24) */
+[data-theme="obsidian"] [class*="bg-[#182522]"] {
+  background-color: #1B1E24 !important;
+}
+
+/* 3. Modals and Elevated Panels -> Elevated Slate (#252932) */
+[data-theme="obsidian"] [class*="bg-[#14201d]"] {
+  background-color: #252932 !important;
+}
+
+/* 4. Dividers and Outlines -> Steel Border (#3B404B) */
+[data-theme="obsidian"] [class*="border-[#527C68]"],
+[data-theme="obsidian"] [class*="border-[#3A4B40]"] {
+  border-color: #3B404B !important;
+}
+
+[data-theme="obsidian"] [class*="border-[#D4B777]"],
+[data-theme="obsidian"] [class*="border-[#D6BC83]"] {
+  border-color: rgba(86, 132, 245, 0.5) !important;
+}
+
+/* 5. Primary Buttons and Active States -> Electric Cobalt (#5684F5) */
+[data-theme="obsidian"] [class*="bg-[#D4B777]"] {
+  background-color: #5684F5 !important;
+  color: #F3F0E9 !important;
+}
+
+/* 6. Hover States and Secondary Highlights -> Ice Blue (#8FB0FF) */
+[data-theme="obsidian"] [class*="hover:bg-[#E5CD94]"]:hover {
+  background-color: #8FB0FF !important;
+  color: #121417 !important;
+}
+
+[data-theme="obsidian"] [class*="hover:text-[#D4B777]"]:hover,
+[data-theme="obsidian"] [class*="group-hover:text-[#D4B777]"]:hover {
+  color: #8FB0FF !important;
+}
+
+[data-theme="obsidian"] [class*="hover:border-[#D4B777]"]:hover,
+[data-theme="obsidian"] [class*="group-hover:border-[#D4B777]"]:hover {
+  border-color: #5684F5 !important;
+}
+
+/* 7. Headings and Primary Text -> Warm Ivory (#F3F0E9) */
+[data-theme="obsidian"] [class*="text-[#E9E4D7]"],
+[data-theme="obsidian"] [class*="text-[#F0E9DA]"] {
+  color: #F3F0E9 !important;
+}
+
+/* 8. Body Text and Descriptions -> Silver Grey (#B6BAC4) */
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/85"],
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/80"],
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/75"],
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/70"] {
+  color: #B6BAC4 !important;
+}
+
+/* 9. Secondary Labels and Metadata -> Muted Grey (#969DAA) */
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/60"],
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/50"],
+[data-theme="obsidian"] [class*="text-[#E9E4D7]/40"] {
+  color: #969DAA !important;
+}
+
+/* Accent Labels and Links */
+[data-theme="obsidian"] [class*="text-[#D4B777]"],
+[data-theme="obsidian"] [class*="text-[#D6BC83]"] {
+  color: #5684F5 !important;
+}
+
+/* Secondary Button backgrounds */
+[data-theme="obsidian"] [class*="bg-[#527C68]"] {
+  background-color: #252932 !important;
+  border-color: #3B404B !important;
+}
+
+[data-theme="obsidian"] [class*="hover:bg-[#689680]"]:hover {
+  background-color: #3B404B !important;
+}
+
+/* Glassmorphism helpers for Obsidian */
+[data-theme="obsidian"] .organic-glass {
+  background: rgba(27, 30, 36, 0.90) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 183, 119, 0.2);
-  box-shadow: 0 12px 36px -4px rgba(10, 18, 16, 0.55), 0 0 1px 1px rgba(212, 183, 119, 0.1);
+  border: 1px solid rgba(59, 64, 75, 0.6) !important;
+  box-shadow: 0 12px 36px -4px rgba(10, 12, 15, 0.7), 0 0 1px 1px rgba(86, 132, 245, 0.15) !important;
 }
 
-.organic-glass-card {
-  background: rgba(20, 32, 29, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(82, 124, 104, 0.22);
+[data-theme="obsidian"] .organic-glass-card {
+  background: rgba(37, 41, 50, 0.8) !important;
+  border: 1px solid rgba(59, 64, 75, 0.5) !important;
 }
 
-.organic-glass-pill {
-  background: rgba(24, 37, 34, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 183, 119, 0.25);
+[data-theme="obsidian"] .organic-glass-pill {
+  background: rgba(27, 30, 36, 0.85) !important;
+  border: 1px solid rgba(86, 132, 245, 0.35) !important;
 }

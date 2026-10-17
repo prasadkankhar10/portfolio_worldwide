@@ -11,6 +11,7 @@ export interface RegisteredNPC {
 
 export type GameState = 'menu' | 'playing';
 export type PortfolioSection = 'none' | 'about' | 'projects' | 'contact';
+export type UITheme = 'forest' | 'obsidian';
 
 interface GameStore {
   currentAtmosphere: string;
@@ -122,6 +123,10 @@ interface GameStore {
   dispatchCourierShip: (info: { name: string; email: string; subject?: string; message: string }) => void;
   setIsWatchingVessel: (watching: boolean) => void;
   resetCourierShip: () => void;
+  // UI Theme Switcher (Forest Gold vs Obsidian Cobalt)
+  uiTheme: UITheme;
+  setUITheme: (theme: UITheme) => void;
+  toggleUITheme: () => void;
 }
 
 const loadStorage = <T>(key: string, fallback: T): T => {
@@ -359,5 +364,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
       courierMessageInfo: null,
       isWatchingVessel: false,
     });
+  },
+  // UI Theme Switcher
+  uiTheme: loadStorage<UITheme>('portfolio_ui_theme', 'obsidian'),
+  setUITheme: (theme) => {
+    saveStorage('portfolio_ui_theme', theme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    set({ uiTheme: theme });
+  },
+  toggleUITheme: () => {
+    const currentTheme = get().uiTheme;
+    const nextTheme: UITheme = currentTheme === 'obsidian' ? 'forest' : 'obsidian';
+    saveStorage('portfolio_ui_theme', nextTheme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    }
+    set({ uiTheme: nextTheme });
   },
 }));

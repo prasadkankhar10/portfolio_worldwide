@@ -5,6 +5,7 @@ import { getStationTheme } from '../../data/stationThemes';
 import { ProjectShowcaseWidget } from './ProjectShowcaseWidget';
 import { STATION_MONUMENT_DEFS } from '../3d/StationMonuments';
 import { CourierContactForm } from './CourierContactForm';
+import { ThemeToggle } from './ThemeToggle';
 import { 
   X, ExternalLink, Mail, Download, Search, 
   Sparkles, Code2, Gamepad2, Award, BookOpen, 
@@ -204,6 +205,10 @@ export const QuickPortfolioModal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Theme Toggle (Forest Gold vs Obsidian Cobalt) */}
+            <ThemeToggle compact={false} className="hidden sm:inline-flex" />
+            <ThemeToggle compact={true} className="sm:hidden inline-flex" />
+
             {/* Switch to 3D Button */}
             <button
               onClick={handleSwitchTo3D}
@@ -846,6 +851,9 @@ export const QuickPortfolioModal: React.FC = () => {
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
+
+                  {/* Theme Switcher */}
+                  <ThemeToggle compact={true} />
 
                   {/* Explore in 3D Button */}
                   <button

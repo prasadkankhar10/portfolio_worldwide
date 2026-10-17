@@ -36,6 +36,14 @@ function App() {
   const setIsLowPowerGpu = useGameStore((state) => state.setIsLowPowerGpu);
   const isMobile = useGameStore((state) => state.isMobile);
   const performanceMode = useGameStore((state) => state.performanceMode);
+  const uiTheme = useGameStore((state) => state.uiTheme);
+
+  // Synchronize UI Theme attribute on document root
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', uiTheme);
+    }
+  }, [uiTheme]);
 
   // Auto-pause Three.js render loop when tab is hidden to prevent Chrome background tab lag and GPU resource starvation
   const [isTabVisible, setIsTabVisible] = useState<boolean>(
