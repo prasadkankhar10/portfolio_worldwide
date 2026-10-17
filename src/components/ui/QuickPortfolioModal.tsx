@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { portfolioData, type StationData } from '../../data/portfolioData';
+import { getStationTheme } from '../../data/stationThemes';
+import { ProjectShowcaseWidget } from './ProjectShowcaseWidget';
+import { STATION_MONUMENT_DEFS } from '../3d/StationMonuments';
 import { CourierContactForm } from './CourierContactForm';
 import { 
   X, ExternalLink, Mail, Download, Search, 
@@ -8,7 +11,8 @@ import {
   Compass, Binary, ArrowUpRight, Terminal, 
   BrainCircuit, Globe, Layers, CheckCircle2,
   FileText, Briefcase, GraduationCap, ChevronRight,
-  ShieldCheck, MapPin, AlertTriangle
+  ChevronLeft, ShieldCheck, MapPin, AlertTriangle,
+  Eye, Cpu
 } from 'lucide-react';
 
 const GithubIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -23,27 +27,34 @@ const LinkedinIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' 
   </svg>
 );
 
-// Distinct list of 19 projects
+// Distinct list of all 18 production & research projects
 const PROJECT_STATION_KEYS = [
+  'TRIGGER_Project_OneMoreMove',
   'TRIGGER_Project_ButlerOS',
   'TRIGGER_Project_MaraRAG',
+  'TRIGGER_Forge_GameDev',
+  'TRIGGER_Project_KnightsAdventure',
+  'TRIGGER_Project_CMEDetector',
   'TRIGGER_Project_Akshayanidhi',
   'TRIGGER_Project_LifeManager',
   'TRIGGER_Project_Sahaj',
-  'TRIGGER_Project_OneMoreMove',
-  'TRIGGER_Forge_GameDev',
-  'TRIGGER_Project_KnightsAdventure',
-  'TRIGGER_Project_RealmWebAR',
-  'TRIGGER_Project_TraceMateAR',
   'TRIGGER_Project_ExamPlatform',
-  'TRIGGER_Project_CMEDetector',
   'TRIGGER_Project_Sadhana',
   'TRIGGER_Project_Nishtha',
   'TRIGGER_Project_Vyuham',
+  'TRIGGER_Project_TraceMateAR',
+  'TRIGGER_Project_RealmWebAR',
   'TRIGGER_Project_SmartCampus',
   'TRIGGER_Project_GameStore',
   'TRIGGER_Project_SchoolWebsite',
 ];
+
+const STATION_TELEPORT_COORDS: Record<string, { x: number; y: number; z: number }> = Object.fromEntries(
+  STATION_MONUMENT_DEFS.map((s) => [
+    s.id,
+    { x: s.pos[0], y: s.pos[1] + 1.0, z: s.pos[2] + 2.0 }
+  ])
+);
 
 const CATEGORIES = [
   'All',
@@ -58,22 +69,30 @@ export const QuickPortfolioModal: React.FC = () => {
   const setQuickPortfolioOpen = useGameStore((state) => state.setQuickPortfolioOpen);
   const setGameState = useGameStore((state) => state.setGameState);
   const setHasStarted = useGameStore((state) => state.setHasStarted);
+  const teleportPlayer = useGameStore((state) => state.teleportPlayer);
 
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedProjectKey, setSelectedProjectKey] = useState<string | null>(null);
 
-  // Handle ESC key to close modal
+  // Handle ESC key: close selected project detail first if open, else close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isQuickPortfolioOpen) {
-        e.preventDefault();
-        e.stopPropagation();
-        setQuickPortfolioOpen(false);
+      if (e.key === 'Escape') {
+        if (selectedProjectKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          setSelectedProjectKey(null);
+        } else if (isQuickPortfolioOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setQuickPortfolioOpen(false);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isQuickPortfolioOpen, setQuickPortfolioOpen]);
+  }, [isQuickPortfolioOpen, selectedProjectKey, setQuickPortfolioOpen]);
 
   // Release pointer lock whenever quick portfolio opens
   useEffect(() => {
@@ -122,118 +141,155 @@ export const QuickPortfolioModal: React.FC = () => {
     setHasStarted(true);
     setGameState('playing');
     if (typeof document !== 'undefined' && !useGameStore.getState().isMobile) {
-      try {
-        document.body.requestPointerLock();
-      } catch {
-        // Silently catch
+      setTimeout(() => {
+        try {
+          document.body.requestPointerLock();
+        } catch {
+          // Silently catch
+        }
+      }, 150);
+    }
+  };
+
+  const handleExploreIn3D = (stationKey: string) => {
+    const coords = STATION_TELEPORT_COORDS[stationKey];
+    if (coords) {
+      teleportPlayer({ x: coords.x, y: coords.y, z: coords.z });
+      setGameState('playing');
+      setHasStarted(true);
+      setQuickPortfolioOpen(false);
+      setSelectedProjectKey(null);
+      if (typeof document !== 'undefined' && !useGameStore.getState().isMobile) {
+        setTimeout(() => {
+          try {
+            document.body.requestPointerLock();
+          } catch {
+            // Silently catch
+          }
+        }, 150);
       }
     }
   };
 
+  // Next and Previous navigation for selected project detail view
+  const currentProjectIndex = selectedProjectKey ? PROJECT_STATION_KEYS.indexOf(selectedProjectKey) : -1;
+  const prevProjectKey = currentProjectIndex > 0 ? PROJECT_STATION_KEYS[currentProjectIndex - 1] : PROJECT_STATION_KEYS[PROJECT_STATION_KEYS.length - 1];
+  const nextProjectKey = currentProjectIndex >= 0 && currentProjectIndex < PROJECT_STATION_KEYS.length - 1 ? PROJECT_STATION_KEYS[currentProjectIndex + 1] : PROJECT_STATION_KEYS[0];
+
   return (
-    <div 
-      className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#101a18]/85 backdrop-blur-md animate-in fade-in duration-200 select-text"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setQuickPortfolioOpen(false);
-      }}
-    >
-      {/* Modal Container: Organic Minimalism + Forest & Gold */}
-      <div className="relative w-full max-w-6xl h-[94vh] bg-[#14201d]/98 border border-[#D4B777]/30 rounded-3xl shadow-[0_24px_80px_rgba(10,18,16,0.95)] flex flex-col overflow-hidden text-[#E9E4D7] font-sans">
+    <div className="fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-200">
+      
+      {/* Main Container Card */}
+      <div className="relative w-full max-w-7xl h-[94vh] bg-[#14201d] border border-[#527C68]/40 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
         
-        {/* Sticky Header */}
-        <header className="px-5 sm:px-8 py-4 border-b border-[#527C68]/25 bg-[#182522]/95 backdrop-blur-xl flex items-center justify-between gap-4 shrink-0 z-30">
+        {/* ================================================================= */}
+        {/* MODAL HEADER BAR */}
+        {/* ================================================================= */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#527C68]/30 bg-[#101a18]/90 backdrop-blur-xl shrink-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#527C68]/20 border border-[#D4B777]/30 flex items-center justify-center text-[#D4B777]">
-              <Briefcase className="w-5 h-5 stroke-[1.75]" />
-            </div>
+            <span className="p-2 rounded-xl bg-[#527C68]/20 border border-[#D4B777]/30 text-[#D4B777]">
+              <FileText className="w-5 h-5 stroke-[1.75]" />
+            </span>
             <div>
-              <h1 className="text-base sm:text-lg font-heading font-extrabold text-[#E9E4D7] tracking-tight leading-tight">
-                Prasad Anil Kankhar
-              </h1>
-              <p className="text-xs text-[#D4B777] font-heading font-medium">
-                Standard Portfolio • Executive Summary
+              <h2 className="text-lg sm:text-xl font-heading font-bold text-[#E9E4D7] tracking-tight flex items-center gap-2">
+                <span>Fast 2D Recruiter & Systems Portfolio</span>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#527C68]/30 text-[#D4B777] font-normal border border-[#527C68]/50">
+                  Quick View
+                </span>
+              </h2>
+              <p className="text-xs text-[#E9E4D7]/60 font-sans hidden sm:block">
+                All 19 verified systems, algorithmic achievements, and architecture specs in one responsive view.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Switch to 3D Button */}
             <button
               onClick={handleSwitchTo3D}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#527C68]/20 hover:bg-[#527C68]/35 border border-[#527C68]/40 hover:border-[#D4B777]/40 text-[#E9E4D7] hover:text-[#D4B777] text-xs font-sans font-medium transition-all cursor-pointer"
-              title="Launch the 3D interactive island world"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#527C68]/25 hover:bg-[#527C68]/45 border border-[#D4B777]/30 text-[#D4B777] text-xs font-heading font-semibold transition-all cursor-pointer shadow-sm"
+              title="Return to the 3D Island World"
             >
-              <Compass className="w-3.5 h-3.5 text-[#D4B777]" />
-              <span>Explore 3D Island</span>
+              <Compass className="w-4 h-4 stroke-[1.75]" />
+              <span className="hidden sm:inline">Explore 3D Island</span>
             </button>
 
-            {candidate.resume && (
-              <a
-                href={candidate.resume.fileUrl}
-                download
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522] text-xs font-heading font-bold transition-all shadow-sm cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Download</span>
-                <span>Resume PDF</span>
-              </a>
-            )}
-
+            {/* Close Button */}
             <button
               onClick={() => setQuickPortfolioOpen(false)}
-              className="p-2 text-[#E9E4D7]/60 hover:text-[#D4B777] bg-[#101a18]/70 hover:bg-[#101a18] border border-[#527C68]/30 rounded-full transition-all cursor-pointer ml-1"
+              className="p-2 rounded-xl bg-[#182522] hover:bg-[#20302c] text-[#E9E4D7]/70 hover:text-[#E9E4D7] border border-[#527C68]/30 transition-colors cursor-pointer"
               title="Close Portfolio (Esc)"
             >
               <X className="w-5 h-5 stroke-[1.75]" />
             </button>
           </div>
-        </header>
+        </div>
 
-        {/* Scrollable Document Body */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-10 md:p-12 space-y-12">
-          
+        {/* ================================================================= */}
+        {/* SCROLLABLE MAIN CONTENT BODY */}
+        {/* ================================================================= */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-10">
+
           {/* ============================================================= */}
-          {/* 1. HERO & IDENTITY BANNER */}
+          {/* 1. CANDIDATE HERO & RECRUITER DOSSIER */}
           {/* ============================================================= */}
-          <section className="relative p-6 sm:p-10 rounded-3xl border border-[#D4B777]/25 bg-[#182522]/90 backdrop-blur-xl shadow-xl">
-            <div className="max-w-4xl space-y-4">
-              
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#527C68]/20 border border-[#D4B777]/30 text-[#D4B777] text-xs font-mono font-medium">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Software Development Engineer (SDE) • Systems & 3D Graphics</span>
-              </div>
+          <section className="p-6 sm:p-8 rounded-3xl border border-[#527C68]/30 bg-gradient-to-br from-[#182522] via-[#14201d] to-[#101a18] shadow-lg relative overflow-hidden">
+            <div className="absolute right-0 top-0 w-96 h-96 bg-[#D4B777]/5 rounded-full blur-3xl pointer-events-none" />
 
-              <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#E9E4D7] tracking-tight leading-tight">
-                Engineering Zero-Magic Systems, Game Engines & AI Platforms
-              </h2>
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-3 max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#D4B777]/15 text-[#D4B777] border border-[#D4B777]/30">
+                    SDE Candidate
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-mono bg-[#527C68]/20 text-[#E9E4D7]/80 border border-[#527C68]/30 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#527C68]" />
+                    Buldhana, Maharashtra, India
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    Available for SDE Roles
+                  </span>
+                </div>
 
-              <p className="text-sm sm:text-base text-[#E9E4D7]/85 font-sans leading-relaxed max-w-3xl">
-                {candidate.shortBio}
-              </p>
+                <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-[#E9E4D7] tracking-tight">
+                  Prasad Anil Kankhar
+                </h1>
+                <p className="text-sm sm:text-base font-heading font-medium text-[#D4B777]">
+                  Software Development Engineer (SDE) • Systems, Graphics & Distributed Architectures
+                </p>
+                <p className="text-xs sm:text-sm text-[#E9E4D7]/80 font-sans leading-relaxed">
+                  {candidate?.shortBio || 'Results-driven Software Development Engineer with deep expertise in C++, TypeScript, Python, and scalable distributed architectures.'}
+                </p>
 
-              {/* Verified Metrics Ribbon */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
-                <div className="p-3.5 rounded-2xl bg-[#101a18]/80 border border-[#527C68]/30">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[#D4B777]">100,000+</div>
-                  <div className="text-xs text-[#E9E4D7]/70 font-sans mt-0.5">Lines of Audited Code</div>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-[#101a18]/80 border border-[#527C68]/30">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[#D4B777]">19</div>
-                  <div className="text-xs text-[#E9E4D7]/70 font-sans mt-0.5">Verified Projects Built</div>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-[#101a18]/80 border border-[#527C68]/30">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[#D4B777]">854+</div>
-                  <div className="text-xs text-[#E9E4D7]/70 font-sans mt-0.5">Algorithmic Problems Solved</div>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-[#101a18]/80 border border-[#527C68]/30">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[#D4B777]">Harvard CS50x</div>
-                  <div className="text-xs text-[#E9E4D7]/70 font-sans mt-0.5">Verified Credential</div>
+                {/* Key Metrics Ribbon */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                  {(candidate?.metrics || [
+                    "100,000+ Lines Audited Code",
+                    "19 Verified Software Projects",
+                    "854+ Algorithmic Solved",
+                    "Harvard CS50x Certified"
+                  ]).map((metric, i) => (
+                    <div key={i} className="p-2.5 rounded-xl bg-[#101a18]/70 border border-[#527C68]/25 text-center">
+                      <div className="text-xs sm:text-sm font-heading font-bold text-[#D4B777]">{metric}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 w-full sm:w-auto">
+                <a
+                  href="assets/Prasad_Kankhar_Resume.pdf"
+                  download
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522] text-xs font-heading font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Resume</span>
+                </a>
+
                 <a
                   href="https://github.com/prasadkankhar10"
                   target="_blank"
@@ -257,14 +313,13 @@ export const QuickPortfolioModal: React.FC = () => {
                 </a>
 
                 <a
-                  href="mailto:prasadkankhar@gmail.com"
+                  href="mailto:prasadkankhar5@gmail.com"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#527C68]/20 hover:bg-[#527C68]/35 border border-[#D4B777]/30 text-xs font-heading font-semibold text-[#D4B777] transition-all cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>prasadkankhar@gmail.com</span>
+                  <span>prasadkankhar5@gmail.com</span>
                 </a>
               </div>
-
             </div>
           </section>
 
@@ -357,7 +412,7 @@ export const QuickPortfolioModal: React.FC = () => {
                   </h3>
                 </div>
                 <p className="text-xs text-[#E9E4D7]/70 font-sans mt-0.5">
-                  Audited software engineering spanning low-level engines, agentic AI, and scalable cloud architectures.
+                  Click any project card to open its full architecture spec, interactive sandbox prototype, and Google XYZ metrics.
                 </p>
               </div>
 
@@ -391,7 +446,7 @@ export const QuickPortfolioModal: React.FC = () => {
               ))}
             </div>
 
-            {/* Projects Grid */}
+            {/* Projects Grid: Clean Quick Look Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredProjects.map((key) => {
                 const project = portfolioData[key];
@@ -403,10 +458,11 @@ export const QuickPortfolioModal: React.FC = () => {
                 return (
                   <div
                     key={key}
-                    className="p-6 rounded-2xl border border-[#527C68]/30 hover:border-[#D4B777]/40 bg-[#182522]/80 hover:bg-[#182522] backdrop-blur-xl flex flex-col justify-between transition-all duration-200 group shadow-lg"
+                    onClick={() => setSelectedProjectKey(key)}
+                    className="group relative p-6 rounded-2xl border border-[#527C68]/30 hover:border-[#D4B777]/60 bg-[#182522]/80 hover:bg-[#182522] backdrop-blur-xl flex flex-col justify-between transition-all duration-200 cursor-pointer shadow-lg hover:shadow-[0_10px_30px_rgba(212,183,119,0.12)] hover:-translate-y-1"
                   >
                     <div>
-                      {/* Category Tag */}
+                      {/* Category Tag & Quick Look Pill */}
                       <div className="flex items-center justify-between gap-2 mb-3">
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#527C68]/20 border border-[#527C68]/40 text-[#D4B777]">
                           {project.category}
@@ -416,11 +472,12 @@ export const QuickPortfolioModal: React.FC = () => {
                             <AlertTriangle className="w-3 h-3 text-amber-400" />
                             <span>Action Pending</span>
                           </span>
-                        ) : project.badge ? (
-                          <span className="text-[10px] font-mono text-[#E9E4D7]/60">
-                            {project.badge}
+                        ) : (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#D4B777]/10 text-[#D4B777] border border-[#D4B777]/25 flex items-center gap-1 group-hover:bg-[#D4B777] group-hover:text-[#182522] transition-colors">
+                            <Eye className="w-3 h-3" />
+                            <span>Quick Look</span>
                           </span>
-                        ) : null}
+                        )}
                       </div>
 
                       {/* Project Title */}
@@ -435,30 +492,18 @@ export const QuickPortfolioModal: React.FC = () => {
                         </p>
                       )}
 
-                      {/* Description */}
-                      <p className="text-xs text-[#E9E4D7]/80 font-sans leading-relaxed mb-3 line-clamp-3">
-                        {project.description || project.shortBio || ''}
+                      {/* Concise Teaser Description */}
+                      <p className="text-xs text-[#E9E4D7]/75 font-sans leading-relaxed mb-3 line-clamp-2">
+                        {project.shortBio || project.description || ''}
                       </p>
 
-                      {/* Pending Action Items Warning */}
-                      {project.manualActionRequired && (
-                        <div className="p-2.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-200 mb-3 text-[11px] font-mono">
-                          <span className="font-bold text-amber-400 block mb-0.5 flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
-                            <span>Pending Manual Addition:</span>
-                          </span>
-                          <span className="text-amber-200/80 text-[10px] line-clamp-2 leading-relaxed">
-                            {project.manualActionRequired.items.join(' • ')}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Quantified Metrics Ribbon */}
+                      {/* Performance Metric Ribbon Chips */}
                       {metrics.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-4">
                           {metrics.slice(0, 2).map((m, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded-md bg-[#101a18]/70 border border-[#D4B777]/25 text-[10px] font-mono text-[#D4B777]">
-                              {m}
+                            <span key={i} className="px-2 py-0.5 rounded-md bg-[#101a18]/70 border border-[#D4B777]/25 text-[10px] font-mono text-[#D4B777] flex items-center gap-1">
+                              <Sparkles className="w-2.5 h-2.5 text-[#D4B777] shrink-0" />
+                              <span className="truncate max-w-[170px]">{m}</span>
                             </span>
                           ))}
                         </div>
@@ -466,7 +511,7 @@ export const QuickPortfolioModal: React.FC = () => {
                     </div>
 
                     <div>
-                      {/* Tech Stack Pills */}
+                      {/* Tech Stack Chips */}
                       <div className="flex flex-wrap gap-1 mb-4 pt-2 border-t border-[#527C68]/20">
                         {techs.slice(0, 4).map((tech) => (
                           <span key={tech} className="px-2 py-0.5 rounded bg-[#101a18]/60 text-[10px] font-mono text-[#E9E4D7]/75">
@@ -480,33 +525,42 @@ export const QuickPortfolioModal: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Action Links */}
-                      <div className="flex items-center justify-between gap-2 pt-2">
-                        {project.github ? (
-                          <a
-                            href={project.github}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-[#E9E4D7]/80 hover:text-[#D4B777] transition-colors"
-                          >
-                            <GithubIcon className="w-3.5 h-3.5" />
-                            <span>Code Repository</span>
-                          </a>
-                        ) : (
-                          <span className="text-[11px] font-mono text-[#E9E4D7]/40">Internal Systems</span>
-                        )}
+                      {/* Action Links & Full Info Trigger Button */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#527C68]/15">
+                        <div className="flex items-center gap-2">
+                          {project.github && (
+                            <a
+                              href={project.github}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Open GitHub Repository"
+                              className="p-1.5 rounded-lg bg-[#101a18]/80 hover:bg-[#101a18] border border-[#527C68]/30 hover:border-[#D4B777]/40 text-[#E9E4D7]/80 hover:text-[#D4B777] transition-colors"
+                            >
+                              <GithubIcon className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          {project.liveDemo && (
+                            <a
+                              href={project.liveDemo}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Launch Live Prototype"
+                              className="p-1.5 rounded-lg bg-[#D4B777]/15 hover:bg-[#D4B777]/25 border border-[#D4B777]/30 text-[#D4B777] transition-all"
+                            >
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
 
-                        {project.liveDemo && (
-                          <a
-                            href={project.liveDemo}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#D4B777]/15 hover:bg-[#D4B777]/25 border border-[#D4B777]/30 text-xs font-mono font-semibold text-[#D4B777] transition-all"
-                          >
-                            <span>Live Prototype</span>
-                            <ArrowUpRight className="w-3 h-3" />
-                          </a>
-                        )}
+                        <button
+                          onClick={() => setSelectedProjectKey(key)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#527C68]/20 group-hover:bg-[#D4B777] border border-[#527C68]/40 group-hover:border-[#D4B777] text-xs font-mono font-semibold text-[#E9E4D7] group-hover:text-[#182522] transition-all cursor-pointer shadow-sm"
+                        >
+                          <span>Full Project Info</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
 
@@ -704,24 +758,24 @@ export const QuickPortfolioModal: React.FC = () => {
                   <span>Send Direct Email</span>
                 </a>
 
-              <a
-                href="https://linkedin.com/in/prasad-kankhar"
-                target="_blank"
-                rel="noreferrer"
-                className="px-6 py-2.5 rounded-xl bg-[#182522] hover:bg-[#1f302c] border border-[#527C68]/40 hover:border-[#D4B777]/40 text-[#E9E4D7] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
-              >
-                <LinkedinIcon className="w-4 h-4" />
-                <span>LinkedIn Message</span>
-              </a>
+                <a
+                  href="https://linkedin.com/in/prasad-kankhar"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-6 py-2.5 rounded-xl bg-[#182522] hover:bg-[#1f302c] border border-[#527C68]/40 hover:border-[#D4B777]/40 text-[#E9E4D7] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <LinkedinIcon className="w-4 h-4" />
+                  <span>LinkedIn Message</span>
+                </a>
 
-              <button
-                onClick={handleSwitchTo3D}
-                className="px-6 py-2.5 rounded-xl bg-[#527C68]/25 hover:bg-[#527C68]/40 border border-[#D4B777]/35 text-[#D4B777] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
-              >
-                <Compass className="w-4 h-4" />
-                <span>Explore in 3D Island</span>
-              </button>
-            </div>
+                <button
+                  onClick={handleSwitchTo3D}
+                  className="px-6 py-2.5 rounded-xl bg-[#527C68]/25 hover:bg-[#527C68]/40 border border-[#D4B777]/35 text-[#D4B777] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>Explore in 3D Island</span>
+                </button>
+              </div>
 
               <div className="pt-6 border-t border-[#527C68]/20 text-[11px] font-mono text-[#E9E4D7]/40">
                 Prasad Anil Kankhar • Software Development Engineer • Buldhana, Maharashtra, India
@@ -732,6 +786,273 @@ export const QuickPortfolioModal: React.FC = () => {
         </div>
 
       </div>
+
+      {/* ================================================================= */}
+      {/* 7. FULL PROJECT DETAIL MODAL (USING EXACT 3D PORTFOLIO TEMPLATE) */}
+      {/* ================================================================= */}
+      {selectedProjectKey && (() => {
+        const project = portfolioData[selectedProjectKey];
+        if (!project) return null;
+        const theme = getStationTheme(selectedProjectKey);
+        const metrics = (theme.metricsRibbon && theme.metricsRibbon.length > 0) ? theme.metricsRibbon : (project.metrics || []);
+        const techs = project.primaryTech || project.techStack || [];
+
+        return (
+          <div 
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+            onClick={() => setSelectedProjectKey(null)}
+          >
+            <div 
+              className="relative w-full max-w-5xl max-h-[92vh] bg-[#14201d] border border-[#527C68]/50 rounded-3xl flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Sticky Top Header Navigation */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#527C68]/30 bg-[#101a18]/95 backdrop-blur-xl shrink-0 z-10">
+                <div className="flex items-center gap-3 min-w-0">
+                  <button
+                    onClick={() => setSelectedProjectKey(null)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#182522] hover:bg-[#527C68]/30 border border-[#527C68]/40 text-xs font-mono text-[#E9E4D7] hover:text-[#D4B777] transition-all cursor-pointer shrink-0"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Back to Projects</span>
+                  </button>
+                  <div className="h-4 w-[1px] bg-[#527C68]/30 shrink-0 hidden sm:block" />
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#527C68]/20 border border-[#527C68]/40 text-[#D4B777] shrink-0 hidden sm:inline-block">
+                    {project.category}
+                  </span>
+                  <span className="text-xs font-heading font-bold text-[#E9E4D7] truncate hidden md:inline-block">
+                    {project.title}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Prev / Next Project Navigation */}
+                  <div className="flex items-center bg-[#182522] border border-[#527C68]/30 rounded-xl p-0.5">
+                    <button
+                      onClick={() => setSelectedProjectKey(prevProjectKey)}
+                      title="Previous Project"
+                      className="p-1.5 rounded-lg hover:bg-[#527C68]/30 text-[#E9E4D7]/70 hover:text-[#D4B777] transition-colors cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-[10px] font-mono px-2 text-[#E9E4D7]/50">
+                      {currentProjectIndex + 1} / {PROJECT_STATION_KEYS.length}
+                    </span>
+                    <button
+                      onClick={() => setSelectedProjectKey(nextProjectKey)}
+                      title="Next Project"
+                      className="p-1.5 rounded-lg hover:bg-[#527C68]/30 text-[#E9E4D7]/70 hover:text-[#D4B777] transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Explore in 3D Button */}
+                  <button
+                    onClick={() => handleExploreIn3D(selectedProjectKey)}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#527C68]/20 hover:bg-[#527C68]/40 border border-[#D4B777]/35 text-xs font-mono font-semibold text-[#D4B777] transition-all cursor-pointer"
+                  >
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>Explore in 3D</span>
+                  </button>
+
+                  {/* Close Modal Button */}
+                  <button
+                    onClick={() => setSelectedProjectKey(null)}
+                    className="p-2 rounded-xl bg-[#182522] hover:bg-rose-950/40 text-[#E9E4D7]/70 hover:text-rose-400 border border-[#527C68]/30 transition-colors cursor-pointer"
+                    title="Close Details (Esc)"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Content Body (Same Template as 3D Portfolio) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-6">
+                
+                {/* 1. Title & Header Info */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#527C68]/20 border border-[#527C68]/40 text-[#D4B777]">
+                      {project.category}
+                    </span>
+                    {project.badge && (
+                      <span className="text-[11px] font-mono text-[#E9E4D7]/60">
+                        {project.badge}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#E9E4D7] tracking-tight">
+                    {project.title}
+                  </h2>
+                  {project.subtitle && (
+                    <p className="text-sm text-[#D4B777] font-heading font-semibold mt-1">
+                      {project.subtitle}
+                    </p>
+                  )}
+                </div>
+
+                {/* 2. Pending Action Items Warning Banner (Marked Left / To Add Manually) */}
+                {project.manualActionRequired && (
+                  <div className="p-4 rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-950/60 via-[#182522] to-amber-950/40 text-amber-200 shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+                    <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-wider text-amber-400 mb-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>Action Required • Pending Manual Addition</span>
+                    </div>
+                    <p className="text-xs text-amber-200/90 mb-2.5 font-sans leading-relaxed">
+                      {project.manualActionRequired.summary}:
+                    </p>
+                    <ul className="space-y-1.5 text-xs text-amber-300 font-mono">
+                      {project.manualActionRequired.items.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2 bg-amber-950/40 p-2 rounded-lg border border-amber-500/20">
+                          <span className="text-amber-400 font-bold shrink-0">⚠️</span>
+                          <span className="leading-relaxed">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 3. Quantified Performance Ribbon */}
+                {metrics.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                    {metrics.map((metric, i) => (
+                      <div 
+                        key={i} 
+                        className="p-2.5 border border-[#527C68]/25 bg-[#101a18]/70 rounded-xl flex items-center justify-center gap-1.5 transition-all text-center"
+                      >
+                        <Sparkles className="w-3 h-3 shrink-0 text-[#D4B777] stroke-[1.75]" />
+                        <span className="text-[11px] font-mono font-medium text-[#E9E4D7]/90 truncate">
+                          {metric}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 4. Interactive Prototype Sandbox */}
+                <div>
+                  <ProjectShowcaseWidget
+                    stationId={selectedProjectKey}
+                    projectId={theme.projectId}
+                    theme={theme}
+                    onTeleport={handleExploreIn3D}
+                  />
+                </div>
+
+                {/* 5. Comprehensive Architectural Narrative & Problem Statement */}
+                {(project.problemStatement || project.description || project.shortBio) && (
+                  <div className="p-5 rounded-2xl bg-[#101a18]/60 border border-[#527C68]/25 space-y-2">
+                    <h4 className="text-xs uppercase tracking-widest text-[#D4B777] font-mono font-bold flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 stroke-[1.75]" /> Architectural Narrative & Problem Statement
+                    </h4>
+                    <p className="text-xs md:text-sm text-[#E9E4D7]/85 leading-relaxed font-sans">
+                      {project.problemStatement || project.description || project.shortBio}
+                    </p>
+                  </div>
+                )}
+
+                {/* 6. Verified Architectural Accomplishments (Google XYZ Format) */}
+                {project.highlights && project.highlights.length > 0 && (
+                  <div className="p-5 rounded-2xl bg-[#101a18]/60 border border-[#527C68]/25 space-y-3">
+                    <h4 className="text-xs uppercase tracking-widest text-[#D4B777] font-mono font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 stroke-[1.75]" /> Verified Architectural Accomplishments (Google XYZ)
+                    </h4>
+                    <ul className="space-y-2 text-xs md:text-sm text-[#E9E4D7]/85">
+                      {project.highlights.map((h, i) => (
+                        <li key={i} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                          <span className="w-2 h-2 rounded-full bg-[#D4B777] shrink-0 mt-1.5" />
+                          <span className="leading-relaxed font-sans">{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 7. Core Systems, Algorithms, Data Structures & Physics Architecture */}
+                {(project.algorithmsAndDataStructures || project.coreSystems || project.architecture) && (
+                  <div className="p-5 rounded-2xl bg-[#101a18]/60 border border-[#527C68]/25 space-y-3">
+                    <h4 className="text-xs uppercase tracking-widest text-[#527C68] font-mono font-bold flex items-center gap-1.5">
+                      <Cpu className="w-3.5 h-3.5 stroke-[1.75]" /> Core Systems, Data Structures & Physics Architecture
+                    </h4>
+                    <ul className="space-y-2 text-xs md:text-sm text-[#E9E4D7]/85">
+                      {(project.algorithmsAndDataStructures || project.coreSystems || project.architecture)!.map((sys, i) => (
+                        <li key={i} className="flex items-start gap-2 bg-[#14201d]/80 p-2.5 rounded-xl border border-[#527C68]/20">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#527C68] shrink-0 mt-0.5" />
+                          <span className="leading-relaxed font-sans">{sys}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 8. Technologies & Core Libraries */}
+                {techs.length > 0 && (
+                  <div className="p-5 rounded-2xl bg-[#101a18]/60 border border-[#527C68]/25 space-y-2">
+                    <h4 className="text-xs uppercase tracking-widest text-[#D4B777] font-mono font-bold flex items-center gap-1.5">
+                      <Code2 className="w-3.5 h-3.5 stroke-[1.75]" /> Technologies & Core Libraries
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {techs.map((tech) => (
+                        <span key={tech} className="px-3 py-1 border border-[#527C68]/30 bg-[#527C68]/15 rounded-lg text-xs font-mono text-[#E9E4D7]">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 9. Action Buttons Footer */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-[#527C68]/25">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {project.github && (
+                      <a
+                        href={project.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-[#101a18]/80 hover:bg-[#101a18] text-[#E9E4D7] hover:text-[#D4B777] rounded-xl text-xs font-heading font-semibold border border-[#527C68]/30 transition-colors"
+                      >
+                        <GithubIcon className="w-4 h-4" />
+                        <span>View GitHub Repository</span>
+                        <ExternalLink className="w-3 h-3 text-[#E9E4D7]/50" />
+                      </a>
+                    )}
+                    {project.liveDemo && (
+                      <a
+                        href={project.liveDemo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 font-heading font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522]"
+                      >
+                        <Globe className="w-4 h-4" />
+                        <span>Launch Live Prototype</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleExploreIn3D(selectedProjectKey)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-heading font-bold transition-all shadow-md cursor-pointer bg-[#527C68] hover:bg-[#689680] text-[#E9E4D7]"
+                    >
+                      <Compass className="w-4 h-4" />
+                      <span>Explore in 3D Island</span>
+                    </button>
+                  </div>
+
+                  <a
+                    href="mailto:prasadkankhar5@gmail.com"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-heading font-semibold transition-all cursor-pointer border border-[#D4B777]/35 bg-[#101a18]/80 hover:bg-[#101a18] text-[#D4B777]"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span>Inquire via Email</span>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 };
