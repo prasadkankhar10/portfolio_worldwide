@@ -35,12 +35,12 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
       setStatus('error');
-      setFeedback('Please fill out all fields before dispatching your scroll.');
+      setFeedback('Please fill out all fields before sending your message.');
       return;
     }
 
     setStatus('sending');
-    setFeedback('Inscribing scroll and preparing the vessel at Harbor Pier...');
+    setFeedback('Sending your message to Prasad\'s inbox...');
 
     try {
       // 1. Dispatch real email via Web3Forms API
@@ -60,7 +60,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
           subject: `Portfolio Message from ${name.trim()} [${topic}]`,
           message: message.trim(),
           recipient: 'prasadkankhar5@gmail.com',
-          from_name: 'Island World Courier'
+          from_name: 'Portfolio Contact'
         })
       });
 
@@ -77,8 +77,8 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
       setStatus('success');
       setFeedback(
         resJson?.success 
-          ? 'Email successfully delivered to Prasad’s inbox! The vessel has set sail.'
-          : 'Scroll sealed and vessel dispatched across the open ocean!'
+          ? 'Email successfully delivered to Prasad’s inbox! The harbor boat has set sail.'
+          : 'Message sent! The harbor boat has set sail across the ocean.'
       );
 
       if (onSuccess) {
@@ -95,7 +95,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
       });
 
       setStatus('success');
-      setFeedback('Vessel dispatched across the open ocean! A backup mailto draft is also available.');
+      setFeedback('Message sent! The harbor boat has set sail. A backup mail client is also available.');
     }
   };
 
@@ -124,13 +124,13 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
           </div>
           <div>
             <h4 className="text-base font-heading font-bold text-[#E9E4D7] tracking-tight flex items-center gap-2">
-              <span>Send Message Scroll</span>
+              <span>Send Message</span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#527C68]/25 text-[#D4B777] border border-[#D4B777]/25 font-normal">
-                Harbor Vessel Dispatch
+                Direct Email & 3D Boat
               </span>
             </h4>
             <p className="text-[11px] font-sans text-[#E9E4D7]/70">
-              Direct inbox delivery + real-time 3D ocean vessel sailing simulation.
+              Delivers directly to Prasad's email inbox with a 3D boat sailing animation.
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <h5 className="text-sm font-heading font-bold text-[#E9E4D7]">
-                Royal Courier Vessel Has Set Sail!
+                Message Delivered to Inbox!
               </h5>
               <p className="text-xs text-[#E9E4D7]/85 font-sans leading-relaxed">
                 {feedback}
@@ -159,7 +159,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
               className="px-5 py-2.5 rounded-xl bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
             >
               <Compass className="w-4 h-4" />
-              <span>🔭 Watch Vessel Depart</span>
+              <span>🔭 Watch Boat Set Sail</span>
             </button>
 
             <button
@@ -241,7 +241,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
           <div>
             <label className="block text-[11px] font-mono text-[#D4B777] uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <MessageSquare className="w-3 h-3 text-[#D4B777]/70" />
-              <span>Message Scroll</span>
+              <span>Your Message</span>
             </label>
             <textarea
               required
@@ -274,12 +274,12 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
               {status === 'sending' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Casting Off Vessel...</span>
+                  <span>Sending Message...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Dispatch Message via Vessel</span>
+                  <span>Send Message & Launch Boat</span>
                 </>
               )}
             </button>

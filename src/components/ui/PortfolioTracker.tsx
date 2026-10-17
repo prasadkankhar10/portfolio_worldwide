@@ -11,7 +11,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_profile', 
     title: 'Origins & Profile',
     icon: <User className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'Seek the Wizard of Origins near the center to learn of his past.',
+    hint: 'Talk to the Welcome Guide near the village center to learn about Prasad.',
     content: 'Prasad Anil Kankhar is a creator originating from Buldhana, Maharashtra, building software that blends technology, creativity, emotional storytelling, and personal growth. He is a disciplined practitioner of artistic handwriting and high-performance engineering.'
   },
   { 
@@ -19,7 +19,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_academics', 
     title: 'Academics & Leadership',
     icon: <GraduationCap className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Golden Knights guard the knowledge of his training.',
+    hint: 'Talk to the Academic Guide in the university courtyard.',
     content: 'Pursuing a B.Tech in Computer Science at MIT, Chhatrapati Sambhajinagar (Class of 2026). He serves as Technical Coordinator for ACTS, Campus Mantri for GeeksforGeeks, and is an active Google Student Ambassador.'
   },
   { 
@@ -27,7 +27,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_tech', 
     title: 'Technical Expertise',
     icon: <Code className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'Find the Elf of Engineering in the forests for his tools.',
+    hint: 'Talk to the Engineering Specialist in the forest workshop.',
     content: 'Master of C++, JavaScript, TypeScript, React, Node.js, and Three.js. Builds virtual worlds in Unreal Engine 5.4 and is currently expanding into Unity and low-level systems. Prefers direct, high-signal engineering communication.'
   },
   { 
@@ -35,7 +35,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_web', 
     title: 'Full-Stack Systems',
     icon: <BookOpen className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Pirates of the Web sail the southern coasts.',
+    hint: 'Talk to the Web Systems Lead down at the harbor docks.',
     content: 'Engineered "Nishtha" (open-source habit-tracking RPG), "Sadhana" (mindful discipline PWA with offline Firestore sync), "Vyuham" (Chrome MV3 productivity extension), and "TraceMate Pro" (WebAR camera tracing PWA).'
   },
   { 
@@ -43,7 +43,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_ai', 
     title: 'Artificial Intelligence',
     icon: <BrainCircuit className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Cleric of Artificial Intelligence awaits near the ruins.',
+    hint: 'Talk to the AI Lead near the tech discovery area.',
     content: 'Engineered a Professional Assessment Platform using NLP for semantic evaluation. Researches multi-agent workflows. Created "Butler OS" (autonomous desktop multi-agent engine) and "Akshayanidhi" (zero-cost AI photo vault with 512-dim facial clustering).'
   },
   { 
@@ -51,7 +51,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_games', 
     title: 'Game Development',
     icon: <Gamepad2 className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Goblin Tinkerers hide in the valleys making games.',
+    hint: 'Talk to the Game Developer down in the valley.',
     content: 'Engineered "One More Move" (C++17 & SDL3 turn-based roguelike engine with procedural PCM audio synthesis) and "Courier Express" (UE 5.4 mobile delivery game with Chaos suspension physics).'
   },
   { 
@@ -59,7 +59,7 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_events', 
     title: 'Community Building',
     icon: <Users className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Community Sheriff patrols the eastern plains.',
+    hint: 'Talk to the Community Lead near the central marketplace.',
     content: 'Organized an AI & ML Career Guidance Session for over 220 students. Orchestrated a massive "Among Us IRL" physical game event for campus festivals.'
   },
   { 
@@ -67,17 +67,17 @@ const PORTFOLIO_SECTIONS = [
     flag: 'learned_creative', 
     title: 'Creative Expression',
     icon: <Paintbrush className="w-5 h-5 stroke-[1.75]" />,
-    hint: 'The Witch of the Arts resides in the western groves.',
+    hint: 'Talk to the Creative Design Lead in the western grove.',
     content: 'A thoughtful blend of technical ambition, creative thinking, and emotional depth. Writes authentic poetry and Hindi/Devanagari Shayari with purpose-driven narrative storytelling.'
   },
 ];
 
 const ALL_EXPLORER_BADGES = [
-  { id: 'harbor_arrival', title: 'First Port of Call', desc: 'Arrived at Harbor Pier & Welcome Exhibit', icon: '⛵' },
-  { id: 'harvard_scholar', title: 'Harvard CS50x Scholar', desc: 'Explored the Harvard CS50 Hall of Rigor', icon: '🎓' },
+  { id: 'harbor_arrival', title: 'Port of Arrival', desc: 'Visited Harbor Pier & Welcome Exhibit', icon: '⛵' },
+  { id: 'harvard_scholar', title: 'Harvard CS50x Scholar', desc: 'Explored the Harvard CS50 Certificate Hall', icon: '🎓' },
   { id: 'systems_architect', title: 'Systems Architect', desc: 'Inspected bare-metal engine & autonomous AI projects', icon: '⚡' },
-  { id: 'summit_conqueror', title: 'Citadel Apex Climber', desc: 'Scaled to the Citadel Summit overlook', icon: '🏔️' },
-  { id: 'master_explorer', title: 'Grand Archipelago Master', desc: 'Discovered all 18 exhibition stations!', icon: '👑' },
+  { id: 'summit_conqueror', title: 'Summit Explorer', desc: 'Reached the mountain summit contact station', icon: '🏔️' },
+  { id: 'master_explorer', title: 'Complete Explorer', desc: 'Discovered all 18 exhibition stations!', icon: '⭐' },
 ];
 
 export const PortfolioTracker: React.FC = () => {
@@ -143,17 +143,17 @@ export const PortfolioTracker: React.FC = () => {
             <div className="flex items-center gap-2 mb-1">
               <Compass className="w-5 h-5 text-[#D4B777] stroke-[1.75]" />
               <h2 className="text-lg font-heading font-bold text-[#E9E4D7] tracking-tight">
-                Field Journal
+                Portfolio Tracker
               </h2>
             </div>
             <p className="text-xs text-[#E9E4D7]/60 font-sans mb-4">
-              Island Discovery & Memorabilia
+              Explore Prasad's background and achievements
             </p>
 
             {/* Progress Bar */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-[11px] font-mono text-[#D4B777]">
-                <span>Exploration Index</span>
+                <span>Exploration Progress</span>
                 <span>{discoveredCount} / {PORTFOLIO_SECTIONS.length} ({progressPercent}%)</span>
               </div>
               <div className="w-full h-1.5 bg-[#101a18] rounded-full overflow-hidden border border-[#527C68]/30">
@@ -193,10 +193,10 @@ export const PortfolioTracker: React.FC = () => {
                   </div>
                   <div className="flex-1 truncate">
                     <h3 className={`text-xs font-heading font-semibold truncate ${isDiscovered ? 'text-[#E9E4D7]' : 'text-[#E9E4D7]/40'}`}>
-                      {isDiscovered ? section.title : 'Undiscovered Station'}
+                      {isDiscovered ? section.title : 'Undiscovered Topic'}
                     </h3>
                     <p className="text-[10px] text-[#E9E4D7]/50 truncate mt-0.5 font-sans">
-                      {isDiscovered ? 'Read Dossier' : 'Speak with Island NPCs'}
+                      {isDiscovered ? 'View Details' : 'Explore Island or Talk to Guides'}
                     </p>
                   </div>
                 </button>
@@ -218,7 +218,7 @@ export const PortfolioTracker: React.FC = () => {
                   : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
               }`}
             >
-              Journal View
+              Overview
             </button>
             <button
               onClick={() => setActiveTab('badges')}
@@ -228,7 +228,7 @@ export const PortfolioTracker: React.FC = () => {
                   : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
               }`}
             >
-              <span>Badges & Honors</span>
+              <span>Achievements</span>
               <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full ${
                 activeTab === 'badges' ? 'bg-[#182522] text-[#D4B777]' : 'bg-[#527C68]/30 text-[#D4B777]'
               }`}>
@@ -243,7 +243,7 @@ export const PortfolioTracker: React.FC = () => {
                   : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
               }`}
             >
-              Island Cartography
+              Island Map
             </button>
           </div>
 

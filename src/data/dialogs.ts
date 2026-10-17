@@ -11,357 +11,363 @@ export interface DialogNode {
 export const dialogData: Record<string, DialogNode> = {
   building_test_1: {
     id: 'building_test_1',
-    npcName: 'System',
-    text: 'You have approached a building! (Text will be added here later).'
+    npcName: 'Information Guide',
+    text: 'Welcome! Walk up to any station or character to learn more about Prasad\'s projects and background.'
   },
   moonwell_commune: {
     id: 'moonwell_commune',
-    npcName: 'Enchanted Moonwell Spirit',
-    text: 'You gaze into the iridescent cyan pool. Pure celestial energy courses through your veins, blessing you with restorative wisdom!'
+    npcName: 'Skills Pool',
+    text: "You are looking at the Technical Skills Pool. This area showcases Prasad's full toolset across C++, TypeScript, 3D graphics, AI systems, and cloud databases."
   },
   rift_ascend: {
     id: 'rift_ascend',
-    npcName: 'Ancient Celestial Rift',
-    text: 'The cosmic rift crackles with electric violet lightning, bending space to transport you across the island realm!'
+    npcName: 'Summit Teleporter',
+    text: "This teleporter takes you to the mountain summit where you can view Prasad's direct contact info and career opportunities."
   },
-  // --- WIZARD (Personal Profile) ---
+  // --- WELCOME GUIDE (Personal Profile) ---
   wizard_intro_1: {
     id: 'wizard_intro_1',
-    npcName: 'Wizard of Origins',
+    npcName: 'Welcome Guide',
     conditionFlag: 'learned_profile',
     altNextId: 'wizard_return',
-    text: "Greetings, traveler! To understand Prasad, you must collect the 7 Fragments of Knowledge.",
+    text: "Hello and welcome! This 3D island is an interactive way to explore Prasad Kankhar's software engineering portfolio.",
     nextId: 'wizard_intro_2'
   },
   wizard_intro_2: {
     id: 'wizard_intro_2',
-    npcName: 'Wizard of Origins',
-    text: "He is a creator originating from Buldhana, Maharashtra, building a brand that blends technology, creativity, emotional storytelling, and personal growth.",
+    npcName: 'Welcome Guide',
+    text: "Prasad is a software and game engine developer from Buldhana, Maharashtra, passionate about building reliable software and creative digital experiences.",
     nextId: 'wizard_intro_3'
   },
   wizard_intro_3: {
     id: 'wizard_intro_3',
-    npcName: 'Wizard of Origins',
-    text: "Your first task: Speak to the Golden Knights in the courtyard to learn of his Academics and Leadership!",
+    npcName: 'Welcome Guide',
+    text: "Take a walk through the courtyard to meet the Academic Guide and learn about his university studies and leadership roles!",
     setFlag: 'learned_profile'
   },
   wizard_return: {
     id: 'wizard_return',
-    npcName: 'Wizard of Origins',
-    text: "You have gathered all the fragments! The ritual is ready to commence... Witness his true power!"
+    npcName: 'Welcome Guide',
+    text: "You have discovered all key areas of the portfolio! Feel free to review his project stations or contact him directly from the menu."
   },
 
-  // --- GOLDEN KNIGHTS (Academics & Leadership) ---
+  // --- ACADEMICS & LEADERSHIP ---
   knight_academics_1: {
     id: 'knight_academics_1',
-    npcName: 'Knight of Academia',
+    npcName: 'Academic Guide',
     conditionFlag: 'learned_academics',
     altNextId: 'knight_return',
-    text: "Halt! Do you seek knowledge of Prasad's training? He pursues a B.Tech in Computer Science at MIT, Chhatrapati Sambhajinagar.",
+    text: "Hello! Looking for Prasad's academic background? He is pursuing a B.Tech in Computer Science at MIT, Chhatrapati Sambhajinagar.",
     nextId: 'knight_academics_2'
   },
   knight_academics_2: {
     id: 'knight_academics_2',
-    npcName: 'Knight of Academia',
-    text: "A natural leader, he serves as the Technical Coordinator for ACTS and the Campus Mantri for GeeksforGeeks.",
+    npcName: 'Academic Guide',
+    text: "Alongside his studies, he serves as Technical Coordinator for ACTS and Campus Mantri for GeeksforGeeks, helping organize workshops and hackathons.",
     nextId: 'knight_academics_3'
   },
   knight_academics_3: {
     id: 'knight_academics_3',
-    npcName: 'Knight of Academia',
-    text: "He even bears the prestigious title of Google Student Ambassador! Now, go find the Elf of Engineering deep in the woods for your next fragment.",
+    npcName: 'Academic Guide',
+    text: "He was also selected as a Google Student Ambassador! Head over to the tech workshop in the woods to learn about the programming languages he uses.",
     setFlag: 'learned_academics'
   },
   knight_return: {
     id: 'knight_return',
-    npcName: 'Knight of Academia',
-    text: "His academic record is secured in your Map Journal. Stand guard, traveler!"
+    npcName: 'Academic Guide',
+    text: "Prasad's education and leadership records are saved in your Portfolio Journal (M). Have a great walk around!"
   },
 
-  // --- ELF (Technical Expertise) ---
+  // --- TECHNICAL EXPERTISE ---
   elf_tech_1: {
     id: 'elf_tech_1',
-    npcName: 'Elf of Engineering',
+    npcName: 'Engineering Specialist',
     conditionFlag: 'learned_tech',
     altNextId: 'elf_return',
-    text: "Ah, looking for the tools of the trade? Prasad is a master of the ancient languages: C++, JavaScript, React, Node.js, and Firebase.",
+    text: "Hi there! Want to know what tools Prasad uses? His primary programming languages are C++, TypeScript, JavaScript, Python, and SQL.",
     nextId: 'elf_tech_2'
   },
   elf_tech_2: {
     id: 'elf_tech_2',
-    npcName: 'Elf of Engineering',
-    text: "He builds virtual worlds in Unreal Engine and is currently expanding his magic into Unity and C#.",
+    npcName: 'Engineering Specialist',
+    text: "He develops web applications with React and Node.js, and builds 3D simulations and games using Three.js, WebGL, and Unreal Engine.",
     nextId: 'elf_tech_3'
   },
   elf_tech_3: {
     id: 'elf_tech_3',
-    npcName: 'Elf of Engineering',
-    text: "He prefers highly concise, direct communication. Now, seek out the Pirate Captain at the docks to learn of his Web Projects!",
+    npcName: 'Engineering Specialist',
+    text: "He prioritizes fast performance and clean architectures. Walk down to the harbor docks to check out his web applications!",
     setFlag: 'learned_tech'
   },
   elf_return: {
     id: 'elf_return',
-    npcName: 'Elf of Engineering',
-    text: "You carry the knowledge of his Tech Stack in your Map Journal. Keep exploring!"
+    npcName: 'Engineering Specialist',
+    text: "You've already reviewed his tech stack! You can check the full breakdown anytime in the Skills station."
   },
 
-  // --- PIRATES (Web & Software Engineering) ---
+  // --- WEB & SOFTWARE ENGINEERING ---
   pirate_web_1: {
     id: 'pirate_web_1',
-    npcName: 'Captain of the Web',
+    npcName: 'Web Systems Lead',
     conditionFlag: 'learned_web',
     altNextId: 'pirate_return',
-    text: "Ahoy matey! Let me tell ye about the grand ships Prasad has launched into the digital sea! First, there was 'Nishtha'—an open-source habit-tracking platform.",
+    text: "Welcome to the docks! Let me share a few web apps Prasad has built and deployed. First is 'Nishtha'—an open-source habit tracking platform.",
     nextId: 'pirate_web_2'
   },
   pirate_web_2: {
     id: 'pirate_web_2',
-    npcName: 'Captain of the Web',
-    text: "Then came 'Sadhana', a massive discipline platform with advanced gamification. A true treasure of personal growth!",
+    npcName: 'Web Systems Lead',
+    text: "He also engineered 'Sadhana', a full productivity web app with offline sync and clean goal tracking.",
     nextId: 'pirate_web_3'
   },
   pirate_web_3: {
     id: 'pirate_web_3',
-    npcName: 'Captain of the Web',
-    text: "He also built 'Vyuham', a gorgeous Chrome dashboard. The boy's a legendary shipwright! Now, find the Cleric of AI near the glowing runes.",
+    npcName: 'Web Systems Lead',
+    text: "He also created 'Vyuham', a modern Chrome extension dashboard. Head over to the central area to see his AI projects!",
     setFlag: 'learned_web'
   },
   pirate_return: {
     id: 'pirate_return',
-    npcName: 'Captain of the Web',
-    text: "Ye already have his Web Projects in yer Map Journal! Now off with ye!"
+    npcName: 'Web Systems Lead',
+    text: "His web applications and live links are in your Portfolio Journal. Check out the harbor vessel if you want to send him an email!"
   },
 
-  // --- CLERIC (AI & ML Projects) ---
+  // --- AI & ML PROJECTS ---
   cleric_ai_1: {
     id: 'cleric_ai_1',
-    npcName: 'Cleric of Artificial Intelligence',
+    npcName: 'AI & Data Lead',
     conditionFlag: 'learned_ai',
     altNextId: 'cleric_return',
-    text: "Blessings upon you. Have you heard of Prasad's miracles in Artificial Intelligence?",
+    text: "Hello! Interested in Prasad's work with Artificial Intelligence and Machine Learning?",
     nextId: 'cleric_ai_2'
   },
   cleric_ai_2: {
     id: 'cleric_ai_2',
-    npcName: 'Cleric of Artificial Intelligence',
-    text: "He engineered a Professional Assessment Platform using NLP to evaluate scenario-driven answers, and conducts research on Advanced Multi-Concept Memory Models.",
+    npcName: 'AI & Data Lead',
+    text: "He built an Automated Assessment Platform using Natural Language Processing (NLP) to objectively evaluate long-form student answers.",
     nextId: 'cleric_ai_3'
   },
   cleric_ai_3: {
     id: 'cleric_ai_3',
-    npcName: 'Cleric of Artificial Intelligence',
-    text: "He even summoned 'Butler AI', a self-coding multi-agent assistant. True divine creation! Next, find the Goblin Tinkerer at the market edge.",
+    npcName: 'AI & Data Lead',
+    text: "He also developed 'Butler AI'—an assistant capable of automating computer tasks and generating code. Next, check out the game development stations in the valley!",
     setFlag: 'learned_ai'
   },
   cleric_return: {
     id: 'cleric_return',
-    npcName: 'Cleric of Artificial Intelligence',
-    text: "The records of his AI miracles are safely stored in your Map Journal."
+    npcName: 'AI & Data Lead',
+    text: "Prasad's AI projects are recorded in your journal. Feel free to explore the interactive demos nearby!"
   },
 
-  // --- GOBLINS (Game Development) ---
+  // --- GAME DEVELOPMENT ---
   goblin_game_1: {
     id: 'goblin_game_1',
-    npcName: 'Goblin Tinkerer',
+    npcName: 'Game Developer',
     conditionFlag: 'learned_games',
     altNextId: 'goblin_return',
-    text: "Hehe! You like games? Prasad makes games! Very fun games!",
+    text: "Hey there! Prasad is passionate about building games and real-time graphics engines.",
     nextId: 'goblin_game_2'
   },
   goblin_game_2: {
     id: 'goblin_game_2',
-    npcName: 'Goblin Tinkerer',
-    text: "He built 'On the Way', a joyful delivery-themed mobile game. Perfect for humans! Now, go find the Cowboy Sheriff in the marketplace, hehe!",
+    npcName: 'Game Developer',
+    text: "He engineered 'On the Way', an engaging delivery mobile game, as well as 'One More Move', a custom turn-based puzzle game engine written in C++17.",
+    nextId: 'goblin_game_3'
+  },
+  goblin_game_3: {
+    id: 'goblin_game_3',
+    npcName: 'Game Developer',
+    text: "Visit the marketplace nearby to learn about the tech events and student workshops he has organized!",
     setFlag: 'learned_games'
   },
   goblin_return: {
     id: 'goblin_return',
-    npcName: 'Goblin Tinkerer',
-    text: "You wrote down his games in your Map Journal! Now go play them!"
+    npcName: 'Game Developer',
+    text: "You've seen his game projects! You can inspect the source code and details at the game station."
   },
 
-  // --- COWBOYS (Events & Community) ---
+  // --- COMMUNITY & EVENTS ---
   cowboy_events_1: {
     id: 'cowboy_events_1',
-    npcName: 'Community Sheriff',
+    npcName: 'Community Lead',
     conditionFlag: 'learned_events',
     altNextId: 'cowboy_return',
-    text: "Howdy partner. Prasad ain't just a coder; he's a community builder. Roundin' folks up is his specialty.",
+    text: "Welcome! Prasad doesn't just code in isolation—he actively builds student and developer communities.",
     nextId: 'cowboy_events_2'
   },
   cowboy_events_2: {
     id: 'cowboy_events_2',
-    npcName: 'Community Sheriff',
-    text: "He organized an AI & ML Career Guidance Session for over 220 students. Showed 'em the ropes for placements and internships.",
+    npcName: 'Community Lead',
+    text: "He organized an AI & Career Guidance Session that helped over 220 students understand internships and industry skills.",
     nextId: 'cowboy_events_3'
   },
   cowboy_events_3: {
     id: 'cowboy_events_3',
-    npcName: 'Community Sheriff',
-    text: "He even orchestrated a massive 'Among Us IRL' physical game event. Yeehaw! Head over to the Witch of the Arts for your final fragment.",
+    npcName: 'Community Lead',
+    text: "He also coordinated campus tech festivals and interactive coding events. Check out the creative writing area next!",
     setFlag: 'learned_events'
   },
   cowboy_return: {
     id: 'cowboy_return',
-    npcName: 'Community Sheriff',
-    text: "His community deeds are in your Map Journal. Keep on riding!"
+    npcName: 'Community Lead',
+    text: "His community leadership details are saved in your journal."
   },
 
-  // --- WITCH (Creative Expression & Philosophy) ---
+  // --- CREATIVE EXPRESSION & PHILOSOPHY ---
   witch_creative_1: {
     id: 'witch_creative_1',
-    npcName: 'Witch of the Arts',
+    npcName: 'Creative Design Lead',
     conditionFlag: 'learned_creative',
     altNextId: 'witch_return',
-    text: "Do you feel the emotional depth in the air? Prasad is not just logic... he is art.",
+    text: "Hello! Beyond pure engineering, Prasad strongly values creative storytelling, writing, and user experience.",
     nextId: 'witch_creative_2'
   },
   witch_creative_2: {
     id: 'witch_creative_2',
-    npcName: 'Witch of the Arts',
-    text: "He writes original, authentic Shayari in Roman Hindi and Devanagari. No copied spells here—only pure, purpose-driven storytelling.",
+    npcName: 'Creative Design Lead',
+    text: "He writes authentic poetry and Hindi/Devanagari Shayari, focusing on growth, discipline, and purpose.",
     nextId: 'witch_creative_3'
   },
   witch_creative_3: {
     id: 'witch_creative_3',
-    npcName: 'Witch of the Arts',
-    text: "He builds systems that connect with people both logically and emotionally. Return to the Wizard of Origins! The ritual is ready!",
+    npcName: 'Creative Design Lead',
+    text: "His goal is building software that feels both technologically sound and genuinely human to use. You've now seen all main areas of his journey!",
     setFlag: 'learned_creative'
   },
   witch_return: {
     id: 'witch_return',
-    npcName: 'Witch of the Arts',
-    text: "The essence of his creativity is sealed within your Map Journal. Open it and reflect."
+    npcName: 'Creative Design Lead',
+    text: "Prasad's creative philosophy is recorded in your journal."
   },
 
-  // --- WELL (Map Center) ---
+  // --- VILLAGE CENTER ---
   well_interaction: {
     id: 'well_interaction',
-    npcName: 'Ancient Well',
-    text: "You are in the Center of the map",
+    npcName: 'Village Center',
+    text: "You are at the Village Center. From here you can access all project districts across the island.",
   },
 
-  // --- WORLD GUIDES (Summoned) ---
+  // --- WORLD GUIDES ---
   world_guide_1: {
     id: 'world_guide_1',
-    npcName: 'World Guide',
+    npcName: 'Tour Guide',
     conditionFlag: 'met_guide',
     altNextId: 'world_guide_return_1',
-    text: "Welcome to Prasad's World! I came as quickly as I could.",
+    text: "Welcome to Prasad's 3D Portfolio! Need a quick orientation?",
     nextId: 'world_guide_2'
   },
   world_guide_2: {
     id: 'world_guide_2',
-    npcName: 'World Guide',
-    text: "This island is a living representation of Prasad's skills, achievements, and journey as a software developer and creator.",
+    npcName: 'Tour Guide',
+    text: "This interactive island showcases Prasad's real-world software projects, certifications, and developer skills.",
     nextId: 'world_guide_3'
   },
   world_guide_3: {
     id: 'world_guide_3',
-    npcName: 'World Guide',
-    text: "Feel free to explore! You can find other characters scattered around who can tell you more. Let me know if you need anything!",
+    npcName: 'Tour Guide',
+    text: "Feel free to walk around with WASD, press [M] for your journal, or press [N] for the map. Let me know if you need anything!",
     setFlag: 'met_guide'
   },
   world_guide_return_1: {
     id: 'world_guide_return_1',
-    npcName: 'World Guide',
-    text: "Hey again! Still exploring the map?",
+    npcName: 'Tour Guide',
+    text: "Hi again! Enjoying your walk around the portfolio?",
     nextId: 'world_guide_return_2'
   },
   world_guide_return_2: {
     id: 'world_guide_return_2',
-    npcName: 'World Guide',
-    text: "Remember, just press E near the well if you ever want me to run back over here!",
+    npcName: 'Tour Guide',
+    text: "Tip: You can press [E] in front of any station monument to open its complete project case study and live demo.",
   },
   
   // --- MARKETPLACE NPCs ---
   blacksmith_talk_1: {
     id: 'blacksmith_talk_1',
-    npcName: 'Viking Blacksmith',
-    text: "Welcome to the forge! Need some armor or weapons?",
+    npcName: 'Systems Engineer',
+    text: "Welcome to the workshop! Looking for details on Prasad's technical foundations?",
     nextId: 'blacksmith_talk_2'
   },
   blacksmith_talk_2: {
     id: 'blacksmith_talk_2',
-    npcName: 'Viking Blacksmith',
-    text: "While you're looking around, let me tell you about Prasad's technical stack.",
+    npcName: 'Systems Engineer',
+    text: "He specializes in C++, JavaScript, TypeScript, React, Node.js, and Firebase.",
     nextId: 'blacksmith_talk_3'
   },
   blacksmith_talk_3: {
     id: 'blacksmith_talk_3',
-    npcName: 'Viking Blacksmith',
-    text: "He forged his skills in C++, JavaScript, React, Node.js, and Firebase. A sturdy foundation!"
+    npcName: 'Systems Engineer',
+    text: "He focuses on clean code structure, fast rendering, and reliable backends."
   },
 
   cowboy_shop_1: {
     id: 'cowboy_shop_1',
-    npcName: 'Market Organizer',
-    text: "Howdy. Just checking the inventory and keeping the peace.",
+    npcName: 'Events Coordinator',
+    text: "Hello! Glad to see you visiting the island.",
     nextId: 'cowboy_shop_2'
   },
   cowboy_shop_2: {
     id: 'cowboy_shop_2',
-    npcName: 'Market Organizer',
-    text: "Speaking of organizing, Prasad is an expert in Community and Event Organization.",
+    npcName: 'Events Coordinator',
+    text: "Prasad has extensive experience hosting student tech events and mentorship workshops.",
     nextId: 'cowboy_shop_3'
   },
   cowboy_shop_3: {
     id: 'cowboy_shop_3',
-    npcName: 'Market Organizer',
-    text: "He even ran an AI & ML Career Guidance Session for over 220 students. Quite the sheriff!"
+    npcName: 'Events Coordinator',
+    text: "He hosted an AI & Career Guidance session with over 220 attendees, helping students plan their careers."
   },
 
   casual_shop_1: {
     id: 'casual_shop_1',
-    npcName: 'Shield Vendor',
-    text: "Finest shields in the land right here!",
+    npcName: 'Software Architect',
+    text: "Welcome! Looking into how Prasad builds web systems?",
     nextId: 'casual_shop_2'
   },
   casual_shop_2: {
     id: 'casual_shop_2',
-    npcName: 'Shield Vendor',
-    text: "They are as sturdy and reliable as Prasad's backend architecture.",
+    npcName: 'Software Architect',
+    text: "He builds robust architectures with clear data models and fast response times.",
     nextId: 'casual_shop_3'
   },
   casual_shop_3: {
     id: 'casual_shop_3',
-    npcName: 'Shield Vendor',
-    text: "He built robust systems for Nishtha and Sadhana. Now that's solid defense!"
+    npcName: 'Software Architect',
+    text: "His applications Nishtha and Sadhana are great examples of clean full-stack design."
   },
 
   witch_shop_1: {
     id: 'witch_shop_1',
-    npcName: 'Potions & Produce',
-    text: "Fresh fruit and fine pottery! Crafted with care.",
+    npcName: 'UI/UX Designer',
+    text: "Hello! Great to meet you.",
     nextId: 'witch_shop_2'
   },
   witch_shop_2: {
     id: 'witch_shop_2',
-    npcName: 'Potions & Produce',
-    text: "Much like Prasad's UI/UX designs. He has a keen eye for Creative Expression.",
+    npcName: 'UI/UX Designer',
+    text: "Prasad pays close attention to user interface design, visual hierarchy, and smooth interactions.",
     nextId: 'witch_shop_3'
   },
   witch_shop_3: {
     id: 'witch_shop_3',
-    npcName: 'Potions & Produce',
-    text: "He builds systems that connect with people both logically and emotionally."
+    npcName: 'UI/UX Designer',
+    text: "He believes software should be intuitive, accessible, and enjoyable for everyone."
   },
 
   goblin_fruit_1: {
     id: 'goblin_fruit_1',
-    npcName: 'Fruit Merchant',
-    text: "Hehe! Juicy fruits for sale!",
+    npcName: 'App Tester',
+    text: "Hi there! Have you tested Prasad's mobile game yet?",
     nextId: 'goblin_fruit_2'
   },
   goblin_fruit_2: {
     id: 'goblin_fruit_2',
-    npcName: 'Fruit Merchant',
-    text: "Prasad made a game once about delivery called 'On the Way'.",
+    npcName: 'App Tester',
+    text: "He built 'On the Way', a fun delivery puzzle game.",
     nextId: 'goblin_fruit_3'
   },
   goblin_fruit_3: {
     id: 'goblin_fruit_3',
-    npcName: 'Fruit Merchant',
-    text: "Maybe I can use his game to deliver these fruits, hehe!"
+    npcName: 'App Tester',
+    text: "You can check out its gameplay and tech details at the game station in the valley!"
   }
 };

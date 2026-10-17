@@ -199,7 +199,7 @@ export const MainMenu: React.FC = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#D4B777]" />
-                  <span><strong>Interactive NPCs</strong>, Stonehenge riddle & Royal Courier vessel</span>
+                  <span><strong>Interactive Guides</strong>, logic puzzle & direct messaging boat</span>
                 </li>
               </ul>
             </div>

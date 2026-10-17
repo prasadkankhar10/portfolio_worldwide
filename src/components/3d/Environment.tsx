@@ -663,15 +663,15 @@ const InteractiveMagicLocations: React.FC = () => {
       if (nextStep === STONEHENGE_SOLUTION.length) {
         setStonehengeSolved(true);
         setStonehengeBanner({
-          title: '✨ ANCIENT SANCTUARY AWAKENED! ✨',
+          title: '✨ CREATIVE PHILOSOPHY UNLOCKED! ✨',
           bodyHtml:
-            'You have deciphered the Rite of the Elements.<br>The Blessing of the Old Gods fills your spirit.<br><br><b>[ +500 Max Mana • Celestial Relic Acquired ]</b>'
+            'Great job! You solved the pillar sequence.<br><br><b>"Technology is the structure; creativity is the soul."</b><br><br>Prasad blends technical precision with human storytelling in everything he builds.'
         });
       }
     } else {
       // Mistake: reset sequence with prompt feedback
       setStonehengeStep(0);
-      setMagicPrompt('❌ The elemental frequency falters... The ritual resets.');
+      setMagicPrompt('❌ Sequence reset. Try activating the pillars in another order.');
     }
   };
 
@@ -705,39 +705,39 @@ const InteractiveMagicLocations: React.FC = () => {
 
     if (dCrossroads < 4.0) {
       currentZone = 'crossroads';
-      prompt = 'Press [E] to Teleport to Harbor Docks Waystone';
+      prompt = 'Press [E] to Teleport to Harbor Pier';
     } else if (dDocks < 4.0) {
       currentZone = 'docks';
-      prompt = 'Press [E] to Teleport to Village Crossroads Waystone';
+      prompt = 'Press [E] to Teleport to Village Center';
     } else if (dPortal < 4.5) {
       currentZone = 'portal';
-      prompt = 'Press [E] to Ascend to Watchtower Summit';
+      prompt = 'Press [E] to Go to Mountain Summit';
     } else if (dSummit < 5.0) {
       currentZone = 'summit';
-      prompt = 'Press [E] to Descend to Citadel Courtyard';
+      prompt = 'Press [E] to Return to Courtyard';
     } else if (dMoonwell < 4.5) {
       currentZone = 'moonwell';
-      prompt = 'Press [E] to Commune with Enchanted Moonwell';
+      prompt = 'Press [E] to Inspect Technical Skills Pool';
     } else if (nearPillar) {
       currentZone = `stonehenge_pillar_${nearPillar.id}`;
       const isAlreadyActive =
         stonehengeSolved || STONEHENGE_SOLUTION.slice(0, stonehengeStep).includes(nearPillar.id);
       if (stonehengeSolved) {
-        prompt = `Pillar of ${nearPillar.name} [Awakened ✨]`;
+        prompt = `Pillar of ${nearPillar.name} [Active ✨]`;
       } else if (isAlreadyActive) {
-        prompt = `Pillar of ${nearPillar.name} [Resonating Harmony]`;
+        prompt = `Pillar of ${nearPillar.name} [Activated]`;
       } else {
-        prompt = `Press [E] to Commune with Pillar of ${nearPillar.name}`;
+        prompt = `Press [E] to Activate Pillar: ${nearPillar.name}`;
       }
     } else if (dStonehengeAltar < 4.0) {
       currentZone = 'stonehenge_altar';
       if (stonehengeSolved) {
-        prompt = 'Press [E] to Commune with Awakened Celestial Altar';
+        prompt = 'Press [E] to View Creative Philosophy';
       } else {
         const nextExpected = STONEHENGE_PILLARS.find(
           (p) => p.id === STONEHENGE_SOLUTION[stonehengeStep]
         );
-        prompt = `Ancient Altar: Decipher Rite of Elements (${stonehengeStep}/6) [Next: ${
+        prompt = `Logic Puzzle: Activate Pillars in Order (${stonehengeStep}/6) [Next: ${
           nextExpected?.name || 'Complete'
         }]`;
       }
@@ -769,9 +769,9 @@ const InteractiveMagicLocations: React.FC = () => {
     } else if (zone === 'stonehenge_altar') {
       if (stonehengeSolved) {
         setStonehengeBanner({
-          title: '✨ ANCIENT SANCTUARY AWAKENED! ✨',
+          title: '✨ CREATIVE PHILOSOPHY UNLOCKED! ✨',
           bodyHtml:
-            'The celestial relic hums in eternal resonance.<br>Your spirit remains blessed by the Old Gods.<br><br><b>[ Celestial Blessing Active ]</b>'
+            'Logic puzzle completed!<br><br><b>"Technology is the structure; creativity is the soul."</b><br><br>Feel free to continue exploring the island.'
         });
       }
     }

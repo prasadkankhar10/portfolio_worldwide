@@ -124,7 +124,7 @@ export const portfolioData: Record<string, StationData> = {
     stationId: "TRIGGER_Harbor_Welcome",
     category: "Landmarks & Interactive",
     title: "Harbor Pier • Connect With Me",
-    subtitle: "Software Development Engineer (SDE) | Direct Inquiries & Royal Courier Dispatch",
+    subtitle: "Software Development Engineer (SDE) | Direct Inquiries & Harbor Messaging",
     badge: "Harbor Arrival • Connect Station",
     shortBio: "Results-driven Software Development Engineer with deep expertise in C++, TypeScript, Python, and scalable distributed architectures. Architect of 19 verified software systems spanning bare-metal C++17 game engines, autonomous multi-agent operating systems, and production Indic RAG platforms with over 100,000+ lines of audited code. Solved 850+ algorithmic coding problems across LeetCode and GeeksforGeeks.",
     metrics: [
@@ -143,7 +143,7 @@ export const portfolioData: Record<string, StationData> = {
       linkedin: "https://linkedin.com/in/prasad-kankhar"
     },
     email: "prasadkankhar5@gmail.com",
-    promptText: "Connect with Prasad directly! Dispatch an in-game message scroll via the Royal Courier Vessel moored at the pier, or reach out directly via Email & LinkedIn.",
+    promptText: "Connect with Prasad directly! Send a message via the form at the pier, or connect directly via Email & LinkedIn.",
     controlsHint: "WASD / Arrows to Move • Space to Jump • [E] to Inspect Stations • Click Station list to Teleport",
     collaborationAreas: [
       "Software Development Engineer (SDE) & Backend Systems Roles",
@@ -752,15 +752,15 @@ export const portfolioData: Record<string, StationData> = {
   },
 
   // =========================================================================
-  // 6. SACRED GROVE, RUINS & FINALE
+  // 6. SKILLS, PUZZLE & FINALE
   // =========================================================================
 
   TRIGGER_Moonwell_Skills: {
     stationId: "TRIGGER_Moonwell_Skills",
     category: "Landmarks & Interactive",
-    title: "The Mana Well • Full Skills Inventory",
-    subtitle: "Complete ATS-Clustered Technical Competency Matrix",
-    badge: "The Sacred Grove",
+    title: "Technical Skills & Technologies Hub",
+    subtitle: "Complete Technical Competency Matrix",
+    badge: "Skills & Stack",
     skills: {
       "Programming Languages": ["C++ (17/20)", "Python (3.10+)", "TypeScript", "JavaScript (ES6+)", "GDScript", "SQL", "C"],
       "3D Graphics & Spatial": ["Three.js", "React Three Fiber", "WebXR Device API", "8th Wall SLAM", "Rapier 3D", "Unreal Engine 5.4", "Godot 4"],
@@ -779,13 +779,13 @@ export const portfolioData: Record<string, StationData> = {
   TRIGGER_Stonehenge_Puzzle: {
     stationId: "TRIGGER_Stonehenge_Puzzle",
     category: "Landmarks & Interactive",
-    title: "Stonehenge Megaliths • Beyond Code",
-    subtitle: "Interactive 6-Pillar Rune Puzzle & Creative Expression",
-    badge: "Ancient Ruins",
+    title: "Logic Puzzle & Creative Philosophy",
+    subtitle: "Interactive 6-Pillar Puzzle & Creative Writing",
+    badge: "Interactive Landmark",
     miniGame: {
-      title: "6-Pillar Elemental Rune Puzzle",
-      instructions: "Inspect the 6 standing stones (Sun, Moon, Fire, Water, Earth, Air). Activating them in the mystical harmonic sequence unlocks the ancient relic.",
-      rewardMessage: "Secret Unlocked: 'Technology is the structure; creativity is the soul.'",
+      title: "6-Pillar Logic Puzzle",
+      instructions: "Inspect the 6 standing stones. Activate them in the correct sequence to solve the puzzle and reveal Prasad's creative philosophy.",
+      rewardMessage: "Puzzle Solved: 'Technology is the structure; creativity is the soul.'",
     },
     creativeSide: {
       title: "Poetry & Shayari",
@@ -797,10 +797,10 @@ export const portfolioData: Record<string, StationData> = {
   TRIGGER_Citadel_Contact: {
     stationId: "TRIGGER_Citadel_Contact",
     category: "Landmarks & Interactive",
-    title: "The Citadel Arcane Rift • Connect With Me",
+    title: "Mountain Summit • Connect With Me",
     subtitle: "Direct Contact, Career Opportunities & Strategic Vision",
-    badge: "Mountain Summit Finale",
-    promptText: "Step through the portal to initiate direct technical collaboration or interview scheduling.",
+    badge: "Contact & Vision",
+    promptText: "Reach out directly for software engineering roles, technical collaboration, or interview scheduling.",
     email: "prasadkankhar5@gmail.com",
     github: "https://github.com/prasadkankhar10",
     linkedin: "https://linkedin.com/in/prasad-kankhar",

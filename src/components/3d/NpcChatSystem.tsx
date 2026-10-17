@@ -6,51 +6,51 @@ const DIALOGS: Record<string, { lines: { speakerIndex: number; text: string; dur
   PIRATES: [
     {
       lines: [
-        { speakerIndex: 0, text: "Yarr, this island be quieter than a ghost ship.", duration: 3000 },
-        { speakerIndex: 1, text: "Aye. I miss the smell of gunpowder.", duration: 3000 },
-        { speakerIndex: 0, text: "Patience, matey. Prasad's building something big.", duration: 3500 },
+        { speakerIndex: 0, text: "The harbor view out toward the ocean is really peaceful.", duration: 3000 },
+        { speakerIndex: 1, text: "Have you checked out Prasad's contact form at the pier?", duration: 3000 },
+        { speakerIndex: 0, text: "Yes! When you submit a message, the boat actually sails off.", duration: 3500 },
       ]
     },
     {
       lines: [
-        { speakerIndex: 0, text: "Did ye see that developer walking around?", duration: 3500 },
-        { speakerIndex: 1, text: "Aye, looking busy as always.", duration: 2500 },
-        { speakerIndex: 0, text: "I wonder if he'll give us a bigger ship.", duration: 3000 },
+        { speakerIndex: 0, text: "Did you see Prasad's web applications in the town square?", duration: 3500 },
+        { speakerIndex: 1, text: "Yes, Nishtha and Sadhana look very clean.", duration: 2500 },
+        { speakerIndex: 0, text: "And each one has live links to test right in your browser.", duration: 3000 },
       ]
     },
     {
       lines: [
-        { speakerIndex: 0, text: "My peg leg is itching. Means a storm is brewing.", duration: 3500 },
-        { speakerIndex: 1, text: "Ye don't even have a peg leg, you bilge rat!", duration: 3500 },
+        { speakerIndex: 0, text: "The water rendering and lighting look really smooth.", duration: 3500 },
+        { speakerIndex: 1, text: "It's built with Three.js and custom GLSL water shaders.", duration: 3500 },
       ]
     }
   ],
   TOWN: [
     {
       lines: [
-        { speakerIndex: 0, text: "Beautiful day for a walk in the portfolio.", duration: 3500 },
-        { speakerIndex: 1, text: "Indeed. The rendering quality is fantastic today.", duration: 3500 },
-        { speakerIndex: 0, text: "Prasad really outdid himself with the shaders.", duration: 4000 },
+        { speakerIndex: 0, text: "Beautiful day for a walk around the portfolio.", duration: 3500 },
+        { speakerIndex: 1, text: "Indeed. The 3D graphics run very smoothly.", duration: 3500 },
+        { speakerIndex: 0, text: "Prasad optimized the physics and draw calls nicely.", duration: 4000 },
       ]
     },
     {
       lines: [
-        { speakerIndex: 0, text: "Have you seen the new projects section?", duration: 3500 },
-        { speakerIndex: 1, text: "Yes! The 3D integration is seamless.", duration: 3500 },
+        { speakerIndex: 0, text: "Have you checked out his Harvard CS50 certification?", duration: 3500 },
+        { speakerIndex: 1, text: "Yes! Over in the academic pavilion with his leadership credentials.", duration: 3500 },
       ]
     }
   ],
   DUEL: [
     {
       lines: [
-        { speakerIndex: 0, text: "Your stance is weak, defender!", duration: 2500 },
-        { speakerIndex: 1, text: "Less talking, more swinging!", duration: 2500 },
+        { speakerIndex: 0, text: "Are you practicing for the technical interview?", duration: 2500 },
+        { speakerIndex: 1, text: "Yes, reviewing data structures and algorithms!", duration: 2500 },
       ]
     },
     {
       lines: [
-        { speakerIndex: 0, text: "Is that all the magic you have?", duration: 2500 },
-        { speakerIndex: 1, text: "I'm just getting warmed up!", duration: 2500 },
+        { speakerIndex: 0, text: "Did you see his LeetCode problem solving record?", duration: 2500 },
+        { speakerIndex: 1, text: "Over 200+ problems solved across arrays, trees, and graphs.", duration: 2500 },
       ]
     }
   ]

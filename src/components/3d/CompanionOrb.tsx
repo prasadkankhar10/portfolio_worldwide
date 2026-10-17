@@ -7,17 +7,17 @@ import { useGameStore } from '../../store/useGameStore';
 import { NpcChatBubble } from './NpcChatBubble';
 
 const DIALOGUE_LINES = [
-  "Watch your step, it's a long way down!",
-  "The Knights say there's a powerful artifact hidden in the ruins...",
-  "I sense strong magic coming from that strange wizard up there.",
-  "Did you know the Vikings built their houses by hand?",
-  "Let's explore that mountain over there!",
-  "Goblins might look silly, but they're surprisingly sneaky.",
-  "It's peaceful right now, but stay alert.",
-  "I wonder what those cowboys are arguing about...",
-  "Hey! Listen!",
-  "The pirate ship looks deserted, but you never know...",
-  "The air feels different in this part of the island."
+  "Welcome! Walk up to any station pedestal to view project details.",
+  "Press [M] anytime to open your Portfolio Journal and track visited spots.",
+  "Press [N] to toggle the full island minimap and find all 18 stations.",
+  "Check out the harbor pier to send Prasad an email message directly.",
+  "Hold [Shift] while moving with WASD to sprint across the island.",
+  "In a hurry? You can switch to the Quick 2D view from the main menu.",
+  "Prasad's Harvard CS50 certification is displayed in the pavilion ahead.",
+  "Looking for source code? Every project modal links directly to GitHub.",
+  "Up on the mountain pass, you can find Prasad's low-level C++ game engine.",
+  "Feel free to talk to any of the characters scattered around the village!",
+  "Take your time exploring — each district highlights a different tech area."
 ];
 
 export function CompanionOrb() {
