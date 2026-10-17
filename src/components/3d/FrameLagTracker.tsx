@@ -30,7 +30,7 @@ export const FrameLagTracker: React.FC = () => {
         if (currentFps >= 50) {
           dotEl.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
         } else if (currentFps >= 30) {
-          dotEl.className = 'w-2 h-2 rounded-full bg-[#D4B777]';
+          dotEl.className = 'w-2 h-2 rounded-full bg-[#D6BC83]';
         } else {
           dotEl.className = 'w-2 h-2 rounded-full bg-rose-500';
         }

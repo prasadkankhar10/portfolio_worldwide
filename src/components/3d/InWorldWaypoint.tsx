@@ -61,7 +61,7 @@ export const InWorldWaypoint: React.FC = () => {
       <mesh ref={beaconMeshRef} position={[0, 40, 0]}>
         <cylinderGeometry args={[0.5, 1.8, 80, 16, 1, true]} />
         <meshBasicMaterial 
-          color="#D4B777" 
+          color="#D6BC83" 
           transparent 
           opacity={0.35} 
           side={THREE.DoubleSide} 
@@ -84,7 +84,7 @@ export const InWorldWaypoint: React.FC = () => {
       {/* 2. Expanding Ground Ripple Rings */}
       <mesh ref={ringRef1} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.15, 0]}>
         <ringGeometry args={[1.2, 1.4, 32]} />
-        <meshBasicMaterial color="#D4B777" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#D6BC83" transparent opacity={0.6} side={THREE.DoubleSide} />
       </mesh>
       <mesh ref={ringRef2} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.16, 0]}>
         <ringGeometry args={[1.2, 1.4, 32]} />
@@ -96,23 +96,23 @@ export const InWorldWaypoint: React.FC = () => {
         <mesh>
           <octahedronGeometry args={[0.85, 0]} />
           <meshStandardMaterial 
-            color="#D4B777" 
-            emissive="#D4B777" 
+            color="#D6BC83" 
+            emissive="#D6BC83" 
             emissiveIntensity={1.2} 
             roughness={0.2} 
             metalness={0.8} 
           />
         </mesh>
-        <pointLight color="#D4B777" intensity={2.5} distance={15} />
+        <pointLight color="#D6BC83" intensity={2.5} distance={15} />
       </group>
 
       {/* 4. Overhead In-World Floating Distance Pill */}
       <Html position={[0, 8.5, 0]} center distanceFactor={22} zIndexRange={[100, 0]}>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#182522]/90 border border-[#D4B777]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6)] backdrop-blur-md text-[#E9E4D7] text-xs font-heading font-semibold whitespace-nowrap select-none pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1B2822]/90 border border-[#D6BC83]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6)] backdrop-blur-md text-[#F0E9DA] text-xs font-heading font-semibold whitespace-nowrap select-none pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <Compass className="w-3.5 h-3.5 text-[#D4B777]" />
+          <Compass className="w-3.5 h-3.5 text-[#D6BC83]" />
           <span>{targetStation.name}</span>
-          <span className="font-mono text-[#D4B777] font-bold">[{dist}m]</span>
+          <span className="font-mono text-[#D6BC83] font-bold">[{dist}m]</span>
           <button
             onClick={(e) => {
               e.stopPropagation();

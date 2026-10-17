@@ -5,20 +5,31 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-forest: #182522;
-  --color-forest-dark: #101a18;
-  --color-forest-surface: rgba(24, 37, 34, 0.85);
-  --color-forest-glass: rgba(24, 37, 34, 0.72);
-  --color-gold: #D4B777;
-  --color-gold-light: #E5CD94;
-  --color-gold-muted: rgba(212, 183, 119, 0.22);
-  --color-moss: #527C68;
-  --color-moss-light: #689680;
-  --color-moss-muted: rgba(82, 124, 104, 0.25);
-  --color-cream: #E9E4D7;
-  --color-cream-soft: rgba(233, 228, 215, 0.85);
-  --color-cream-muted: rgba(233, 228, 215, 0.65);
-  --color-cream-faint: rgba(233, 228, 215, 0.15);
+  --color-canvas: #111916;
+  --color-surface: #1B2822;
+  --color-elevated: #25352D;
+  --color-border: #3A4B40;
+  --color-champagne: #D6BC83;
+  --color-champagne-light: #E8D5A7;
+  --color-ivory: #F0E9DA;
+  --color-silver-sage: #B9C2B7;
+  --color-muted-sage: #87968A;
+
+  /* Aliased design system tokens */
+  --color-forest: #1B2822;
+  --color-forest-dark: #111916;
+  --color-forest-surface: rgba(27, 40, 34, 0.88);
+  --color-forest-glass: rgba(27, 40, 34, 0.75);
+  --color-gold: #D6BC83;
+  --color-gold-light: #E8D5A7;
+  --color-gold-muted: rgba(214, 188, 131, 0.22);
+  --color-moss: #3A4B40;
+  --color-moss-light: #4D6456;
+  --color-moss-muted: rgba(58, 75, 64, 0.35);
+  --color-cream: #F0E9DA;
+  --color-cream-soft: #B9C2B7;
+  --color-cream-muted: #87968A;
+  --color-cream-faint: rgba(135, 150, 138, 0.25);
 }
 
 html, body, #root {
@@ -27,8 +38,8 @@ html, body, #root {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #101a18;
-  color: #E9E4D7;
+  background-color: #111916;
+  color: #F0E9DA;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,16 +56,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(16, 26, 24, 0.5);
+  background: rgba(17, 25, 22, 0.5);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(212, 183, 119, 0.25);
+  background: rgba(214, 188, 131, 0.25);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 183, 119, 0.45);
+  background: rgba(214, 188, 131, 0.45);
 }
 
 /* Organic Glassmorphism helper */

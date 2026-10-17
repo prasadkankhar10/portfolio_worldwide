@@ -115,21 +115,21 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
   };
 
   return (
-    <div className="bg-[#101a18]/90 border border-[#D4B777]/35 rounded-2xl p-5 sm:p-6 backdrop-blur-md shadow-xl text-[#E9E4D7] relative overflow-hidden">
+    <div className="bg-[#111916]/90 border border-[#D6BC83]/35 rounded-2xl p-5 sm:p-6 backdrop-blur-md shadow-xl text-[#F0E9DA] relative overflow-hidden">
       {/* Decorative Gold Header Bar */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#527C68]/30">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#3A4B40]/30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#D4B777]/15 border border-[#D4B777]/30 flex items-center justify-center text-[#D4B777]">
+          <div className="w-8 h-8 rounded-lg bg-[#D6BC83]/15 border border-[#D6BC83]/30 flex items-center justify-center text-[#D6BC83]">
             <Ship className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-base font-heading font-bold text-[#E9E4D7] tracking-tight flex items-center gap-2">
+            <h4 className="text-base font-heading font-bold text-[#F0E9DA] tracking-tight flex items-center gap-2">
               <span>Send Message</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#527C68]/25 text-[#D4B777] border border-[#D4B777]/25 font-normal">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#3A4B40]/25 text-[#D6BC83] border border-[#D6BC83]/25 font-normal">
                 Direct Email & 3D Boat
               </span>
             </h4>
-            <p className="text-[11px] font-sans text-[#E9E4D7]/70">
+            <p className="text-[11px] font-sans text-[#F0E9DA]/70">
               Delivers directly to Prasad's email inbox with a 3D boat sailing animation.
             </p>
           </div>
@@ -138,16 +138,16 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
 
       {status === 'success' ? (
         <div className="space-y-4 py-3 animate-in fade-in duration-500">
-          <div className="p-4 rounded-xl bg-[#527C68]/20 border border-[#D4B777]/40 flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-[#3A4B40]/20 border border-[#D6BC83]/40 flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <h5 className="text-sm font-heading font-bold text-[#E9E4D7]">
+              <h5 className="text-sm font-heading font-bold text-[#F0E9DA]">
                 Message Delivered to Inbox!
               </h5>
-              <p className="text-xs text-[#E9E4D7]/85 font-sans leading-relaxed">
+              <p className="text-xs text-[#F0E9DA]/85 font-sans leading-relaxed">
                 {feedback}
               </p>
-              <div className="text-[11px] font-mono text-[#D4B777] pt-1">
+              <div className="text-[11px] font-mono text-[#D6BC83] pt-1">
                 Delivering to: <span className="underline">prasadkankhar5@gmail.com</span>
               </div>
             </div>
@@ -156,7 +156,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={handleWatchVessel}
-              className="px-5 py-2.5 rounded-xl bg-[#D4B777] hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-[#D6BC83] hover:bg-[#E8D5A7] text-[#1B2822] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
             >
               <Compass className="w-4 h-4" />
               <span>🔭 Watch Boat Set Sail</span>
@@ -164,11 +164,11 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
 
             <button
               onClick={handleOpenMailtoDraft}
-              className="px-4 py-2.5 rounded-xl bg-[#182522] hover:bg-[#1f302c] border border-[#527C68]/40 hover:border-[#D4B777]/40 text-[#E9E4D7] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-[#1B2822] hover:bg-[#1f302c] border border-[#3A4B40]/40 hover:border-[#D6BC83]/40 text-[#F0E9DA] font-heading font-semibold text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2"
             >
-              <Mail className="w-3.5 h-3.5 text-[#D4B777]" />
+              <Mail className="w-3.5 h-3.5 text-[#D6BC83]" />
               <span>Open Mail Client Copy</span>
-              <ExternalLink className="w-3 h-3 text-[#E9E4D7]/40" />
+              <ExternalLink className="w-3 h-3 text-[#F0E9DA]/40" />
             </button>
 
             <button
@@ -176,7 +176,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
                 setStatus('idle');
                 setMessage('');
               }}
-              className="px-4 py-2.5 rounded-xl bg-transparent hover:bg-white/5 border border-transparent hover:border-[#527C68]/30 text-xs font-mono text-[#E9E4D7]/70 transition-all cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-transparent hover:bg-white/5 border border-transparent hover:border-[#3A4B40]/30 text-xs font-mono text-[#F0E9DA]/70 transition-all cursor-pointer"
             >
               Send Another Message
             </button>
@@ -187,8 +187,8 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Sender Name */}
             <div>
-              <label className="block text-[11px] font-mono text-[#D4B777] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <User className="w-3 h-3 text-[#D4B777]/70" />
+              <label className="block text-[11px] font-mono text-[#D6BC83] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <User className="w-3 h-3 text-[#D6BC83]/70" />
                 <span>Your Name</span>
               </label>
               <input
@@ -197,14 +197,14 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Maya Lin"
-                className="w-full px-3.5 py-2 rounded-xl bg-[#182522]/80 border border-[#527C68]/40 focus:border-[#D4B777] focus:ring-1 focus:ring-[#D4B777]/50 text-xs text-[#E9E4D7] placeholder-[#E9E4D7]/35 outline-none transition-all font-sans"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#1B2822]/80 border border-[#3A4B40]/40 focus:border-[#D6BC83] focus:ring-1 focus:ring-[#D6BC83]/50 text-xs text-[#F0E9DA] placeholder-[#F0E9DA]/35 outline-none transition-all font-sans"
               />
             </div>
 
             {/* Sender Email */}
             <div>
-              <label className="block text-[11px] font-mono text-[#D4B777] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Mail className="w-3 h-3 text-[#D4B777]/70" />
+              <label className="block text-[11px] font-mono text-[#D6BC83] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Mail className="w-3 h-3 text-[#D6BC83]/70" />
                 <span>Your Email</span>
               </label>
               <input
@@ -213,24 +213,24 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. maya@company.com"
-                className="w-full px-3.5 py-2 rounded-xl bg-[#182522]/80 border border-[#527C68]/40 focus:border-[#D4B777] focus:ring-1 focus:ring-[#D4B777]/50 text-xs text-[#E9E4D7] placeholder-[#E9E4D7]/35 outline-none transition-all font-sans"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#1B2822]/80 border border-[#3A4B40]/40 focus:border-[#D6BC83] focus:ring-1 focus:ring-[#D6BC83]/50 text-xs text-[#F0E9DA] placeholder-[#F0E9DA]/35 outline-none transition-all font-sans"
               />
             </div>
           </div>
 
           {/* Topic Select */}
           <div>
-            <label className="block text-[11px] font-mono text-[#D4B777] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-[#D4B777]/70" />
+            <label className="block text-[11px] font-mono text-[#D6BC83] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-[#D6BC83]/70" />
               <span>Inquiry Focus</span>
             </label>
             <select
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl bg-[#182522]/90 border border-[#527C68]/40 focus:border-[#D4B777] focus:ring-1 focus:ring-[#D4B777]/50 text-xs text-[#E9E4D7] outline-none transition-all font-sans cursor-pointer"
+              className="w-full px-3.5 py-2 rounded-xl bg-[#1B2822]/90 border border-[#3A4B40]/40 focus:border-[#D6BC83] focus:ring-1 focus:ring-[#D6BC83]/50 text-xs text-[#F0E9DA] outline-none transition-all font-sans cursor-pointer"
             >
               {TOPIC_OPTIONS.map((opt) => (
-                <option key={opt} value={opt} className="bg-[#182522] text-[#E9E4D7]">
+                <option key={opt} value={opt} className="bg-[#1B2822] text-[#F0E9DA]">
                   {opt}
                 </option>
               ))}
@@ -239,8 +239,8 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
 
           {/* Message Textarea */}
           <div>
-            <label className="block text-[11px] font-mono text-[#D4B777] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <MessageSquare className="w-3 h-3 text-[#D4B777]/70" />
+            <label className="block text-[11px] font-mono text-[#D6BC83] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <MessageSquare className="w-3 h-3 text-[#D6BC83]/70" />
               <span>Your Message</span>
             </label>
             <textarea
@@ -249,7 +249,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Write your note, job opportunity details, or collaboration ideas..."
-              className="w-full px-3.5 py-2 rounded-xl bg-[#182522]/80 border border-[#527C68]/40 focus:border-[#D4B777] focus:ring-1 focus:ring-[#D4B777]/50 text-xs text-[#E9E4D7] placeholder-[#E9E4D7]/35 outline-none transition-all font-sans resize-none"
+              className="w-full px-3.5 py-2 rounded-xl bg-[#1B2822]/80 border border-[#3A4B40]/40 focus:border-[#D6BC83] focus:ring-1 focus:ring-[#D6BC83]/50 text-xs text-[#F0E9DA] placeholder-[#F0E9DA]/35 outline-none transition-all font-sans resize-none"
             />
           </div>
 
@@ -261,7 +261,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
 
           {/* Submit CTA */}
           <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-            <div className="text-[11px] font-mono text-[#E9E4D7]/55 flex items-center gap-1.5">
+            <div className="text-[11px] font-mono text-[#F0E9DA]/55 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span>Direct to: prasadkankhar5@gmail.com</span>
             </div>
@@ -269,7 +269,7 @@ export const CourierContactForm: React.FC<CourierContactFormProps> = ({ onSucces
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="px-6 py-2.5 rounded-xl bg-[#D4B777] hover:bg-[#E5CD94] disabled:opacity-50 text-[#182522] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#D6BC83] hover:bg-[#E8D5A7] disabled:opacity-50 text-[#1B2822] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
             >
               {status === 'sending' ? (
                 <>

@@ -69,21 +69,21 @@ export const MainMenu: React.FC = () => {
   };
 
   return (
-    <div className="absolute inset-0 z-40 flex flex-col justify-between bg-gradient-to-b from-[#0a1210]/75 via-[#0a1210]/30 to-[#0a1210]/80 text-[#E9E4D7] p-4 sm:p-8 select-none animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
+    <div className="absolute inset-0 z-40 flex flex-col justify-between bg-gradient-to-b from-[#0a1210]/75 via-[#0a1210]/30 to-[#0a1210]/80 text-[#F0E9DA] p-4 sm:p-8 select-none animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
       
       {/* ========================================================================= */}
       {/* 1. TOP BRAND & SOCIAL BAR */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto flex items-center justify-between p-3.5 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#527C68]/30 shadow-lg shrink-0">
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-between p-3.5 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[#527C68]/20 border border-[#D4B777]/35 flex items-center justify-center text-[#D4B777]">
+          <div className="w-8 h-8 rounded-full bg-[#3A4B40]/20 border border-[#D6BC83]/35 flex items-center justify-center text-[#D6BC83]">
             <Compass className="w-4 h-4 animate-spin-slow" />
           </div>
           <div>
-            <h2 className="font-heading font-bold text-sm tracking-wide text-[#E9E4D7]">
+            <h2 className="font-heading font-bold text-sm tracking-wide text-[#F0E9DA]">
               Prasad Anil Kankhar
             </h2>
-            <p className="text-[11px] font-mono text-[#D4B777]">
+            <p className="text-[11px] font-mono text-[#D6BC83]">
               Software & Game Engine Developer
             </p>
           </div>
@@ -96,7 +96,7 @@ export const MainMenu: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="p-2 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#D4B777]/25 text-[#E9E4D7]/80 hover:text-[#D4B777] transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
             title="GitHub Profile"
           >
             <GithubIcon className="w-4 h-4" />
@@ -107,7 +107,7 @@ export const MainMenu: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="p-2 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#D4B777]/25 text-[#E9E4D7]/80 hover:text-[#D4B777] transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
             title="LinkedIn Profile"
           >
             <LinkedinIcon className="w-4 h-4" />
@@ -118,10 +118,10 @@ export const MainMenu: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#182522]/90 hover:bg-[#182522] border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] text-xs font-heading font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1B2822]/90 hover:bg-[#1B2822] border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] text-xs font-heading font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
             title="Download Official Resume PDF"
           >
-            <Download className="w-3.5 h-3.5 text-[#D4B777]" />
+            <Download className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span className="hidden sm:inline">Resume PDF</span>
           </a>
 
@@ -131,10 +131,10 @@ export const MainMenu: React.FC = () => {
               toggleAudioMute();
               soundEngine.playClickSound();
             }}
-            className="p-2 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#D4B777]/25 text-[#E9E4D7]/80 hover:text-[#D4B777] transition-all cursor-pointer"
+            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer"
             title={isAudioMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
-            {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#D4B777]" />}
+            {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#D6BC83]" />}
           </button>
         </div>
       </div>
@@ -145,7 +145,7 @@ export const MainMenu: React.FC = () => {
       <div className="w-full max-w-5xl mx-auto my-auto py-6 sm:py-8 flex flex-col items-center">
         
         {/* Live 3D Orbit Status Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#182522]/80 backdrop-blur-md border border-[#D4B777]/40 text-[#D4B777] text-xs font-mono mb-3 shadow-md">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1B2822]/80 backdrop-blur-md border border-[#D6BC83]/40 text-[#D6BC83] text-xs font-mono mb-3 shadow-md">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -153,10 +153,10 @@ export const MainMenu: React.FC = () => {
           <span>Live 3D World Active in Background · Move Cursor to Orbit</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#E9E4D7] tracking-tight text-center mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
+        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#F0E9DA] tracking-tight text-center mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
           Choose How You Wish to Explore
         </h1>
-        <p className="text-xs sm:text-base text-[#E9E4D7]/85 font-sans text-center max-w-xl mb-6 leading-relaxed drop-shadow-sm">
+        <p className="text-xs sm:text-base text-[#F0E9DA]/85 font-sans text-center max-w-xl mb-6 leading-relaxed drop-shadow-sm">
           Immerse yourself in a real-time WebGL island with physics and procedural sound, or jump straight to the executive 2D dossier.
         </p>
 
@@ -166,7 +166,7 @@ export const MainMenu: React.FC = () => {
           {/* CARD A: 3D WORLD EXPLORATION */}
           <div 
             onClick={handleStart3D}
-            className="group relative bg-[#182522]/85 hover:bg-[#182522]/95 border border-[#D4B777]/50 hover:border-[#D4B777] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative bg-[#1B2822]/85 hover:bg-[#1B2822]/95 border border-[#D6BC83]/50 hover:border-[#D6BC83] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
             <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -175,30 +175,30 @@ export const MainMenu: React.FC = () => {
 
             <div>
               {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4B777]/20 border border-[#D4B777]/35 text-[#D4B777] font-mono text-[11px] font-semibold mb-4">
-                <Compass className="w-3 h-3 text-[#D4B777]" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D6BC83]/20 border border-[#D6BC83]/35 text-[#D6BC83] font-mono text-[11px] font-semibold mb-4">
+                <Compass className="w-3 h-3 text-[#D6BC83]" />
                 <span>Immersive 3D Experience</span>
               </div>
 
-              <h3 className="text-2xl font-heading font-bold text-[#E9E4D7] group-hover:text-[#D4B777] transition-colors mb-2 tracking-tight">
+              <h3 className="text-2xl font-heading font-bold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight">
                 Explore 3D Island
               </h3>
-              <p className="text-xs sm:text-sm text-[#E9E4D7]/80 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#F0E9DA]/80 font-sans leading-relaxed mb-6">
                 Freely traverse an interactive 3D archipelago with third-person character physics, 18 architectural district stations, and procedural Web Audio.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/85 mb-8 border-t border-[#527C68]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/85 mb-8 border-t border-[#3A4B40]/20 pt-4">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4B777]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
                   <span><strong>WASD & Sprint</strong> character controls + Rapier 3D physics</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4B777]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
                   <span><strong>18 Stations</strong> with Blender cartography & in-world GPS</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4B777]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
                   <span><strong>Interactive Guides</strong>, logic puzzle & direct messaging boat</span>
                 </li>
               </ul>
@@ -206,7 +206,7 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#D4B777] group-hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-[#D6BC83] group-hover:bg-[#E8D5A7] text-[#1B2822] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>{hasStarted ? 'Resume 3D World' : 'Enter 3D World'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -216,38 +216,38 @@ export const MainMenu: React.FC = () => {
           {/* CARD B: EXECUTIVE 2D DOSSIER (FAST RECRUITER MODE) */}
           <div 
             onClick={handleOpen2D}
-            className="group relative bg-[#182522]/85 hover:bg-[#182522]/95 border border-[#527C68]/50 hover:border-[#D4B777]/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative bg-[#1B2822]/85 hover:bg-[#1B2822]/95 border border-[#3A4B40]/50 hover:border-[#D6BC83]/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#527C68]/30 border border-[#527C68]/50 text-[#E9E4D7]/80 text-[10px] font-mono font-medium">
+            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#3A4B40]/30 border border-[#3A4B40]/50 text-[#F0E9DA]/80 text-[10px] font-mono font-medium">
               <span>ZERO WAIT TIME</span>
             </div>
 
             <div>
               {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#527C68]/25 border border-[#527C68]/40 text-[#E9E4D7] font-mono text-[11px] font-semibold mb-4">
-                <Briefcase className="w-3 h-3 text-[#D4B777]" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3A4B40]/25 border border-[#3A4B40]/40 text-[#F0E9DA] font-mono text-[11px] font-semibold mb-4">
+                <Briefcase className="w-3 h-3 text-[#D6BC83]" />
                 <span>Executive Recruiter View</span>
               </div>
 
-              <h3 className="text-2xl font-heading font-bold text-[#E9E4D7] group-hover:text-[#D4B777] transition-colors mb-2 tracking-tight">
+              <h3 className="text-2xl font-heading font-bold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight">
                 Quick 2D Portfolio
               </h3>
-              <p className="text-xs sm:text-sm text-[#E9E4D7]/80 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#F0E9DA]/80 font-sans leading-relaxed mb-6">
                 Fast, friction-free standard portfolio designed for hiring managers and recruiters. Instant access to case studies, live demos, and credentials.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/85 mb-8 border-t border-[#527C68]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/85 mb-8 border-t border-[#3A4B40]/20 pt-4">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#527C68]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
                   <span><strong>19 Production Projects</strong> (C++ Engine, Autonomous AI, WebAR)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#527C68]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
                   <span><strong>Harvard CS50x</strong> academic rigor & transcript verification</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#527C68]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
                   <span><strong>1-Click PDF Resume</strong> & direct email courier contact</span>
                 </li>
               </ul>
@@ -255,10 +255,10 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#527C68]/30 group-hover:bg-[#527C68]/50 border border-[#D4B777]/40 text-[#E9E4D7] group-hover:text-[#D4B777] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-[#3A4B40]/30 group-hover:bg-[#3A4B40]/50 border border-[#D6BC83]/40 text-[#F0E9DA] group-hover:text-[#D6BC83] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>Open Executive 2D Dossier</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#D4B777]" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#D6BC83]" />
             </button>
           </div>
 
@@ -269,14 +269,14 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       {/* 3. QUICK ACTIONS & DIRECT PROJECT ACCESS */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto p-3 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#527C68]/30 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 mt-3">
+      <div className="w-full max-w-5xl mx-auto p-3 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 mt-3">
         
         {/* Left: Autopilot Guided Tour */}
         <button
           onClick={handleStartTour}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4B777]/20 hover:bg-[#D4B777]/35 border border-[#D4B777]/40 text-[#D4B777] font-heading font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-105"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#D6BC83]/20 hover:bg-[#D6BC83]/35 border border-[#D6BC83]/40 text-[#D6BC83] font-heading font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-105"
         >
-          <Play className="w-3.5 h-3.5 fill-[#D4B777]" />
+          <Play className="w-3.5 h-3.5 fill-[#D6BC83]" />
           <span>Watch 60s Autopilot Guided Tour</span>
         </button>
 
@@ -284,25 +284,25 @@ export const MainMenu: React.FC = () => {
         <div className="hidden lg:flex items-center gap-2">
           <button
             onClick={() => handleOpenStation('TRIGGER_Hall_Certifications')}
-            className="px-3 py-1 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#527C68]/30 text-[#E9E4D7]/80 hover:text-[#D4B777] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-3 py-1 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#3A4B40]/30 text-[#F0E9DA]/80 hover:text-[#D6BC83] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <GraduationCap className="w-3.5 h-3.5 text-[#D4B777]" />
+            <GraduationCap className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span>Harvard CS50x</span>
           </button>
 
           <button
             onClick={() => handleOpenStation('TRIGGER_Project_OneMoreMove')}
-            className="px-3 py-1 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#527C68]/30 text-[#E9E4D7]/80 hover:text-[#D4B777] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-3 py-1 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#3A4B40]/30 text-[#F0E9DA]/80 hover:text-[#D6BC83] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <Code2 className="w-3.5 h-3.5 text-[#D4B777]" />
+            <Code2 className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span>One More Move (C++17)</span>
           </button>
 
           <button
             onClick={() => handleOpenStation('TRIGGER_Project_ButlerOS')}
-            className="px-3 py-1 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#527C68]/30 text-[#E9E4D7]/80 hover:text-[#D4B777] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-3 py-1 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#3A4B40]/30 text-[#F0E9DA]/80 hover:text-[#D6BC83] font-sans text-xs transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <BrainCircuit className="w-3.5 h-3.5 text-[#D4B777]" />
+            <BrainCircuit className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span>Butler OS (AI)</span>
           </button>
         </div>
@@ -313,10 +313,10 @@ export const MainMenu: React.FC = () => {
             soundEngine.playClickSound();
             togglePerformanceMode();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#182522]/80 hover:bg-[#182522] border border-[#527C68]/30 text-[11px] font-mono text-[#E9E4D7]/70 hover:text-[#D4B777] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#3A4B40]/30 text-[11px] font-mono text-[#F0E9DA]/70 hover:text-[#D6BC83] transition-colors cursor-pointer"
           title="Toggle Graphics Performance Mode"
         >
-          <Gauge className="w-3.5 h-3.5 text-[#527C68]" />
+          <Gauge className="w-3.5 h-3.5 text-[#3A4B40]" />
           <span>Graphics: {performanceMode ? 'Performance (High FPS)' : 'Cinematic (Postprocessing)'}</span>
         </button>
 
