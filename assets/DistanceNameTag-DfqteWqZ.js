@@ -1,0 +1,1 @@
+import"./rolldown-runtime-QTnfLwEv.js";import{Rt as e}from"./vendor-fiber-BMQnjDbw.js";import"./index-6g2z24oe.js";e();function t(e){return null}export{t};
