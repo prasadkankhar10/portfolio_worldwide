@@ -97,6 +97,23 @@ interface GameStore {
   // Quick Traditional 2D Portfolio View
   isQuickPortfolioOpen: boolean;
   setQuickPortfolioOpen: (open: boolean) => void;
+  // In-World Waypoint / GPS Navigation
+  activeWaypointStationId: string | null;
+  setActiveWaypointStationId: (id: string | null) => void;
+  // Exploration Codex & Badges
+  visitedStationIds: string[];
+  markStationVisited: (id: string) => void;
+  unlockedBadges: string[];
+  latestUnlockedBadge: { id: string; title: string; desc: string; icon: string } | null;
+  clearLatestBadge: () => void;
+  // Guided Tour Mode
+  isGuidedTourActive: boolean;
+  setIsGuidedTourActive: (active: boolean) => void;
+  guidedTourIndex: number;
+  setGuidedTourIndex: (index: number) => void;
+  // Sound Engine
+  isAudioMuted: boolean;
+  toggleAudioMute: () => void;
   // Royal Courier Vessel & Message Delivery Simulation
   courierShipState: 'moored' | 'departing' | 'voyaging' | 'delivered';
   courierShipDispatchTime: number;
@@ -107,7 +124,94 @@ interface GameStore {
   resetCourierShip: () => void;
 }
 
-export const useGameStore = create<GameStore>((set) => ({
+const loadStorage = <T>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const saveStorage = <T>(key: string, value: T) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+};
+
+export const useGameStore = create<GameStore>((set, get) => ({
+  // In-World Waypoint / GPS Navigation
+  activeWaypointStationId: null,
+  setActiveWaypointStationId: (id) => set({ activeWaypointStationId: id }),
+
+  // Exploration Codex & Badges
+  visitedStationIds: loadStorage<string[]>('portfolio_visited_stations', []),
+  markStationVisited: (id: string) => {
+    const current = get().visitedStationIds;
+    if (!current.includes(id)) {
+      const nextVisited = [...current, id];
+      saveStorage('portfolio_visited_stations', nextVisited);
+
+      // Check for unlockable badges
+      const currentBadges = get().unlockedBadges;
+      const nextBadges = [...currentBadges];
+      let newlyUnlockedBadge: { id: string; title: string; desc: string; icon: string } | null = null;
+
+      const tryUnlock = (badgeId: string, title: string, desc: string, icon: string) => {
+        if (!nextBadges.includes(badgeId)) {
+          nextBadges.push(badgeId);
+          newlyUnlockedBadge = { id: badgeId, title, desc, icon };
+        }
+      };
+
+      if (id === 'TRIGGER_Harbor_Welcome') {
+        tryUnlock('harbor_arrival', 'First Port of Call', 'Arrived at Harbor Pier & Welcome Exhibit', '⛵');
+      }
+      if (id === 'TRIGGER_Hall_Certifications') {
+        tryUnlock('harvard_scholar', 'Harvard CS50x Scholar', 'Explored the Harvard CS50 Hall of Rigor', '🎓');
+      }
+      if (id === 'TRIGGER_Project_ButlerOS' || id === 'TRIGGER_Project_OneMoreMove' || id === 'TRIGGER_Forge_GameDev') {
+        tryUnlock('systems_architect', 'Systems Architect', 'Inspected bare-metal engine & autonomous AI projects', '⚡');
+      }
+      if (id === 'TRIGGER_Citadel_Contact') {
+        tryUnlock('summit_conqueror', 'Citadel Apex Climber', 'Scaled to the Citadel Summit summit overlook', '🏔️');
+      }
+      if (nextVisited.length >= 18) {
+        tryUnlock('master_explorer', 'Grand Archipelago Master', 'Discovered all 18 exhibition stations!', '👑');
+      }
+
+      saveStorage('portfolio_unlocked_badges', nextBadges);
+      set({ 
+        visitedStationIds: nextVisited, 
+        unlockedBadges: nextBadges,
+        ...(newlyUnlockedBadge ? { latestUnlockedBadge: newlyUnlockedBadge } : {})
+      });
+    }
+  },
+  unlockedBadges: loadStorage<string[]>('portfolio_unlocked_badges', []),
+  latestUnlockedBadge: null,
+  clearLatestBadge: () => set({ latestUnlockedBadge: null }),
+
+  // Guided Tour Mode
+  isGuidedTourActive: false,
+  setIsGuidedTourActive: (active) => {
+    if (active && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isGuidedTourActive: active, guidedTourIndex: 0 });
+  },
+  guidedTourIndex: 0,
+  setGuidedTourIndex: (index) => set({ guidedTourIndex: index }),
+
+  // Sound Engine
+  isAudioMuted: loadStorage<boolean>('portfolio_audio_muted', false),
+  toggleAudioMute: () => set((state) => {
+    const nextMuted = !state.isAudioMuted;
+    saveStorage('portfolio_audio_muted', nextMuted);
+    return { isAudioMuted: nextMuted };
+  }),
   stonehengeBanner: null,
   setStonehengeBanner: (banner) => set({ stonehengeBanner: banner }),
   stonehengeSolved: false,

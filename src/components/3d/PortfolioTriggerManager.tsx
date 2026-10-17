@@ -5,6 +5,7 @@ import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { portfolioData } from '../../data/portfolioData';
 import { StationMonuments } from './StationMonuments';
+import { soundEngine } from '../../utils/soundEngine';
 
 interface TriggerItem {
   id: string;
@@ -150,6 +151,14 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
         const data = portfolioData[nearestTrigger.id];
         if (data) {
           setActiveStationPrompt(`[E] Inspect ${data.title}`);
+        }
+
+        // Mark station in exploration progress and trigger soft audio chime
+        const store = useGameStore.getState();
+        const wasVisited = store.visitedStationIds.includes(nearestTrigger.id);
+        store.markStationVisited(nearestTrigger.id);
+        if (!wasVisited) {
+          soundEngine.playStationDiscoverSound();
         }
       }
     } else if (activeTriggerRef.current) {

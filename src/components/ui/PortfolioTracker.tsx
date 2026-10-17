@@ -72,12 +72,22 @@ const PORTFOLIO_SECTIONS = [
   },
 ];
 
+const ALL_EXPLORER_BADGES = [
+  { id: 'harbor_arrival', title: 'First Port of Call', desc: 'Arrived at Harbor Pier & Welcome Exhibit', icon: '⛵' },
+  { id: 'harvard_scholar', title: 'Harvard CS50x Scholar', desc: 'Explored the Harvard CS50 Hall of Rigor', icon: '🎓' },
+  { id: 'systems_architect', title: 'Systems Architect', desc: 'Inspected bare-metal engine & autonomous AI projects', icon: '⚡' },
+  { id: 'summit_conqueror', title: 'Citadel Apex Climber', desc: 'Scaled to the Citadel Summit overlook', icon: '🏔️' },
+  { id: 'master_explorer', title: 'Grand Archipelago Master', desc: 'Discovered all 18 exhibition stations!', icon: '👑' },
+];
+
 export const PortfolioTracker: React.FC = () => {
   const isTrackerOpen = useGameStore((state) => state.isTrackerOpen);
   const setTrackerOpen = useGameStore((state) => state.setTrackerOpen);
   const dialogFlags = useGameStore((state) => state.dialogFlags);
+  const unlockedBadges = useGameStore((state) => state.unlockedBadges);
+  const visitedStationIds = useGameStore((state) => state.visitedStationIds);
   
-  const [activeTab, setActiveTab] = useState<'map' | 'journal'>('journal');
+  const [activeTab, setActiveTab] = useState<'map' | 'journal' | 'badges'>('journal');
   const [selectedSectionId, setSelectedSectionId] = useState<string>('profile');
 
   // Automatically release pointer lock whenever tracker opens so cursor is free
@@ -202,7 +212,7 @@ export const PortfolioTracker: React.FC = () => {
           <div className="flex p-3 sm:p-4 gap-2 border-b border-[#527C68]/20 bg-[#101a18]/50">
             <button
               onClick={() => setActiveTab('journal')}
-              className={`px-5 py-2 rounded-xl font-heading font-bold text-xs tracking-wide transition-all cursor-pointer ${
+              className={`px-4 sm:px-5 py-2 rounded-xl font-heading font-bold text-xs tracking-wide transition-all cursor-pointer ${
                 activeTab === 'journal' 
                   ? 'bg-[#D4B777] text-[#182522] shadow-sm' 
                   : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
@@ -211,8 +221,23 @@ export const PortfolioTracker: React.FC = () => {
               Journal View
             </button>
             <button
+              onClick={() => setActiveTab('badges')}
+              className={`px-4 sm:px-5 py-2 rounded-xl font-heading font-bold text-xs tracking-wide transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'badges' 
+                  ? 'bg-[#D4B777] text-[#182522] shadow-sm' 
+                  : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
+              }`}
+            >
+              <span>Badges & Honors</span>
+              <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full ${
+                activeTab === 'badges' ? 'bg-[#182522] text-[#D4B777]' : 'bg-[#527C68]/30 text-[#D4B777]'
+              }`}>
+                {unlockedBadges.length} / {ALL_EXPLORER_BADGES.length}
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab('map')}
-              className={`px-5 py-2 rounded-xl font-heading font-bold text-xs tracking-wide transition-all cursor-pointer ${
+              className={`px-4 sm:px-5 py-2 rounded-xl font-heading font-bold text-xs tracking-wide transition-all cursor-pointer ${
                 activeTab === 'map' 
                   ? 'bg-[#D4B777] text-[#182522] shadow-sm' 
                   : 'bg-[#101a18]/60 text-[#E9E4D7]/65 hover:text-[#E9E4D7] border border-[#527C68]/20'
@@ -270,6 +295,74 @@ export const PortfolioTracker: React.FC = () => {
                     </div>
                   );
                 })}
+              </div>
+            ) : activeTab === 'badges' ? (
+              <div className="h-full flex flex-col max-w-xl mx-auto py-2 space-y-5 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b border-[#527C68]/25 pb-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-heading font-bold text-[#E9E4D7] tracking-tight">
+                      Archipelago Honors & Badges
+                    </h2>
+                    <p className="text-xs text-[#D4B777] font-sans">
+                      Earned through physical exploration and technical milestones
+                    </p>
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-[#527C68]/20 border border-[#D4B777]/30 text-xs font-mono text-[#D4B777] font-bold">
+                    {unlockedBadges.length} / {ALL_EXPLORER_BADGES.length} Unlocked
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {ALL_EXPLORER_BADGES.map((b) => {
+                    const isUnlocked = unlockedBadges.includes(b.id);
+                    return (
+                      <div
+                        key={b.id}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          isUnlocked
+                            ? 'bg-[#182522] border-[#D4B777]/50 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                            : 'bg-[#101a18]/40 border-white/5 opacity-40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl select-none">{b.icon}</span>
+                          <div>
+                            <h4 className={`text-xs font-heading font-bold ${isUnlocked ? 'text-[#D4B777]' : 'text-stone-400'}`}>
+                              {b.title}
+                            </h4>
+                            <span className="text-[10px] font-mono text-[#527C68]">
+                              {isUnlocked ? '✦ UNLOCKED' : '🔒 LOCKED'}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-[#E9E4D7]/75 font-sans leading-relaxed">
+                          {b.desc}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Stations Discovered Counter */}
+                <div className="p-4 rounded-2xl bg-[#14201d] border border-[#527C68]/30 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-5 h-5 text-[#D4B777]" />
+                    <div>
+                      <h4 className="text-xs font-heading font-bold text-[#E9E4D7]">
+                        Archipelago Survey Progress
+                      </h4>
+                      <p className="text-[11px] text-[#E9E4D7]/65">
+                        {visitedStationIds.length} of 18 Stations Visited ({Math.round((visitedStationIds.length / 18) * 100)}%)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-24 h-2 bg-[#101a18] rounded-full overflow-hidden border border-[#527C68]/30">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-[#D4B777]"
+                      style={{ width: `${Math.min(100, Math.round((visitedStationIds.length / 18) * 100))}%` }}
+                    />
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="h-full flex items-center justify-center flex-col gap-4 animate-in zoom-in-95 duration-300">

@@ -4,6 +4,7 @@ import { globalPlayerState } from '../3d/Character';
 import { globalCourierShipState } from '../3d/ShipFleetController';
 import { STATION_MONUMENT_DEFS, type StationMonumentDef } from '../3d/StationMonuments';
 import { useGameStore } from '../../store/useGameStore';
+import { soundEngine } from '../../utils/soundEngine';
 import { 
   Compass, Maximize2, Minimize2, 
   Ship, MapPin, Navigation, X, ExternalLink, Search, Locate
@@ -62,6 +63,8 @@ export const MiniMap: React.FC = () => {
   const setActiveStationId = useGameStore((s) => s.setActiveStationId);
   const setStationModalOpen = useGameStore((s) => s.setStationModalOpen);
   const teleportPlayer = useGameStore((s) => s.teleportPlayer);
+  const activeWaypointStationId = useGameStore((s) => s.activeWaypointStationId);
+  const setActiveWaypointStationId = useGameStore((s) => s.setActiveWaypointStationId);
 
   // Radar modes: 'follow' (zoomed in, player-centered) or 'overview' (whole island view)
   const [radarMode, setRadarMode] = useState<'follow' | 'overview'>('follow');
@@ -302,6 +305,7 @@ export const MiniMap: React.FC = () => {
                   {/* Station Monument Landmark Pins on Map */}
                   {STATION_MONUMENT_DEFS.map((station) => {
                     const pos = worldToPercent(station.pos[0], station.pos[2]);
+                    const isTracked = activeWaypointStationId === station.id;
                     return (
                       <button
                         key={station.id}
@@ -313,14 +317,21 @@ export const MiniMap: React.FC = () => {
                         onMouseEnter={() => setHoveredStation(station)}
                         onMouseLeave={() => setHoveredStation(null)}
                         style={{ left: `${pos.left}%`, top: `${pos.top}%` }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 p-0.5 rounded-full cursor-pointer transition-transform hover:scale-150 z-20 group"
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 p-0.5 rounded-full cursor-pointer transition-transform ${
+                          isTracked ? 'scale-150 z-25' : 'hover:scale-150 z-20'
+                        } group`}
                         title={station.name}
                       >
+                        {isTracked && (
+                          <span className="absolute -inset-1 rounded-full border-2 border-[#D4B777] animate-ping opacity-80" />
+                        )}
                         <span 
-                          className="block w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-md border border-[#182522]"
+                          className={`block w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-md border ${
+                            isTracked ? 'border-[#D4B777] ring-2 ring-[#D4B777]' : 'border-[#182522]'
+                          }`}
                           style={{ 
                             backgroundColor: station.color,
-                            boxShadow: `0 0 6px ${station.color}`
+                            boxShadow: isTracked ? `0 0 12px #D4B777` : `0 0 6px ${station.color}`
                           }} 
                         />
                       </button>
@@ -516,6 +527,7 @@ export const MiniMap: React.FC = () => {
                 {filteredStations.map((station) => {
                   const pos = worldToPercent(station.pos[0], station.pos[2]);
                   const isSelected = selectedStation?.id === station.id;
+                  const isTracked = activeWaypointStationId === station.id;
                   const dist = Math.round(
                     Math.hypot(station.pos[0] - playerCoord.x, station.pos[2] - playerCoord.z)
                   );
@@ -529,15 +541,20 @@ export const MiniMap: React.FC = () => {
                       <button
                         onClick={() => setSelectedStation(station)}
                         className={`p-1 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center ${
-                          isSelected ? 'scale-150 ring-4 ring-[#D4B777] z-30' : 'hover:scale-135'
+                          isSelected ? 'scale-150 ring-4 ring-[#D4B777] z-30' : isTracked ? 'scale-135 ring-2 ring-[#D4B777] z-25' : 'hover:scale-135'
                         }`}
                         title={`${station.name} (${dist}m away)`}
                       >
+                        {isTracked && (
+                          <span className="absolute -inset-1 rounded-full border-2 border-[#D4B777] animate-ping opacity-80" />
+                        )}
                         <span 
-                          className="block w-3.5 h-3.5 rounded-full shadow-lg border-2 border-[#182522]"
+                          className={`block w-3.5 h-3.5 rounded-full shadow-lg border-2 ${
+                            isTracked ? 'border-[#D4B777]' : 'border-[#182522]'
+                          }`}
                           style={{ 
                             backgroundColor: station.color,
-                            boxShadow: `0 0 10px ${station.color}`
+                            boxShadow: isTracked ? `0 0 14px #D4B777` : `0 0 10px ${station.color}`
                           }} 
                         />
                       </button>
@@ -599,9 +616,10 @@ export const MiniMap: React.FC = () => {
                     )}m away
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => {
+                        soundEngine.playClickSound();
                         setIsExpandedModal(false);
                         setActiveStationId(selectedStation.id);
                         setStationModalOpen(true);
@@ -614,6 +632,24 @@ export const MiniMap: React.FC = () => {
 
                     <button
                       onClick={() => {
+                        const nextId = activeWaypointStationId === selectedStation.id ? null : selectedStation.id;
+                        setActiveWaypointStationId(nextId);
+                        if (nextId) soundEngine.playWaypointTrackSound();
+                        else soundEngine.playClickSound();
+                      }}
+                      className={`py-1.5 px-3 rounded-xl border text-xs font-heading font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                        activeWaypointStationId === selectedStation.id
+                          ? 'bg-[#D4B777] text-[#182522] border-[#D4B777] shadow-md'
+                          : 'bg-[#182522] hover:bg-[#527C68]/30 border-[#D4B777]/40 text-[#E9E4D7]'
+                      }`}
+                    >
+                      <Navigation className="w-3 h-3" />
+                      <span>{activeWaypointStationId === selectedStation.id ? 'Tracking GPS' : 'Track GPS'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        soundEngine.playTeleportSound();
                         teleportPlayer({
                           x: selectedStation.pos[0],
                           y: selectedStation.pos[1] + 0.5,

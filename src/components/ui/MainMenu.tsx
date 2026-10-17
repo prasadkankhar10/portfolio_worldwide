@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../../store/useGameStore';
-import { Compass, BookOpen, Layers, Sparkles, Mail, FileText, Briefcase } from 'lucide-react';
+import { soundEngine } from '../../utils/soundEngine';
+import { Compass, BookOpen, Layers, Sparkles, Mail, FileText, Briefcase, Download, Gauge } from 'lucide-react';
 
 export const MainMenu: React.FC = () => {
   const setGameState = useGameStore((state) => state.setGameState);
@@ -9,8 +10,13 @@ export const MainMenu: React.FC = () => {
   const setStationModalOpen = useGameStore((state) => state.setStationModalOpen);
   const setActiveStationId = useGameStore((state) => state.setActiveStationId);
   const setQuickPortfolioOpen = useGameStore((state) => state.setQuickPortfolioOpen);
+  const setIsGuidedTourActive = useGameStore((state) => state.setIsGuidedTourActive);
+  const performanceMode = useGameStore((state) => state.performanceMode);
+  const togglePerformanceMode = useGameStore((state) => state.togglePerformanceMode);
 
   const handleStart = () => {
+    soundEngine.playClickSound();
+    soundEngine.startAmbientAtmosphere();
     if (!hasStarted) setHasStarted(true);
     setGameState('playing');
     if (typeof document !== 'undefined' && !useGameStore.getState().isMobile) {
@@ -22,7 +28,16 @@ export const MainMenu: React.FC = () => {
     }
   };
 
+  const handleStartTour = () => {
+    soundEngine.playClickSound();
+    soundEngine.startAmbientAtmosphere();
+    if (!hasStarted) setHasStarted(true);
+    setGameState('playing');
+    setIsGuidedTourActive(true);
+  };
+
   const openStation = (stationKey: string) => {
+    soundEngine.playClickSound();
     setActiveStationId(stationKey);
     setStationModalOpen(true);
   };
@@ -61,18 +76,42 @@ export const MainMenu: React.FC = () => {
             <span>{hasStarted ? 'Resume Exploring' : 'Explore 3D Island'}</span>
           </button>
 
+          {/* Autopilot Guided Tour (Hands-Free Cinematic Showcase) */}
+          <button 
+            onClick={handleStartTour}
+            className="w-full py-2.5 px-5 rounded-xl bg-[#D4B777]/20 hover:bg-[#D4B777]/35 border border-[#D4B777]/50 text-[#D4B777] font-heading font-semibold text-xs tracking-wide transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#D4B777]" />
+            <span>Watch Guided Tour (Autopilot Walkthrough)</span>
+          </button>
+
           {/* Quick Traditional 2D Portfolio View (For Quick Review / Recruiters) */}
           <button 
-            onClick={() => setQuickPortfolioOpen(true)}
+            onClick={() => {
+              soundEngine.playClickSound();
+              setQuickPortfolioOpen(true);
+            }}
             className="w-full py-2.5 px-5 rounded-xl bg-[#527C68]/20 hover:bg-[#527C68]/35 border border-[#D4B777]/35 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-heading font-semibold text-xs tracking-wide transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
           >
             <Briefcase className="w-3.5 h-3.5 text-[#D4B777]" />
             <span>Quick 2D Portfolio View (Standard Mode)</span>
           </button>
 
+          {/* Official Resume PDF Download */}
+          <a
+            href={`${import.meta.env.BASE_URL}assets/Prasad_Kankhar_Resume.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => soundEngine.playClickSound()}
+            className="w-full py-2.5 px-5 rounded-xl bg-[#101a18]/70 hover:bg-[#101a18] border border-[#527C68]/30 hover:border-[#D4B777]/40 text-[#E9E4D7] font-sans text-xs font-medium transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <Download className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span>Official Resume / Master Dossier (PDF)</span>
+          </a>
+
           {/* Interactive Story Mode (Coming Soon - Non-clickable) */}
           <div 
-            className="w-full py-2.5 px-5 rounded-xl bg-[#101a18]/40 border border-[#527C68]/20 text-[#E9E4D7]/50 font-sans text-xs font-medium cursor-not-allowed select-none flex items-center justify-between transition-all"
+            className="w-full py-2 px-5 rounded-xl bg-[#101a18]/40 border border-[#527C68]/20 text-[#E9E4D7]/50 font-sans text-xs font-medium cursor-not-allowed select-none flex items-center justify-between transition-all"
             title="Interactive Story Mode — Coming Soon"
           >
             <div className="flex items-center gap-2">
@@ -84,7 +123,7 @@ export const MainMenu: React.FC = () => {
             </span>
           </div>
 
-          {/* Quick Dossier */}
+          {/* Profile & Harvard Credentials */}
           <button 
             onClick={() => openStation('TRIGGER_Harbor_Welcome')}
             className="w-full py-2.5 px-5 rounded-xl bg-[#101a18]/70 hover:bg-[#101a18] border border-[#527C68]/30 hover:border-[#D4B777]/40 text-[#E9E4D7] font-sans text-xs font-medium transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
@@ -110,6 +149,20 @@ export const MainMenu: React.FC = () => {
             <Mail className="w-3.5 h-3.5 text-[#527C68]" />
             <span>Connect & Message Courier</span>
           </button>
+
+          {/* Graphics Quality Toggle */}
+          <div className="pt-2 flex items-center justify-center w-full">
+            <button
+              onClick={() => {
+                soundEngine.playClickSound();
+                togglePerformanceMode();
+              }}
+              className="text-[11px] font-mono text-[#E9E4D7]/65 hover:text-[#D4B777] flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Gauge className="w-3.5 h-3.5 text-[#527C68]" />
+              <span>Graphics: {performanceMode ? 'Performance (High FPS)' : 'Cinematic (Full Postprocessing)'}</span>
+            </button>
+          </div>
         </div>
 
       </div>

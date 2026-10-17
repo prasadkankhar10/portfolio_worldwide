@@ -14,6 +14,7 @@ import { StationPortfolioModal } from './components/ui/StationPortfolioModal';
 import { StationHUDPrompt } from './components/ui/StationHUDPrompt';
 import { QuickPortfolioModal } from './components/ui/QuickPortfolioModal';
 import { MiniMap } from './components/ui/MiniMap';
+import { GuidedTourOverlay } from './components/ui/GuidedTourOverlay';
 import { Leva } from 'leva';
 
 export const Controls = {
@@ -122,6 +123,7 @@ function App() {
       {hasStarted && <PortfolioTracker />}
       {isMobile && <RotateDeviceOverlay />}
       <MiniMap />
+      <GuidedTourOverlay />
       <div className="absolute inset-0 z-0">
         <Canvas
           frameloop={isTabVisible ? 'always' : 'never'}

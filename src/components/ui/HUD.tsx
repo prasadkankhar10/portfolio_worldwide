@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useGameStore } from '../../store/useGameStore';
-import { Compass, BookOpen, Layers, Menu, Navigation, Sparkles, Ship, Eye, X } from 'lucide-react';
+import { STATION_MONUMENT_DEFS } from '../3d/StationMonuments';
+import { soundEngine } from '../../utils/soundEngine';
+import { 
+  Compass, BookOpen, Layers, Menu, Navigation, Sparkles, 
+  Ship, Eye, X, Volume2, VolumeX, FileText, Award, MapPin 
+} from 'lucide-react';
 
 export const HUD: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
@@ -15,6 +20,17 @@ export const HUD: React.FC = () => {
   const setTrackerOpen = useGameStore((state) => state.setTrackerOpen);
   const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
   
+  // UX Features: Audio, Tour, Waypoint & Exploration Codex
+  const isAudioMuted = useGameStore((state) => state.isAudioMuted);
+  const toggleAudioMute = useGameStore((state) => state.toggleAudioMute);
+  const isGuidedTourActive = useGameStore((state) => state.isGuidedTourActive);
+  const setIsGuidedTourActive = useGameStore((state) => state.setIsGuidedTourActive);
+  const visitedStationIds = useGameStore((state) => state.visitedStationIds);
+  const latestUnlockedBadge = useGameStore((state) => state.latestUnlockedBadge);
+  const clearLatestBadge = useGameStore((state) => state.clearLatestBadge);
+  const activeWaypointStationId = useGameStore((state) => state.activeWaypointStationId);
+  const setActiveWaypointStationId = useGameStore((state) => state.setActiveWaypointStationId);
+
   // Royal Courier Vessel & Cinematic View State
   const courierShipState = useGameStore((state) => state.courierShipState);
   const isWatchingVessel = useGameStore((state) => state.isWatchingVessel);
@@ -22,6 +38,22 @@ export const HUD: React.FC = () => {
   const resetCourierShip = useGameStore((state) => state.resetCourierShip);
 
   const [isLocked, setIsLocked] = useState(false);
+
+  // Auto-dismiss unlocked milestone badges after 6 seconds
+  useEffect(() => {
+    if (latestUnlockedBadge) {
+      soundEngine.playBadgeFanfareSound();
+      const timer = setTimeout(() => {
+        clearLatestBadge();
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [latestUnlockedBadge, clearLatestBadge]);
+
+  const waypointStation = useMemo(() => {
+    if (!activeWaypointStationId) return null;
+    return STATION_MONUMENT_DEFS.find((s) => s.id === activeWaypointStationId) || null;
+  }, [activeWaypointStationId]);
 
   useEffect(() => {
     const handleLockChange = () => {
@@ -43,6 +75,8 @@ export const HUD: React.FC = () => {
   }, [isWatchingVessel, setIsWatchingVessel]);
 
   const requestLock = () => {
+    soundEngine.playClickSound();
+    soundEngine.startAmbientAtmosphere();
     if (typeof document !== 'undefined') {
       try {
         document.body.requestPointerLock();
@@ -95,9 +129,9 @@ export const HUD: React.FC = () => {
       {/* TOP NAVIGATION BAR */}
       <div className="relative z-50 p-4 sm:p-6 flex items-start justify-between w-full pointer-events-none">
         
-        {/* Left: Understated Key Controls Pill */}
+        {/* Left: Understated Key Controls Pill & Exploration Progress */}
         {!isMobile && (
-          <div className="pointer-events-auto flex flex-col gap-1.5 animate-in fade-in duration-500">
+          <div className="pointer-events-auto flex flex-col gap-2 animate-in fade-in duration-500">
             <div className="bg-[#182522]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D4B777]/20 shadow-sm flex items-center gap-2.5 text-xs text-[#E9E4D7]/85 font-sans">
               <span className="flex items-center gap-1 font-mono text-[#D4B777] text-[11px]">
                 <kbd className="bg-[#101a18]/80 px-1.5 py-0.5 rounded border border-[#D4B777]/25 text-[#E9E4D7] font-bold">W A S D</kbd>
@@ -119,6 +153,31 @@ export const HUD: React.FC = () => {
                 <span>Map</span>
               </span>
             </div>
+
+            {/* Exploration Progress Pill */}
+            <button
+              onClick={() => {
+                soundEngine.playClickSound();
+                if (typeof document !== 'undefined' && document.pointerLockElement) {
+                  document.exitPointerLock();
+                }
+                setTrackerOpen(true);
+              }}
+              className="bg-[#182522]/85 hover:bg-[#182522] backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D4B777]/30 hover:border-[#D4B777]/60 shadow-sm flex items-center gap-2.5 text-xs font-heading font-medium text-[#E9E4D7] transition-all cursor-pointer w-fit"
+              title="View Exploration Codex & Badges (M)"
+            >
+              <Award className="w-3.5 h-3.5 text-[#D4B777]" />
+              <span>Explored:</span>
+              <span className="font-mono text-[#D4B777] font-bold">
+                {visitedStationIds.length} / 18
+              </span>
+              <div className="w-14 h-1.5 bg-[#101a18] rounded-full overflow-hidden border border-[#527C68]/30">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-[#D4B777] transition-all duration-500" 
+                  style={{ width: `${Math.min(100, Math.round((visitedStationIds.length / 18) * 100))}%` }}
+                />
+              </div>
+            </button>
           </div>
         )}
 
@@ -212,6 +271,23 @@ export const HUD: React.FC = () => {
 
         {/* Right: Quick Navigation Hub */}
         <div className="pointer-events-auto flex items-center gap-2">
+          {/* Autopilot Guided Tour Button */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof document !== 'undefined' && document.pointerLockElement) {
+                document.exitPointerLock();
+              }
+              soundEngine.playClickSound();
+              setIsGuidedTourActive(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4B777]/20 hover:bg-[#D4B777]/35 backdrop-blur-md border border-[#D4B777]/50 text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Start Autopilot Guided Tour"
+          >
+            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#D4B777]" />
+            <span className="hidden sm:inline">Tour</span>
+          </button>
+
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -220,7 +296,7 @@ export const HUD: React.FC = () => {
               }
               window.dispatchEvent(new CustomEvent('toggle-world-map'));
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Open Expedition Map (N)"
           >
             <Compass className="w-3.5 h-3.5 text-[#D4B777]" />
@@ -235,7 +311,7 @@ export const HUD: React.FC = () => {
               }
               setTrackerOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Open Field Journal (M)"
           >
             <BookOpen className="w-3.5 h-3.5 text-[#D4B777]" />
@@ -250,11 +326,49 @@ export const HUD: React.FC = () => {
               }
               setStationModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Open Stations Directory"
           >
             <Layers className="w-3.5 h-3.5 text-[#D4B777]" />
             <span className="hidden sm:inline">Stations</span>
+          </button>
+
+          {/* Quick Resume PDF Download / Recruiter Access */}
+          <a
+            href={`${import.meta.env.BASE_URL}assets/Prasad_Kankhar_Resume.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              soundEngine.playClickSound();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Open Official Resume PDF"
+          >
+            <FileText className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span className="hidden md:inline">Resume</span>
+          </a>
+
+          {/* Audio Mute / Unmute Toggle */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleAudioMute();
+              if (isAudioMuted) {
+                soundEngine.playClickSound();
+                soundEngine.startAmbientAtmosphere();
+              } else {
+                soundEngine.stopAmbientAtmosphere();
+              }
+            }}
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-full backdrop-blur-md border flex items-center gap-1 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95 ${
+              isAudioMuted 
+                ? 'bg-red-950/40 border-red-500/40 text-red-300' 
+                : 'bg-[#182522]/90 border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777]'
+            }`}
+            title={isAudioMuted ? 'Unmute Audio (Ocean Breeze & SFX)' : 'Mute Audio'}
+          >
+            {isAudioMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#D4B777]" />}
           </button>
 
           <button 
@@ -265,7 +379,7 @@ export const HUD: React.FC = () => {
               }
               setGameState('menu');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#182522]/90 hover:bg-[#182522] backdrop-blur-md border border-[#D4B777]/30 hover:border-[#D4B777]/60 text-[#E9E4D7] hover:text-[#D4B777] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Open Main Menu (Esc)"
           >
             <Menu className="w-3.5 h-3.5 text-[#D4B777]" />
@@ -274,6 +388,61 @@ export const HUD: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Active GPS Waypoint Navigation Banner */}
+      {waypointStation && (
+        <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 pointer-events-auto animate-in slide-in-from-top-2 duration-300 z-40">
+          <div className="bg-[#182522]/95 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#D4B777]/50 shadow-xl flex items-center gap-2.5 text-xs font-sans text-[#E9E4D7]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <Navigation className="w-3.5 h-3.5 text-[#D4B777]" />
+            <span className="font-heading font-bold text-[#D4B777]">Waypoint:</span>
+            <span className="text-white font-medium">{waypointStation.name}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                soundEngine.playClickSound();
+                setActiveWaypointStationId(null);
+              }}
+              className="p-1 rounded-full hover:bg-white/10 text-[#E9E4D7]/60 hover:text-white transition-colors cursor-pointer ml-1"
+              title="Cancel Waypoint"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Milestone Achievement Unlocked Toast Banner */}
+      {latestUnlockedBadge && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto animate-in zoom-in-95 duration-300">
+          <div className="bg-[#182522]/98 border-2 border-[#D4B777] px-6 py-3.5 rounded-2xl shadow-[0_15px_45px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex items-center gap-4 text-[#E9E4D7]">
+            <div className="text-3xl select-none animate-bounce">
+              {latestUnlockedBadge.icon}
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#D4B777] font-bold">
+                <Sparkles className="w-3 h-3 text-[#D4B777]" />
+                <span>Achievement Unlocked</span>
+              </div>
+              <h4 className="font-heading font-bold text-sm text-[#E9E4D7] tracking-tight">
+                {latestUnlockedBadge.title}
+              </h4>
+              <p className="text-xs text-[#E9E4D7]/75 font-sans">
+                {latestUnlockedBadge.desc}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                soundEngine.playClickSound();
+                clearLatestBadge();
+              }}
+              className="p-1.5 rounded-full hover:bg-white/10 text-stone-400 hover:text-white transition-colors cursor-pointer ml-2"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Exploration Prompt Bubble */}
       {magicPrompt && (

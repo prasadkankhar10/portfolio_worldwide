@@ -12,6 +12,8 @@ import { Fireflies } from './Fireflies';
 import { FreeCamManager } from './FreeCam';
 import { Sea } from './Sea';
 import { FrameLagTracker } from './FrameLagTracker';
+import { InWorldWaypoint } from './InWorldWaypoint';
+import { GuidedTourController } from './GuidedTourController';
 const ClericNPC = React.lazy(() => import('./ClericNPC').then(m => ({ default: m.ClericNPC })));
 const BlueSoldierFemaleNPC = React.lazy(() => import('./BlueSoldierFemaleNPC').then(m => ({ default: m.BlueSoldierFemaleNPC })));
 const BlueSoldierMaleNPC = React.lazy(() => import('./BlueSoldierMaleNPC').then(m => ({ default: m.BlueSoldierMaleNPC })));
@@ -180,6 +182,12 @@ export const Scene = () => {
       {/* Procedural Wildlife */}
       <Birds count={performanceMode ? 8 : 18} />
       <Fireflies count={performanceMode ? 25 : 50} />
+
+      {/* In-World 3D Waypoint / GPS Beacon */}
+      <InWorldWaypoint />
+
+      {/* Cinematic Autopilot Guided Tour Camera Controller */}
+      <GuidedTourController />
 
       {/* Frame & Lag Performance Profiler */}
       <FrameLagTracker />

@@ -291,6 +291,9 @@ export const Character = () => {
 
     // --- ONLY UPDATE CAMERA IF FREE CAM IS NOT ACTIVE ---
     if (!isFreeCam) {
+      if (useGameStore.getState().isGuidedTourActive) {
+        return;
+      }
       const isWatchingVessel = useGameStore.getState().isWatchingVessel;
       if (isWatchingVessel) {
         if (isMoving || jump) {
