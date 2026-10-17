@@ -4,6 +4,7 @@ import { portfolioData, type StationData } from '../../data/portfolioData';
 import { getStationTheme, type StationTheme } from '../../data/stationThemes';
 import { ProjectShowcaseWidget } from './ProjectShowcaseWidget';
 import { CourierContactForm } from './CourierContactForm';
+import { STATION_MONUMENT_DEFS } from '../3d/StationMonuments';
 import { 
   X, ExternalLink, Mail, Download, 
   MapPin, Sparkles, Code2, Gamepad2, Award, BookOpen, 
@@ -63,34 +64,12 @@ const STATION_KEYS = [
   'TRIGGER_Citadel_Contact',
 ];
 
-const STATION_TELEPORT_COORDS: Record<string, { x: number; y: number; z: number }> = {
-  TRIGGER_Harbor_Welcome: { x: 108.89, y: 3.2, z: 118.04 },
-  TRIGGER_Project_CMEDetector: { x: 85.0, y: 4.0, z: 120.0 },
-  TRIGGER_Hall_Certifications: { x: 65.0, y: 4.0, z: 97.0 },
-  TRIGGER_Village_About: { x: 45.0, y: 4.0, z: -2.0 },
-  TRIGGER_Leadership_Pavilion: { x: 35.0, y: 4.0, z: 14.0 },
-  TRIGGER_Arena_Algorithms: { x: 19.12, y: 4.0, z: -25.01 },
-  TRIGGER_Project_ExamPlatform: { x: 6.0, y: 4.0, z: -15.5 },
-  TRIGGER_Project_SmartCampus: { x: 18.0, y: 4.0, z: 0.0 },
-  TRIGGER_Project_GameStore: { x: 81.88, y: 4.0, z: -66.15 },
-  TRIGGER_Project_SchoolWebsite: { x: 56.64, y: 4.0, z: -25.05 },
-  TRIGGER_Project_Akshayanidhi: { x: 42.22, y: 4.0, z: -14.48 },
-  TRIGGER_Project_Sadhana: { x: -9.01, y: 4.0, z: -17.83 },
-  TRIGGER_Project_Vyuham: { x: -5.0, y: 4.0, z: 18.89 },
-  TRIGGER_Project_Nishtha: { x: 98.0, y: 4.0, z: 27.0 },
-  TRIGGER_Forge_GameDev: { x: -97.55, y: 4.0, z: -3.2 },
-  TRIGGER_Project_OneMoreMove: { x: -78.0, y: 4.0, z: -26.0 },
-  TRIGGER_Project_KnightsAdventure: { x: -58.0, y: 4.0, z: -53.04 },
-  TRIGGER_Project_Sahaj: { x: -18.0, y: 4.0, z: 60.0 },
-  TRIGGER_Moonwell_Skills: { x: -48.0, y: 4.0, z: 55.47 },
-  TRIGGER_Project_RealmWebAR: { x: -32.0, y: 4.0, z: 24.17 },
-  TRIGGER_Project_TraceMateAR: { x: -72.0, y: 4.0, z: 14.0 },
-  TRIGGER_Stonehenge_Puzzle: { x: 30.08, y: 4.0, z: 54.85 },
-  TRIGGER_Project_MaraRAG: { x: 72.0, y: 4.0, z: 20.0 },
-  TRIGGER_Project_LifeManager: { x: 0.0, y: 4.0, z: -90.0 },
-  TRIGGER_Project_ButlerOS: { x: -30.0, y: 4.0, z: -78.0 },
-  TRIGGER_Citadel_Contact: { x: -15.0, y: 4.0, z: -98.0 },
-};
+const STATION_TELEPORT_COORDS: Record<string, { x: number; y: number; z: number }> = Object.fromEntries(
+  STATION_MONUMENT_DEFS.map((s) => [
+    s.id,
+    { x: s.pos[0], y: s.pos[1] + 1.0, z: s.pos[2] + 2.0 }
+  ])
+);
 
 const CATEGORIES = [
   'All',

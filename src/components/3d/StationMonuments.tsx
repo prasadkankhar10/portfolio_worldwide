@@ -500,7 +500,7 @@ const SingleStationMonument: React.FC<{
 /**
  * StationMonuments: Renders all 26 distinct 3D monuments across the island
  */
-export const StationMonuments: React.FC<{ triggerZones?: THREE.Mesh[] }> = ({ triggerZones = [] }) => {
+export const StationMonuments: React.FC<{ triggerZones?: THREE.Mesh[] }> = () => {
   const setStationModalOpen = useGameStore((state) => state.setStationModalOpen);
   const setActiveStationId = useGameStore((state) => state.setActiveStationId);
 
@@ -509,33 +509,9 @@ export const StationMonuments: React.FC<{ triggerZones?: THREE.Mesh[] }> = ({ tr
     setStationModalOpen(true);
   };
 
-  const dynamicStations = useMemo(() => {
-    const meshMap = new Map<string, THREE.Vector3>();
-    if (triggerZones && triggerZones.length > 0) {
-      for (const mesh of triggerZones) {
-        mesh.geometry.computeBoundingBox();
-        const box = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrixWorld);
-        const center = new THREE.Vector3();
-        box.getCenter(center);
-        meshMap.set(mesh.name, new THREE.Vector3(center.x, box.min.y, center.z));
-      }
-    }
-
-    return STATION_MONUMENT_DEFS.map((station) => {
-      const livePos = meshMap.get(station.id);
-      if (livePos) {
-        return {
-          ...station,
-          pos: [livePos.x, livePos.y, livePos.z] as [number, number, number],
-        };
-      }
-      return station;
-    });
-  }, [triggerZones]);
-
   return (
     <group name="StationMonuments">
-      {dynamicStations.map((station) => (
+      {STATION_MONUMENT_DEFS.map((station) => (
         <SingleStationMonument
           key={station.id}
           station={station}

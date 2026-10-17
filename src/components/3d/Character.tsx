@@ -63,7 +63,7 @@ export const Character = () => {
   
   const cameraTarget = useRef(new THREE.Vector3());
   const cameraPosition = useRef(new THREE.Vector3());
-  const yaw = useRef(Math.PI); // Initial yaw facing South (S)
+  const yaw = useRef(0); // Initial yaw facing North (N) into the island along the main road
   const pitch = useRef(0);
   const zoomDistance = useRef(5.5); // Comfortable third-person distance
   
@@ -447,7 +447,7 @@ export const Character = () => {
         frictionCombineRule={RAPIER.CoefficientCombineRule.Min}
         restitution={0} 
       />
-      <group ref={characterRef}>
+      <group ref={characterRef} rotation={[0, Math.PI, 0]}>
         <primitive object={scene} />
       </group>
     </RigidBody>

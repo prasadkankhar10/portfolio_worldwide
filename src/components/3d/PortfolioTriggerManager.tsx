@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { globalPlayerState } from './Character';
 import { useGameStore } from '../../store/useGameStore';
 import { portfolioData } from '../../data/portfolioData';
-import { StationMonuments } from './StationMonuments';
+import { StationMonuments, STATION_MONUMENT_DEFS } from './StationMonuments';
 import { soundEngine } from '../../utils/soundEngine';
 
 interface TriggerItem {
@@ -16,51 +16,10 @@ interface TriggerItem {
 }
 
 interface PortfolioTriggerManagerProps {
-  triggerZones: THREE.Mesh[];
+  triggerZones?: THREE.Mesh[];
 }
 
-const FALLBACK_STATIONS: { id: string; name: string; pos: [number, number, number]; radius: number }[] = [
-  { id: 'TRIGGER_Harbor_Welcome', name: 'Harbor Pier • Connect Station', pos: [108.89, 3.1, 118.04], radius: 6.5 },
-  { id: 'TRIGGER_Project_CMEDetector', name: 'CME Space Weather Sun Dial', pos: [85.0, 3.0, 118.0], radius: 6.5 },
-  { id: 'TRIGGER_Hall_Certifications', name: 'Harvard CS50x Hall', pos: [65.0, 3.0, 95.0], radius: 6.5 },
-  { id: 'TRIGGER_Village_About', name: 'Village Square About', pos: [45.0, 3.0, -4.0], radius: 6.0 },
-  { id: 'TRIGGER_Leadership_Pavilion', name: 'Leadership Pavilion', pos: [35.0, 3.0, 12.0], radius: 6.0 },
-  { id: 'TRIGGER_Arena_Algorithms', name: 'Algorithmic Arena', pos: [19.12, 3.0, -27.01], radius: 6.5 },
-
-  // 2. Village & Marketplace Districts (Spaced along open paths, clear of NPC stalls)
-  { id: 'TRIGGER_Project_ExamPlatform', name: 'AI Exam Platform Plinth', pos: [6.0, 3.0, -17.5], radius: 6.0 },
-  { id: 'TRIGGER_Project_SmartCampus', name: 'Smart Campus QR Registry', pos: [18.0, 3.0, -2.0], radius: 6.0 },
-  { id: 'TRIGGER_Project_GameStore', name: 'Game Discovery Arcade', pos: [81.88, 3.0, -68.15], radius: 6.0 },
-  { id: 'TRIGGER_Project_SchoolWebsite', name: 'Girls School Civic Hall', pos: [56.64, 3.0, -27.05], radius: 6.0 },
-  { id: 'TRIGGER_Project_Akshayanidhi', name: 'Akshayanidhi Media Archive', pos: [42.22, 3.0, -16.48], radius: 6.0 },
-  { id: 'TRIGGER_Project_Sadhana', name: 'Sadhana Habit PWA Plinth', pos: [-9.01, 3.0, -19.83], radius: 6.0 },
-  { id: 'TRIGGER_Project_Vyuham', name: 'Vyuham Chrome Ext Plinth', pos: [-5.0, 3.0, 16.89], radius: 6.0 },
-  { id: 'TRIGGER_Project_Nishtha', name: 'Nishtha Gamified RPG Bazaar', pos: [98.0, 3.0, 25.0], radius: 6.0 },
-
-  // 3. Forge & Industrial Quarter
-  { id: 'TRIGGER_Forge_GameDev', name: 'On The Way UE5 Forge', pos: [-97.55, 3.0, -5.20], radius: 6.5 },
-  { id: 'TRIGGER_Project_OneMoreMove', name: 'One More Move C++17 Keep', pos: [-78.0, 3.0, -28.0], radius: 6.5 },
-
-  // 4. Windmill & Highlands
-  { id: 'TRIGGER_Project_KnightsAdventure', name: 'Knight Adventure Windmill', pos: [-58.0, 3.0, -55.04], radius: 6.5 },
-
-  // 5. Nature, Grove & Western Meadows
-  { id: 'TRIGGER_Project_Sahaj', name: 'Sahaj Accessibility Shrine', pos: [-18.0, 3.0, 58.0], radius: 6.5 },
-  { id: 'TRIGGER_Moonwell_Skills', name: 'Mana Well Skills Grove', pos: [-48.0, 3.6, 53.47], radius: 6.5 },
-  { id: 'TRIGGER_Project_RealmWebAR', name: 'WebAR Tabletop Beacon', pos: [-32.0, 3.0, 22.17], radius: 6.5 },
-  { id: 'TRIGGER_Project_TraceMateAR', name: 'TraceMate Pro Studio', pos: [-72.0, 3.0, 12.0], radius: 6.5 },
-
-  // 6. Historic Megaliths & Cliff Overlook
-  { id: 'TRIGGER_Stonehenge_Puzzle', name: 'Stonehenge Rune Puzzle', pos: [30.08, 2.49, 52.85], radius: 7.0 },
-  { id: 'TRIGGER_Project_MaraRAG', name: 'MaraRAG Library', pos: [72.0, 3.0, 18.0], radius: 6.5 },
-
-  // 7. Mountain Pass & High Citadel
-  { id: 'TRIGGER_Project_LifeManager', name: 'Telegram-to-Notion OS', pos: [0.0, 3.0, -92.0], radius: 6.5 },
-  { id: 'TRIGGER_Project_ButlerOS', name: 'Butler OS Spire', pos: [-30.0, 3.0, -80.0], radius: 7.0 },
-  { id: 'TRIGGER_Citadel_Contact', name: 'Citadel Summit Contact', pos: [-15.0, 3.0, -100.0], radius: 8.0 },
-];
-
-export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = ({ triggerZones }) => {
+export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = ({ triggerZones = [] }) => {
   const setActiveStationId = useGameStore((state) => state.setActiveStationId);
   const setActiveStationPrompt = useGameStore((state) => state.setActiveStationPrompt);
   const setStationModalOpen = useGameStore((state) => state.setStationModalOpen);
@@ -73,42 +32,46 @@ export const PortfolioTriggerManager: React.FC<PortfolioTriggerManagerProps> = (
     const items: TriggerItem[] = [];
     const addedIds = new Set<string>();
 
-    // 1. From GLTF trigger meshes if available
-    for (const mesh of triggerZones) {
-      mesh.geometry.computeBoundingBox();
-      const box = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrixWorld);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      const radius = Math.max(size.x * 0.7, size.z * 0.7, 5.0);
-
+    // 1. Authoritative stations from STATION_MONUMENT_DEFS (100% synchronized with 3D pedestals)
+    for (const station of STATION_MONUMENT_DEFS) {
+      const center = new THREE.Vector3(...station.pos);
+      const radius = 6.5;
+      const halfR = radius * 0.8;
+      const box = new THREE.Box3(
+        new THREE.Vector3(center.x - halfR, center.y - 3, center.z - halfR),
+        new THREE.Vector3(center.x + halfR, center.y + 4, center.z + halfR)
+      );
       items.push({
-        id: mesh.name,
-        name: mesh.name,
+        id: station.id,
+        name: station.name,
         box,
         center,
         radius,
       });
-      addedIds.add(mesh.name);
+      addedIds.add(station.id);
     }
 
-    // 2. Add fallback station triggers so detection is guaranteed
-    for (const fallback of FALLBACK_STATIONS) {
-      if (!addedIds.has(fallback.id)) {
-        const center = new THREE.Vector3(...fallback.pos);
-        const halfR = fallback.radius * 0.8;
-        const box = new THREE.Box3(
-          new THREE.Vector3(center.x - halfR, center.y - 3, center.z - halfR),
-          new THREE.Vector3(center.x + halfR, center.y + 4, center.z + halfR)
-        );
-        items.push({
-          id: fallback.id,
-          name: fallback.name,
-          box,
-          center,
-          radius: fallback.radius,
-        });
+    // 2. Add any supplementary GLTF trigger zones not in STATION_MONUMENT_DEFS
+    if (triggerZones && triggerZones.length > 0) {
+      for (const mesh of triggerZones) {
+        if (!addedIds.has(mesh.name)) {
+          mesh.geometry.computeBoundingBox();
+          const box = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrixWorld);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const radius = Math.max(size.x * 0.7, size.z * 0.7, 5.0);
+
+          items.push({
+            id: mesh.name,
+            name: mesh.name,
+            box,
+            center,
+            radius,
+          });
+          addedIds.add(mesh.name);
+        }
       }
     }
 
