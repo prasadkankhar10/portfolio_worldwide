@@ -366,7 +366,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
   // UI Theme Switcher
-  uiTheme: loadStorage<UITheme>('portfolio_ui_theme', 'obsidian'),
+  uiTheme: loadStorage<UITheme>('portfolio_ui_theme', 'forest'),
   setUITheme: (theme) => {
     saveStorage('portfolio_ui_theme', theme);
     if (typeof document !== 'undefined') {

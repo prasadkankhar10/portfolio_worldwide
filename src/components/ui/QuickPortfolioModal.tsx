@@ -13,7 +13,7 @@ import {
   BrainCircuit, Globe, Layers, CheckCircle2,
   FileText, Briefcase, GraduationCap, ChevronRight,
   ChevronLeft, ShieldCheck, MapPin, AlertTriangle,
-  Eye, Cpu
+  Eye, Cpu, Star
 } from 'lucide-react';
 
 const GithubIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -180,52 +180,54 @@ export const QuickPortfolioModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-200">
       
-      {/* Main Container Card */}
-      <div className="relative w-full max-w-7xl h-[94vh] bg-[#25352D] border border-[#3A4B40]/40 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+      {/* Main Container Card: Fantasy Game Frame & Ornate Corner Brackets (Owl Studio UI-Kit, Image 4) */}
+      <div className="relative w-full max-w-7xl h-[94vh] game-frame game-corner-brackets rounded-3xl flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden">
         
         {/* ================================================================= */}
-        {/* MODAL HEADER BAR */}
+        {/* MODAL HEADER BAR WITH EMBOSSED WAX SEAL (Reference 1 & 4) */}
         {/* ================================================================= */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#3A4B40]/30 bg-[#111916]/90 backdrop-blur-xl shrink-0 z-10">
-          <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-[#3A4B40]/20 border border-[#D6BC83]/30 text-[#D6BC83]">
-              <FileText className="w-5 h-5 stroke-[1.75]" />
-            </span>
+        <div className="flex items-center justify-between px-6 py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10">
+          <div className="flex items-center gap-3.5">
+            {/* Embossed Red Wax Seal (Reference 1) */}
+            <div className="game-wax-seal shrink-0 shadow-lg">
+              <BookOpen className="w-5 h-5 text-[#FFE6A8] drop-shadow" />
+            </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-heading font-bold text-[#F0E9DA] tracking-tight flex items-center gap-2">
-                <span>Fast 2D Recruiter & Systems Portfolio</span>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#3A4B40]/30 text-[#D6BC83] font-normal border border-[#3A4B40]/50">
-                  Quick View
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-xl font-heading font-extrabold text-[#F0E9DA] tracking-wide flex items-center gap-2 drop-shadow">
+                  <span>ARCHIVE OF VERIFIED SYSTEMS</span>
+                </h2>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#D6BC83]/20 text-[#D6BC83] font-bold border border-[#D6BC83]/40 uppercase tracking-wider">
+                  Codex
                 </span>
-              </h2>
-              <p className="text-xs text-[#F0E9DA]/60 font-sans hidden sm:block">
-                All 19 verified systems, algorithmic achievements, and architecture specs in one responsive view.
+              </div>
+              <p className="text-xs text-[#D6BC83]/80 font-sans hidden sm:block">
+                All 19 verified production architectures, algorithmic achievements, and systems in one responsive view.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
             {/* Theme Toggle (Forest Gold vs Obsidian Cobalt) */}
-            <ThemeToggle compact={false} className="hidden sm:inline-flex" />
-            <ThemeToggle compact={true} className="sm:hidden inline-flex" />
+            <ThemeToggle compact={true} />
 
-            {/* Switch to 3D Button */}
+            {/* Switch to 3D Button (Tactile Gold Game Button) */}
             <button
               onClick={handleSwitchTo3D}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#3A4B40]/25 hover:bg-[#3A4B40]/45 border border-[#D6BC83]/30 text-[#D6BC83] text-xs font-heading font-semibold transition-all cursor-pointer shadow-sm"
+              className="game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-2"
               title="Return to the 3D Island World"
             >
-              <Compass className="w-4 h-4 stroke-[1.75]" />
+              <Compass className="w-4 h-4 text-[#17221C]" />
               <span className="hidden sm:inline">Explore 3D Island</span>
             </button>
 
-            {/* Close Button */}
+            {/* Close Button (Tactile Crimson Game Button) */}
             <button
               onClick={() => setQuickPortfolioOpen(false)}
-              className="p-2 rounded-xl bg-[#1B2822] hover:bg-[#20302c] text-[#F0E9DA]/70 hover:text-[#F0E9DA] border border-[#3A4B40]/30 transition-colors cursor-pointer"
+              className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
               title="Close Portfolio (Esc)"
             >
-              <X className="w-5 h-5 stroke-[1.75]" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -434,16 +436,16 @@ export const QuickPortfolioModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Filter Pills */}
-            <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs font-mono">
+            {/* Category Filter Pills: Tactile Game Ribbon Buttons (Reference 1 & 2) */}
+            <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
+                  className={`game-btn-tactile px-4 py-2 text-xs whitespace-nowrap ${
                     activeCategory === cat
-                      ? 'bg-[#D6BC83] text-[#1B2822] font-heading font-bold shadow-sm'
-                      : 'bg-[#111916]/60 hover:bg-[#111916] text-[#F0E9DA]/70 hover:text-[#F0E9DA] border border-[#3A4B40]/25'
+                      ? 'game-btn-gold shadow-md'
+                      : 'game-btn-slate opacity-85 hover:opacity-100'
                   }`}
                 >
                   {cat}
@@ -451,7 +453,7 @@ export const QuickPortfolioModal: React.FC = () => {
               ))}
             </div>
 
-            {/* Projects Grid: Clean Quick Look Cards */}
+            {/* Projects Grid: Authentic RPG Quest & Systems Cards (Reference 1 & 2) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredProjects.map((key) => {
                 const project = portfolioData[key];
@@ -464,29 +466,43 @@ export const QuickPortfolioModal: React.FC = () => {
                   <div
                     key={key}
                     onClick={() => setSelectedProjectKey(key)}
-                    className="group relative p-6 rounded-2xl border border-[#3A4B40]/30 hover:border-[#D6BC83]/60 bg-[#1B2822]/80 hover:bg-[#1B2822] backdrop-blur-xl flex flex-col justify-between transition-all duration-200 cursor-pointer shadow-lg hover:shadow-[0_10px_30px_rgba(212,183,119,0.12)] hover:-translate-y-1"
+                    className="group relative p-6 rounded-2xl border-2 border-[#3A4B40]/60 hover:border-[#D6BC83] bg-gradient-to-b from-[#1C2C24] via-[#14201A] to-[#0E1612] shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_35px_rgba(214,188,131,0.2)] flex flex-col justify-between transition-all duration-200 cursor-pointer hover:-translate-y-1 overflow-hidden"
                   >
+                    {/* Golden Corner Rivet Studs (Reference 1 & 4) */}
+                    <div className="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-[#D6BC83]/60 group-hover:bg-[#F5E2B3] group-hover:shadow-[0_0_6px_#f5e2b3] transition-all" />
+                    <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-[#D6BC83]/60 group-hover:bg-[#F5E2B3] group-hover:shadow-[0_0_6px_#f5e2b3] transition-all" />
+                    <div className="absolute bottom-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-[#D6BC83]/60 group-hover:bg-[#F5E2B3] group-hover:shadow-[0_0_6px_#f5e2b3] transition-all" />
+                    <div className="absolute bottom-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-[#D6BC83]/60 group-hover:bg-[#F5E2B3] group-hover:shadow-[0_0_6px_#f5e2b3] transition-all" />
+
                     <div>
-                      {/* Category Tag & Quick Look Pill */}
+                      {/* Category Ribbon & Star Rating (Reference 1 & 2) */}
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#3A4B40]/20 border border-[#3A4B40]/40 text-[#D6BC83]">
-                          {project.category}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-gradient-to-r from-[#8B2020] to-[#591010] border border-[#D6BC83]/50 text-[#FFF2D1] font-bold shadow-sm">
+                            {project.category}
+                          </span>
+                          <div className="flex items-center text-[#D6BC83]">
+                            <Star className="w-3 h-3 fill-current drop-shadow-sm" />
+                            <Star className="w-3 h-3 fill-current drop-shadow-sm" />
+                            <Star className="w-3 h-3 fill-current drop-shadow-sm" />
+                          </div>
+                        </div>
+
                         {project.manualActionRequired ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-900/40 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-amber-900/60 text-amber-200 border border-amber-500/50 flex items-center gap-1 font-bold">
                             <AlertTriangle className="w-3 h-3 text-amber-400" />
-                            <span>Action Pending</span>
+                            <span>Action Required</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#D6BC83]/10 text-[#D6BC83] border border-[#D6BC83]/25 flex items-center gap-1 group-hover:bg-[#D6BC83] group-hover:text-[#1B2822] transition-colors">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#D6BC83]/15 text-[#D6BC83] border border-[#D6BC83]/30 flex items-center gap-1 group-hover:bg-[#D6BC83] group-hover:text-[#17221C] transition-colors font-bold">
                             <Eye className="w-3 h-3" />
-                            <span>Quick Look</span>
+                            <span>Inspect Quest</span>
                           </span>
                         )}
                       </div>
 
                       {/* Project Title */}
-                      <h4 className="text-lg font-heading font-bold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors tracking-tight mb-1">
+                      <h4 className="text-lg font-heading font-extrabold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors tracking-tight mb-1 drop-shadow-sm">
                         {project.title}
                       </h4>
 
@@ -498,7 +514,7 @@ export const QuickPortfolioModal: React.FC = () => {
                       )}
 
                       {/* Concise Teaser Description */}
-                      <p className="text-xs text-[#F0E9DA]/75 font-sans leading-relaxed mb-3 line-clamp-2">
+                      <p className="text-xs text-[#F0E9DA]/80 font-sans leading-relaxed mb-3 line-clamp-2">
                         {project.shortBio || project.description || ''}
                       </p>
 
@@ -506,7 +522,7 @@ export const QuickPortfolioModal: React.FC = () => {
                       {metrics.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-4">
                           {metrics.slice(0, 2).map((m, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded-md bg-[#111916]/70 border border-[#D6BC83]/25 text-[10px] font-mono text-[#D6BC83] flex items-center gap-1">
+                            <span key={i} className="px-2 py-0.5 rounded bg-[#0E1612]/80 border border-[#D6BC83]/30 text-[10px] font-mono text-[#D6BC83] flex items-center gap-1 font-medium">
                               <Sparkles className="w-2.5 h-2.5 text-[#D6BC83] shrink-0" />
                               <span className="truncate max-w-[170px]">{m}</span>
                             </span>
@@ -517,22 +533,22 @@ export const QuickPortfolioModal: React.FC = () => {
 
                     <div>
                       {/* Tech Stack Chips */}
-                      <div className="flex flex-wrap gap-1 mb-4 pt-2 border-t border-[#3A4B40]/20">
+                      <div className="flex flex-wrap gap-1 mb-4 pt-2.5 border-t border-[#3A4B40]/30">
                         {techs.slice(0, 4).map((tech) => (
-                          <span key={tech} className="px-2 py-0.5 rounded bg-[#111916]/60 text-[10px] font-mono text-[#F0E9DA]/75">
+                          <span key={tech} className="px-2 py-0.5 rounded bg-[#0E1612]/70 text-[10px] font-mono text-[#F0E9DA]/85 border border-[#3A4B40]/30">
                             {tech}
                           </span>
                         ))}
                         {techs.length > 4 && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#F0E9DA]/50">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#D6BC83] font-bold">
                             +{techs.length - 4}
                           </span>
                         )}
                       </div>
 
-                      {/* Action Links & Full Info Trigger Button */}
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#3A4B40]/15">
-                        <div className="flex items-center gap-2">
+                      {/* Action Links & Full Info Trigger Button (Tactile 3D Buttons) */}
+                      <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#3A4B40]/25">
+                        <div className="flex items-center gap-1.5">
                           {project.github && (
                             <a
                               href={project.github}
@@ -540,7 +556,7 @@ export const QuickPortfolioModal: React.FC = () => {
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               title="Open GitHub Repository"
-                              className="p-1.5 rounded-lg bg-[#111916]/80 hover:bg-[#111916] border border-[#3A4B40]/30 hover:border-[#D6BC83]/40 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-colors"
+                              className="game-btn-tactile game-btn-slate p-2 text-xs"
                             >
                               <GithubIcon className="w-3.5 h-3.5" />
                             </a>
@@ -552,23 +568,22 @@ export const QuickPortfolioModal: React.FC = () => {
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               title="Launch Live Prototype"
-                              className="p-1.5 rounded-lg bg-[#D6BC83]/15 hover:bg-[#D6BC83]/25 border border-[#D6BC83]/30 text-[#D6BC83] transition-all"
+                              className="game-btn-tactile game-btn-gold p-2 text-xs"
                             >
-                              <ArrowUpRight className="w-3.5 h-3.5" />
+                              <ArrowUpRight className="w-3.5 h-3.5 text-[#17221C]" />
                             </a>
                           )}
                         </div>
 
                         <button
                           onClick={() => setSelectedProjectKey(key)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#3A4B40]/20 group-hover:bg-[#D6BC83] border border-[#3A4B40]/40 group-hover:border-[#D6BC83] text-xs font-mono font-semibold text-[#F0E9DA] group-hover:text-[#1B2822] transition-all cursor-pointer shadow-sm"
+                          className="game-btn-tactile game-btn-emerald px-3.5 py-1.5 text-xs flex items-center gap-1.5"
                         >
-                          <span>Full Project Info</span>
+                          <span>View Quest Info</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-
                   </div>
                 );
               })}
@@ -808,31 +823,31 @@ export const QuickPortfolioModal: React.FC = () => {
             onClick={() => setSelectedProjectKey(null)}
           >
             <div 
-              className="relative w-full max-w-5xl max-h-[92vh] bg-[#25352D] border border-[#3A4B40]/50 rounded-3xl flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden"
+              className="relative w-full max-w-5xl max-h-[92vh] game-frame game-corner-brackets rounded-3xl flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Sticky Top Header Navigation */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#3A4B40]/30 bg-[#111916]/95 backdrop-blur-xl shrink-0 z-10">
+              <div className="flex items-center justify-between px-6 py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10">
                 <div className="flex items-center gap-3 min-w-0">
                   <button
                     onClick={() => setSelectedProjectKey(null)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1B2822] hover:bg-[#3A4B40]/30 border border-[#3A4B40]/40 text-xs font-mono text-[#F0E9DA] hover:text-[#D6BC83] transition-all cursor-pointer shrink-0"
+                    className="game-btn-tactile game-btn-slate px-3 py-1.5 text-xs flex items-center gap-1.5 shrink-0"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Back to Projects</span>
+                    <span>Back to Quests</span>
                   </button>
-                  <div className="h-4 w-[1px] bg-[#3A4B40]/30 shrink-0 hidden sm:block" />
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#3A4B40]/20 border border-[#3A4B40]/40 text-[#D6BC83] shrink-0 hidden sm:inline-block">
+                  <div className="h-4 w-[1px] bg-[#3A4B40]/40 shrink-0 hidden sm:block" />
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-gradient-to-r from-[#8B2020] to-[#591010] border border-[#D6BC83]/50 text-[#FFF2D1] font-bold shrink-0 hidden sm:inline-block shadow-sm">
                     {project.category}
                   </span>
-                  <span className="text-xs font-heading font-bold text-[#F0E9DA] truncate hidden md:inline-block">
+                  <span className="text-xs font-heading font-extrabold text-[#F0E9DA] truncate hidden md:inline-block drop-shadow-sm">
                     {project.title}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Prev / Next Project Navigation */}
-                  <div className="flex items-center bg-[#1B2822] border border-[#3A4B40]/30 rounded-xl p-0.5">
+                  <div className="flex items-center bg-[#111916]/80 border border-[#3A4B40]/40 rounded-xl p-0.5">
                     <button
                       onClick={() => setSelectedProjectKey(prevProjectKey)}
                       title="Previous Project"
@@ -840,7 +855,7 @@ export const QuickPortfolioModal: React.FC = () => {
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-[10px] font-mono px-2 text-[#F0E9DA]/50">
+                    <span className="text-[10px] font-mono px-2 text-[#D6BC83] font-bold">
                       {currentProjectIndex + 1} / {PROJECT_STATION_KEYS.length}
                     </span>
                     <button
@@ -858,16 +873,16 @@ export const QuickPortfolioModal: React.FC = () => {
                   {/* Explore in 3D Button */}
                   <button
                     onClick={() => handleExploreIn3D(selectedProjectKey)}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#3A4B40]/20 hover:bg-[#3A4B40]/40 border border-[#D6BC83]/35 text-xs font-mono font-semibold text-[#D6BC83] transition-all cursor-pointer"
+                    className="hidden sm:inline-flex game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-1.5"
                   >
-                    <Compass className="w-3.5 h-3.5" />
+                    <Compass className="w-3.5 h-3.5 text-[#17221C]" />
                     <span>Explore in 3D</span>
                   </button>
 
                   {/* Close Modal Button */}
                   <button
                     onClick={() => setSelectedProjectKey(null)}
-                    className="p-2 rounded-xl bg-[#1B2822] hover:bg-rose-950/40 text-[#F0E9DA]/70 hover:text-rose-400 border border-[#3A4B40]/30 transition-colors cursor-pointer"
+                    className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
                     title="Close Details (Esc)"
                   >
                     <X className="w-4 h-4" />
@@ -1011,14 +1026,14 @@ export const QuickPortfolioModal: React.FC = () => {
                 )}
 
                 {/* 9. Action Buttons Footer */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-[#3A4B40]/25">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t-2 border-[#3A4B40]/30">
                   <div className="flex flex-wrap items-center gap-3">
                     {project.github && (
                       <a
                         href={project.github}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-[#111916]/80 hover:bg-[#111916] text-[#F0E9DA] hover:text-[#D6BC83] rounded-xl text-xs font-heading font-semibold border border-[#3A4B40]/30 transition-colors"
+                        className="game-btn-tactile game-btn-slate px-4 py-2.5 text-xs flex items-center gap-2"
                       >
                         <GithubIcon className="w-4 h-4" />
                         <span>View GitHub Repository</span>
@@ -1030,25 +1045,25 @@ export const QuickPortfolioModal: React.FC = () => {
                         href={project.liveDemo}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 font-heading font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md bg-[#D6BC83] hover:bg-[#E8D5A7] text-[#1B2822]"
+                        className="game-btn-tactile game-btn-gold px-4 py-2.5 text-xs flex items-center gap-2"
                       >
-                        <Globe className="w-4 h-4" />
+                        <Globe className="w-4 h-4 text-[#17221C]" />
                         <span>Launch Live Prototype</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3 h-3 text-[#17221C]" />
                       </a>
                     )}
                     <button
                       onClick={() => handleExploreIn3D(selectedProjectKey)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-heading font-bold transition-all shadow-md cursor-pointer bg-[#3A4B40] hover:bg-[#689680] text-[#F0E9DA]"
+                      className="game-btn-tactile game-btn-emerald px-4 py-2.5 text-xs flex items-center gap-2"
                     >
-                      <Compass className="w-4 h-4" />
+                      <Compass className="w-4 h-4 text-[#F0E9DA]" />
                       <span>Explore in 3D Island</span>
                     </button>
                   </div>
 
                   <a
                     href="mailto:prasadkankhar5@gmail.com"
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-heading font-semibold transition-all cursor-pointer border border-[#D6BC83]/35 bg-[#111916]/80 hover:bg-[#111916] text-[#D6BC83]"
+                    className="game-btn-tactile game-btn-slate px-4 py-2.5 text-xs flex items-center gap-2 border-[#D6BC83]/40 text-[#D6BC83]"
                   >
                     <Mail className="w-4 h-4" />
                     <span>Inquire via Email</span>

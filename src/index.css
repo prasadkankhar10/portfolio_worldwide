@@ -215,3 +215,176 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background: rgba(27, 30, 36, 0.85) !important;
   border: 1px solid rgba(86, 132, 245, 0.35) !important;
 }
+
+/* ============================================================================
+   3. AUTHENTIC FANTASY & CASUAL GAME UI SYSTEM (INSPIRED BY USER REFERENCES)
+   ============================================================================ */
+
+/* 3.1 Tactile 3D Beveled Buttons (Reference Images 1 & 2) */
+.game-btn-tactile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 0.85rem;
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.game-btn-tactile:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Gold Tactile Game Button */
+.game-btn-gold {
+  background: linear-gradient(180deg, #F5E2B3 0%, #D6BC83 45%, #B89753 100%);
+  color: #17221C;
+  border: 1.5px solid #634C20;
+  border-bottom: 4px solid #544018;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.game-btn-gold:hover {
+  background: linear-gradient(180deg, #FFF0CC 0%, #E5CE97 45%, #C9A862 100%);
+  filter: brightness(1.05);
+}
+.game-btn-gold:active {
+  border-bottom-width: 2px;
+}
+
+/* Emerald Tactile Game Button */
+.game-btn-emerald {
+  background: linear-gradient(180deg, #447B60 0%, #29533F 50%, #1B392B 100%);
+  color: #F0E9DA;
+  border: 1.5px solid #13271D;
+  border-bottom: 4px solid #0B1912;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.game-btn-emerald:hover {
+  background: linear-gradient(180deg, #529273 0%, #346850 50%, #224736 100%);
+  filter: brightness(1.08);
+}
+.game-btn-emerald:active {
+  border-bottom-width: 2px;
+}
+
+/* Crimson Wax / Danger Tactile Game Button */
+.game-btn-crimson {
+  background: linear-gradient(180deg, #C73838 0%, #9B2222 50%, #681212 100%);
+  color: #FFF2F2;
+  border: 1.5px solid #4D0A0A;
+  border-bottom: 4px solid #330505;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.game-btn-crimson:hover {
+  background: linear-gradient(180deg, #E04848 0%, #B52C2C 50%, #7D1717 100%);
+  filter: brightness(1.08);
+}
+.game-btn-crimson:active {
+  border-bottom-width: 2px;
+}
+
+/* Slate / Dark Forest Tactile Game Button */
+.game-btn-slate {
+  background: linear-gradient(180deg, #2D3D34 0%, #1C2721 50%, #121A16 100%);
+  color: #E9E4D7;
+  border: 1.5px solid #0C120F;
+  border-bottom: 4px solid #070B09;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.game-btn-slate:hover {
+  background: linear-gradient(180deg, #3A4F43 0%, #24332B 50%, #18231E 100%);
+  color: #D6BC83;
+}
+.game-btn-slate:active {
+  border-bottom-width: 2px;
+}
+
+/* 3.2 Ornate Fantasy RPG Container & Golden Corner Studs (Owl Studio, Image 4) */
+.game-frame {
+  position: relative;
+  background: radial-gradient(circle at 50% 0%, #1F2E27 0%, #141F1A 60%, #0E1612 100%);
+  border: 2px solid #D6BC83;
+  box-shadow: 
+    0 0 0 1px rgba(18, 26, 24, 0.9),
+    inset 0 0 0 1px rgba(214, 188, 131, 0.35),
+    0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.game-corner-brackets::before,
+.game-corner-brackets::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #F5E2B3;
+  pointer-events: none;
+  z-index: 20;
+}
+.game-corner-brackets::before {
+  top: 6px;
+  left: 6px;
+  border-top: 2px solid #F5E2B3;
+  border-left: 2px solid #F5E2B3;
+}
+.game-corner-brackets::after {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 2px solid #F5E2B3;
+  border-right: 2px solid #F5E2B3;
+}
+
+/* 3.3 3D Folded Ribbon Header (Image 1 & Image 4) */
+.game-ribbon-header {
+  position: relative;
+  background: linear-gradient(180deg, #8B2020 0%, #661414 60%, #4D0E0E 100%);
+  color: #FFF2D1;
+  border: 1.5px solid #D6BC83;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* 3.4 Embossed Red Wax Seal (Image 1) */
+.game-wax-seal {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #D43838 0%, #A31D1D 50%, #630C0C 100%);
+  border: 2px solid #4A0808;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFE6A8;
+}
+
+/* 3.5 Game Hexagonal Badge (Image 2) */
+.game-hex-badge {
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+
+/* 3.6 RPG Meter Bar (Image 2 & 4) */
+.game-meter-track {
+  background: #0B120E;
+  border: 1.5px solid #3A4B40;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.game-meter-fill {
+  background: linear-gradient(90deg, #10B981 0%, #34D399 50%, #D6BC83 100%);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
+  height: 100%;
+  transition: width 0.4s ease;
+}
+

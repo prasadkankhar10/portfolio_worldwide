@@ -130,33 +130,11 @@ export const HUD: React.FC = () => {
       {/* TOP NAVIGATION BAR */}
       <div className="relative z-50 p-4 sm:p-6 flex items-start justify-between w-full pointer-events-none">
         
-        {/* Left: Understated Key Controls Pill & Exploration Progress */}
+        {/* Left: Game Character Status Card & Progress (Reference 2) */}
         {!isMobile && (
-          <div className="pointer-events-auto flex flex-col gap-2 animate-in fade-in duration-500">
-            <div className="bg-[#1B2822]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D6BC83]/20 shadow-sm flex items-center gap-2.5 text-xs text-[#F0E9DA]/85 font-sans">
-              <span className="flex items-center gap-1 font-mono text-[#D6BC83] text-[11px]">
-                <kbd className="bg-[#111916]/80 px-1.5 py-0.5 rounded border border-[#D6BC83]/25 text-[#F0E9DA] font-bold">W A S D</kbd>
-                <span>Move</span>
-              </span>
-              <span className="text-[#3A4B40]/60">·</span>
-              <span className="flex items-center gap-1 font-mono text-[#D6BC83] text-[11px]">
-                <kbd className="bg-[#111916]/80 px-1.5 py-0.5 rounded border border-[#D6BC83]/25 text-[#F0E9DA] font-bold">Shift</kbd>
-                <span>Run</span>
-              </span>
-              <span className="text-[#3A4B40]/60">·</span>
-              <span className="flex items-center gap-1 font-mono text-[#D6BC83] text-[11px]">
-                <kbd className="bg-[#111916]/80 px-1.5 py-0.5 rounded border border-[#D6BC83]/25 text-[#F0E9DA] font-bold">M</kbd>
-                <span>Journal</span>
-              </span>
-              <span className="text-[#3A4B40]/60">·</span>
-              <span className="flex items-center gap-1 font-mono text-[#D6BC83] text-[11px]">
-                <kbd className="bg-[#111916]/80 px-1.5 py-0.5 rounded border border-[#D6BC83]/25 text-[#F0E9DA] font-bold">N</kbd>
-                <span>Map</span>
-              </span>
-            </div>
-
-            {/* Exploration Progress Pill */}
-            <button
+          <div className="pointer-events-auto flex flex-col gap-2.5 animate-in fade-in duration-500">
+            {/* Player Character Status Card */}
+            <div 
               onClick={() => {
                 soundEngine.playClickSound();
                 if (typeof document !== 'undefined' && document.pointerLockElement) {
@@ -164,42 +142,85 @@ export const HUD: React.FC = () => {
                 }
                 setTrackerOpen(true);
               }}
-              className="bg-[#1B2822]/85 hover:bg-[#1B2822] backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 shadow-sm flex items-center gap-2.5 text-xs font-heading font-medium text-[#F0E9DA] transition-all cursor-pointer w-fit"
-              title="View Exploration Codex & Badges (M)"
+              className="group flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#1B2822]/95 via-[#23352C]/90 to-[#1B2822]/95 backdrop-blur-md border border-[#D6BC83]/40 hover:border-[#D6BC83] shadow-[0_6px_20px_rgba(0,0,0,0.5)] transition-all cursor-pointer hover:scale-[1.02]"
+              title="Open Field Journal & Exploration Codex (M)"
             >
-              <Award className="w-3.5 h-3.5 text-[#D6BC83]" />
-              <span>Explored:</span>
-              <span className="font-mono text-[#D6BC83] font-bold">
-                {visitedStationIds.length} / 18
-              </span>
-              <div className="w-14 h-1.5 bg-[#111916] rounded-full overflow-hidden border border-[#3A4B40]/30">
-                <div 
-                  className="h-full bg-gradient-to-r from-emerald-500 to-[#D6BC83] transition-all duration-500" 
-                  style={{ width: `${Math.min(100, Math.round((visitedStationIds.length / 18) * 100))}%` }}
-                />
+              {/* Hexagonal Gold Level Badge (Image 2) */}
+              <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-b from-[#F5E2B3] via-[#D6BC83] to-[#8C6F2D] game-hex-badge p-[2px] shadow-md group-hover:shadow-[0_0_12px_rgba(214,188,131,0.6)] transition-shadow">
+                  <div className="w-full h-full bg-[#111916] game-hex-badge flex flex-col items-center justify-center">
+                    <span className="text-[9px] font-mono text-[#D6BC83] font-bold leading-none">LVL</span>
+                    <span className="text-xs font-heading font-black text-[#F0E9DA] leading-none">1</span>
+                  </div>
+                </div>
               </div>
-            </button>
+
+              {/* Character Details & EXP Bar */}
+              <div className="flex flex-col min-w-[140px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-heading font-bold text-xs text-[#F0E9DA] tracking-wide group-hover:text-[#D6BC83] transition-colors">
+                    Prasad Kankhar
+                  </span>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#3A4B40]/50 text-[#D6BC83] border border-[#D6BC83]/30">
+                    SDE
+                  </span>
+                </div>
+
+                {/* RPG Progress Gauge Bar (Image 2 & 4) */}
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-24 sm:w-28 h-2 bg-[#0B120E] border border-[#3A4B40] rounded-full overflow-hidden p-[1px] shadow-inner">
+                    <div 
+                      className="h-full bg-gradient-to-r from-emerald-500 via-[#34D399] to-[#D6BC83] rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(52,211,153,0.7)]" 
+                      style={{ width: `${Math.min(100, Math.round((visitedStationIds.length / 18) * 100))}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-[#D6BC83] font-bold">
+                    {visitedStationIds.length}/18
+                  </span>
+                </div>
+              </div>
+
+              <Award className="w-4 h-4 text-[#D6BC83]/70 group-hover:text-[#D6BC83] group-hover:rotate-12 transition-all ml-1 shrink-0" />
+            </div>
+
+            {/* Tactical Keybinds Pill */}
+            <div className="bg-[#111916]/85 backdrop-blur-md px-3 py-1 rounded-xl border border-[#3A4B40]/40 shadow-sm flex items-center gap-2 text-[11px] text-[#F0E9DA]/80 font-sans w-fit">
+              <span className="flex items-center gap-1 font-mono text-[#D6BC83]">
+                <kbd className="bg-[#1B2822] px-1 py-0.2 rounded border border-[#3A4B40] text-[#F0E9DA] text-[10px] font-bold">WASD</kbd>
+                <span>Move</span>
+              </span>
+              <span className="text-[#3A4B40]/60">·</span>
+              <span className="flex items-center gap-1 font-mono text-[#D6BC83]">
+                <kbd className="bg-[#1B2822] px-1 py-0.2 rounded border border-[#3A4B40] text-[#F0E9DA] text-[10px] font-bold">Shift</kbd>
+                <span>Sprint</span>
+              </span>
+              <span className="text-[#3A4B40]/60">·</span>
+              <span className="flex items-center gap-1 font-mono text-[#D6BC83]">
+                <kbd className="bg-[#1B2822] px-1 py-0.2 rounded border border-[#3A4B40] text-[#F0E9DA] text-[10px] font-bold">M</kbd>
+                <span>Journal</span>
+              </span>
+            </div>
           </div>
         )}
 
-        {/* Center: Understated Organic Compass & Telemetry */}
+        {/* Center: Astrolabe Telemetry Compass Dial */}
         <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 pointer-events-none animate-in fade-in duration-500">
-          <div className="bg-[#1B2822]/85 backdrop-blur-md px-4 sm:px-6 py-2 rounded-full border border-[#D6BC83]/25 shadow-lg flex items-center gap-3.5 text-xs font-mono text-[#F0E9DA]">
-            <div className="flex items-center gap-1.5 font-bold border-r border-[#3A4B40]/30 pr-3">
-              <span id="hud-fps-dot" className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="bg-[#141F1A]/90 backdrop-blur-md px-4 sm:px-6 py-1.5 rounded-full border-2 border-[#D6BC83]/40 shadow-[0_6px_20px_rgba(0,0,0,0.6)] flex items-center gap-3.5 text-xs font-mono text-[#F0E9DA]">
+            <div className="flex items-center gap-1.5 font-bold border-r border-[#3A4B40]/40 pr-3">
+              <span id="hud-fps-dot" className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
               <span id="hud-fps" className="text-[#D6BC83]">60</span>
               <span className="text-[10px] text-[#F0E9DA]/70 font-semibold">FPS</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[#D6BC83] font-bold border-r border-[#3A4B40]/30 pr-3">
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Facing <span id="hud-dir" className="text-[#F0E9DA]">N</span></span>
+            <div className="flex items-center gap-1.5 text-[#D6BC83] font-bold border-r border-[#3A4B40]/40 pr-3">
+              <Navigation className="w-3.5 h-3.5 text-[#D6BC83]" />
+              <span>Heading <span id="hud-dir" className="text-[#F0E9DA]">N</span></span>
             </div>
-            <div className="flex items-center gap-2.5 text-[11px] text-[#F0E9DA]/80">
-              <span>X <span id="hud-x" className="text-[#F0E9DA] font-semibold">0.0</span></span>
-              <span className="text-[#3A4B40]/60">·</span>
-              <span>Y <span id="hud-y" className="text-[#F0E9DA] font-semibold">0.0</span></span>
-              <span className="text-[#3A4B40]/60">·</span>
-              <span>Z <span id="hud-z" className="text-[#F0E9DA] font-semibold">0.0</span></span>
+            <div className="flex items-center gap-2 text-[11px] text-[#F0E9DA]/85">
+              <span>X <span id="hud-x" className="text-[#D6BC83] font-bold">0</span></span>
+              <span className="text-[#3A4B40]">·</span>
+              <span>Y <span id="hud-y" className="text-[#D6BC83] font-bold">0</span></span>
+              <span className="text-[#3A4B40]">·</span>
+              <span>Z <span id="hud-z" className="text-[#D6BC83] font-bold">0</span></span>
             </div>
           </div>
         </div>
@@ -270,7 +291,7 @@ export const HUD: React.FC = () => {
           </div>
         )}
 
-        {/* Right: Quick Navigation Hub */}
+        {/* Right: Tactile 3D Beveled Game Navigation Buttons (Reference 2) */}
         <div className="pointer-events-auto flex items-center gap-2">
           {/* Autopilot Guided Tour Button */}
           <button 
@@ -282,13 +303,14 @@ export const HUD: React.FC = () => {
               soundEngine.playClickSound();
               setIsGuidedTourActive(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D6BC83]/20 hover:bg-[#D6BC83]/35 backdrop-blur-md border border-[#D6BC83]/50 text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-1.5"
             title="Start Autopilot Guided Tour"
           >
-            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#D6BC83]" />
+            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#17221C]" />
             <span className="hidden sm:inline">Tour</span>
           </button>
 
+          {/* Expedition Map Button */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -297,13 +319,14 @@ export const HUD: React.FC = () => {
               }
               window.dispatchEvent(new CustomEvent('toggle-world-map'));
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2822]/90 hover:bg-[#1B2822] backdrop-blur-md border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-emerald px-3.5 py-1.5 text-xs flex items-center gap-1.5"
             title="Open Expedition Map (N)"
           >
-            <Compass className="w-3.5 h-3.5 text-[#D6BC83]" />
+            <Compass className="w-3.5 h-3.5 text-[#F0E9DA]" />
             <span className="hidden sm:inline">Map</span>
           </button>
 
+          {/* Journal Button */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -312,13 +335,14 @@ export const HUD: React.FC = () => {
               }
               setTrackerOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2822]/90 hover:bg-[#1B2822] backdrop-blur-md border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-slate px-3.5 py-1.5 text-xs flex items-center gap-1.5"
             title="Open Field Journal (M)"
           >
             <BookOpen className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span className="hidden sm:inline">Journal</span>
           </button>
 
+          {/* Stations Directory Button */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -327,7 +351,7 @@ export const HUD: React.FC = () => {
               }
               setStationModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2822]/90 hover:bg-[#1B2822] backdrop-blur-md border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-slate px-3.5 py-1.5 text-xs flex items-center gap-1.5"
             title="Open Stations Directory"
           >
             <Layers className="w-3.5 h-3.5 text-[#D6BC83]" />
@@ -343,7 +367,7 @@ export const HUD: React.FC = () => {
               e.stopPropagation();
               soundEngine.playClickSound();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2822]/90 hover:bg-[#1B2822] backdrop-blur-md border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-slate px-3 py-1.5 text-xs flex items-center gap-1.5"
             title="Open Official Resume PDF"
           >
             <FileText className="w-3.5 h-3.5 text-[#D6BC83]" />
@@ -365,16 +389,15 @@ export const HUD: React.FC = () => {
                 soundEngine.stopAmbientAtmosphere();
               }
             }}
-            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-full backdrop-blur-md border flex items-center gap-1 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95 ${
-              isAudioMuted 
-                ? 'bg-red-950/40 border-red-500/40 text-red-300' 
-                : 'bg-[#1B2822]/90 border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83]'
+            className={`game-btn-tactile p-2 text-xs flex items-center justify-center ${
+              isAudioMuted ? 'game-btn-crimson' : 'game-btn-slate'
             }`}
             title={isAudioMuted ? 'Unmute Audio (Ocean Breeze & SFX)' : 'Mute Audio'}
           >
             {isAudioMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#D6BC83]" />}
           </button>
 
+          {/* Main Menu Button */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -383,7 +406,7 @@ export const HUD: React.FC = () => {
               }
               setGameState('menu');
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2822]/90 hover:bg-[#1B2822] backdrop-blur-md border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] font-sans font-semibold text-xs rounded-full shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="game-btn-tactile game-btn-slate px-3.5 py-1.5 text-xs flex items-center gap-1.5 border-[#D6BC83]/50"
             title="Open Main Menu (Esc)"
           >
             <Menu className="w-3.5 h-3.5 text-[#D6BC83]" />

@@ -197,14 +197,9 @@ export const StationPortfolioModal: React.FC = () => {
         if (e.target === e.currentTarget) setStationModalOpen(false);
       }}
     >
-      {/* Modal Card Container (Organic Minimalism + Forest & Gold) */}
+      {/* Modal Card Container: Fantasy RPG Frame & Ornate Corner Brackets (Owl Studio UI-Kit, Image 4) */}
       <div 
-        className="relative w-full max-w-6xl h-[92vh] border rounded-3xl flex flex-col md:flex-row overflow-hidden text-[#F0E9DA] font-sans select-text shadow-[0_24px_60px_-12px_rgba(10,18,16,0.85)] transition-all duration-300"
-        style={{
-          borderColor: theme.modalBorder,
-          boxShadow: theme.modalGlow,
-          background: theme.modalBgGradient
-        }}
+        className="relative w-full max-w-6xl h-[92vh] game-frame game-corner-brackets rounded-3xl flex flex-col md:flex-row overflow-hidden text-[#F0E9DA] font-sans select-text shadow-[0_25px_60px_rgba(0,0,0,0.95)] transition-all duration-300"
       >
         
         {/* Header Controls: Theme Switcher & Close Button */}
@@ -212,10 +207,10 @@ export const StationPortfolioModal: React.FC = () => {
           <ThemeToggle compact={true} />
           <button
             onClick={() => setStationModalOpen(false)}
-            className="p-2 rounded-full bg-[#111916]/80 hover:bg-[#1B2822] text-[#F0E9DA]/70 hover:text-[#D6BC83] border border-[#3A4B40]/30 transition-all cursor-pointer shadow-md"
+            className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
             title="Close Modal (Esc)"
           >
-            <X className="w-5 h-5 stroke-[1.75]" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 

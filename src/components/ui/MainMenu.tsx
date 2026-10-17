@@ -160,45 +160,45 @@ export const MainMenu: React.FC = () => {
           Immerse yourself in a real-time WebGL island with physics and procedural sound, or jump straight to the executive 2D dossier.
         </p>
 
-        {/* The Two Equal-Weight Primary Choice Cards */}
+        {/* The Two Equal-Weight Primary Choice Cards (Game UI Styled) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7 w-full">
           
           {/* CARD A: 3D WORLD EXPLORATION */}
           <div 
             onClick={handleStart3D}
-            className="group relative bg-[#1B2822]/85 hover:bg-[#1B2822]/95 border border-[#D6BC83]/50 hover:border-[#D6BC83] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative game-frame game-corner-brackets rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
               <span>3D ENGINE LIVE</span>
             </div>
 
             <div>
               {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D6BC83]/20 border border-[#D6BC83]/35 text-[#D6BC83] font-mono text-[11px] font-semibold mb-4">
-                <Compass className="w-3 h-3 text-[#D6BC83]" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#8B2020] to-[#591010] border border-[#D6BC83]/60 text-[#FFF2D1] font-mono text-[11px] font-bold mb-4 shadow-sm">
+                <Compass className="w-3.5 h-3.5 text-[#D6BC83]" />
                 <span>Immersive 3D Experience</span>
               </div>
 
-              <h3 className="text-2xl font-heading font-bold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight">
+              <h3 className="text-2xl font-heading font-extrabold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight drop-shadow">
                 Explore 3D Island
               </h3>
-              <p className="text-xs sm:text-sm text-[#F0E9DA]/80 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#F0E9DA]/85 font-sans leading-relaxed mb-6">
                 Freely traverse an interactive 3D archipelago with third-person character physics, 18 architectural district stations, and procedural Web Audio.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/85 mb-8 border-t border-[#3A4B40]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/90 mb-8 border-t border-[#3A4B40]/40 pt-4">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>WASD & Sprint</strong> character controls + Rapier 3D physics</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>18 Stations</strong> with Blender cartography & in-world GPS</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>Interactive Guides</strong>, logic puzzle & direct messaging boat</span>
                 </li>
               </ul>
@@ -206,7 +206,7 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#D6BC83] group-hover:bg-[#E8D5A7] text-[#1B2822] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 game-btn-tactile game-btn-gold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer shadow-lg"
             >
               <span>{hasStarted ? 'Resume 3D World' : 'Enter 3D World'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -216,38 +216,38 @@ export const MainMenu: React.FC = () => {
           {/* CARD B: EXECUTIVE 2D DOSSIER (FAST RECRUITER MODE) */}
           <div 
             onClick={handleOpen2D}
-            className="group relative bg-[#1B2822]/85 hover:bg-[#1B2822]/95 border border-[#3A4B40]/50 hover:border-[#D6BC83]/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative game-frame game-corner-brackets rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#3A4B40]/30 border border-[#3A4B40]/50 text-[#F0E9DA]/80 text-[10px] font-mono font-medium">
+            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D6BC83]/20 border border-[#D6BC83]/40 text-[#D6BC83] text-[10px] font-mono font-bold">
               <span>ZERO WAIT TIME</span>
             </div>
 
             <div>
               {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3A4B40]/25 border border-[#3A4B40]/40 text-[#F0E9DA] font-mono text-[11px] font-semibold mb-4">
-                <Briefcase className="w-3 h-3 text-[#D6BC83]" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#111916] border border-[#D6BC83]/40 text-[#D6BC83] font-mono text-[11px] font-bold mb-4 shadow-sm">
+                <Briefcase className="w-3.5 h-3.5 text-[#D6BC83]" />
                 <span>Executive Recruiter View</span>
               </div>
 
-              <h3 className="text-2xl font-heading font-bold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight">
+              <h3 className="text-2xl font-heading font-extrabold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight drop-shadow">
                 Quick 2D Portfolio
               </h3>
-              <p className="text-xs sm:text-sm text-[#F0E9DA]/80 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#F0E9DA]/85 font-sans leading-relaxed mb-6">
                 Fast, friction-free standard portfolio designed for hiring managers and recruiters. Instant access to case studies, live demos, and credentials.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/85 mb-8 border-t border-[#3A4B40]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/90 mb-8 border-t border-[#3A4B40]/40 pt-4">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>19 Production Projects</strong> (C++ Engine, Autonomous AI, WebAR)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>Harvard CS50x</strong> academic rigor & transcript verification</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3A4B40]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
                   <span><strong>1-Click PDF Resume</strong> & direct email courier contact</span>
                 </li>
               </ul>
@@ -255,13 +255,12 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#3A4B40]/30 group-hover:bg-[#3A4B40]/50 border border-[#D6BC83]/40 text-[#F0E9DA] group-hover:text-[#D6BC83] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 game-btn-tactile game-btn-emerald text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer shadow-lg"
             >
               <span>Open Executive 2D Dossier</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#D6BC83]" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
-
         </div>
 
       </div>
