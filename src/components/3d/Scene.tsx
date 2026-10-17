@@ -14,6 +14,7 @@ import { Sea } from './Sea';
 import { FrameLagTracker } from './FrameLagTracker';
 import { InWorldWaypoint } from './InWorldWaypoint';
 import { GuidedTourController } from './GuidedTourController';
+import { MenuCameraController } from './MenuCameraController';
 const ClericNPC = React.lazy(() => import('./ClericNPC').then(m => ({ default: m.ClericNPC })));
 const BlueSoldierFemaleNPC = React.lazy(() => import('./BlueSoldierFemaleNPC').then(m => ({ default: m.BlueSoldierFemaleNPC })));
 const BlueSoldierMaleNPC = React.lazy(() => import('./BlueSoldierMaleNPC').then(m => ({ default: m.BlueSoldierMaleNPC })));
@@ -188,6 +189,9 @@ export const Scene = () => {
 
       {/* Cinematic Autopilot Guided Tour Camera Controller */}
       <GuidedTourController />
+
+      {/* Cinematic Menu Orbit & Parallax Camera Controller */}
+      <MenuCameraController />
 
       {/* Frame & Lag Performance Profiler */}
       <FrameLagTracker />

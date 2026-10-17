@@ -69,12 +69,12 @@ export const MainMenu: React.FC = () => {
   };
 
   return (
-    <div className="absolute inset-0 z-40 flex flex-col justify-between bg-[#0a1210]/75 backdrop-blur-md text-[#E9E4D7] p-4 sm:p-8 select-none animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
+    <div className="absolute inset-0 z-40 flex flex-col justify-between bg-gradient-to-b from-[#0a1210]/75 via-[#0a1210]/30 to-[#0a1210]/80 text-[#E9E4D7] p-4 sm:p-8 select-none animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
       
       {/* ========================================================================= */}
       {/* 1. TOP BRAND & SOCIAL BAR */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto flex items-center justify-between pb-4 border-b border-[#527C68]/20 shrink-0">
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-between p-3.5 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#527C68]/30 shadow-lg shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-[#527C68]/20 border border-[#D4B777]/35 flex items-center justify-center text-[#D4B777]">
             <Compass className="w-4 h-4 animate-spin-slow" />
@@ -142,19 +142,22 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. CENTRAL DUAL-INTENT GATEWAY HERO CARDS */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto my-auto py-6 sm:py-10 flex flex-col items-center">
+      <div className="w-full max-w-5xl mx-auto my-auto py-6 sm:py-8 flex flex-col items-center">
         
-        {/* Subtle Brand Pill */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#527C68]/20 border border-[#D4B777]/30 text-[#D4B777] text-xs font-mono mb-4 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 stroke-[1.75]" />
-          <span>Interactive 3D Portfolio Archipelago & Executive Dossier</span>
+        {/* Live 3D Orbit Status Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#182522]/80 backdrop-blur-md border border-[#D4B777]/40 text-[#D4B777] text-xs font-mono mb-3 shadow-md">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>Live 3D World Active in Background · Move Cursor to Orbit</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#E9E4D7] tracking-tight text-center mb-3">
+        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#E9E4D7] tracking-tight text-center mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
           Choose How You Wish to Explore
         </h1>
-        <p className="text-xs sm:text-base text-[#E9E4D7]/75 font-sans text-center max-w-xl mb-8 leading-relaxed">
-          Step into a fully simulated 3D WebGL world with physics and procedural audio, or immediately review the standard executive 2D dossier.
+        <p className="text-xs sm:text-base text-[#E9E4D7]/85 font-sans text-center max-w-xl mb-6 leading-relaxed drop-shadow-sm">
+          Immerse yourself in a real-time WebGL island with physics and procedural sound, or jump straight to the executive 2D dossier.
         </p>
 
         {/* The Two Equal-Weight Primary Choice Cards */}
@@ -163,9 +166,12 @@ export const MainMenu: React.FC = () => {
           {/* CARD A: 3D WORLD EXPLORATION */}
           <div 
             onClick={handleStart3D}
-            className="group relative bg-[#182522]/90 hover:bg-[#182522] border border-[#D4B777]/40 hover:border-[#D4B777] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(10,18,16,0.8)] backdrop-blur-2xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative bg-[#182522]/85 hover:bg-[#182522]/95 border border-[#D4B777]/50 hover:border-[#D4B777] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>3D ENGINE LIVE</span>
+            </div>
 
             <div>
               {/* Badge */}
@@ -177,12 +183,12 @@ export const MainMenu: React.FC = () => {
               <h3 className="text-2xl font-heading font-bold text-[#E9E4D7] group-hover:text-[#D4B777] transition-colors mb-2 tracking-tight">
                 Explore 3D Island
               </h3>
-              <p className="text-xs sm:text-sm text-[#E9E4D7]/75 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#E9E4D7]/80 font-sans leading-relaxed mb-6">
                 Freely traverse an interactive 3D archipelago with third-person character physics, 18 architectural district stations, and procedural Web Audio.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/80 mb-8 border-t border-[#527C68]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/85 mb-8 border-t border-[#527C68]/20 pt-4">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#D4B777]" />
                   <span><strong>WASD & Sprint</strong> character controls + Rapier 3D physics</span>
@@ -200,7 +206,7 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#D4B777] group-hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-[#D4B777] group-hover:bg-[#E5CD94] text-[#182522] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>{hasStarted ? 'Resume 3D World' : 'Enter 3D World'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -210,8 +216,12 @@ export const MainMenu: React.FC = () => {
           {/* CARD B: EXECUTIVE 2D DOSSIER (FAST RECRUITER MODE) */}
           <div 
             onClick={handleOpen2D}
-            className="group relative bg-[#182522]/90 hover:bg-[#182522] border border-[#527C68]/40 hover:border-[#D4B777]/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(10,18,16,0.8)] backdrop-blur-2xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative bg-[#182522]/85 hover:bg-[#182522]/95 border border-[#527C68]/50 hover:border-[#D4B777]/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
+            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#527C68]/30 border border-[#527C68]/50 text-[#E9E4D7]/80 text-[10px] font-mono font-medium">
+              <span>ZERO WAIT TIME</span>
+            </div>
+
             <div>
               {/* Badge */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#527C68]/25 border border-[#527C68]/40 text-[#E9E4D7] font-mono text-[11px] font-semibold mb-4">
@@ -222,12 +232,12 @@ export const MainMenu: React.FC = () => {
               <h3 className="text-2xl font-heading font-bold text-[#E9E4D7] group-hover:text-[#D4B777] transition-colors mb-2 tracking-tight">
                 Quick 2D Portfolio
               </h3>
-              <p className="text-xs sm:text-sm text-[#E9E4D7]/75 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#E9E4D7]/80 font-sans leading-relaxed mb-6">
                 Fast, friction-free standard portfolio designed for hiring managers and recruiters. Instant access to case studies, live demos, and credentials.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/80 mb-8 border-t border-[#527C68]/20 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#E9E4D7]/85 mb-8 border-t border-[#527C68]/20 pt-4">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#527C68]" />
                   <span><strong>19 Production Projects</strong> (C++ Engine, Autonomous AI, WebAR)</span>
@@ -245,7 +255,7 @@ export const MainMenu: React.FC = () => {
 
             {/* CTA Button */}
             <button 
-              className="w-full py-3.5 px-6 rounded-xl bg-[#527C68]/30 group-hover:bg-[#527C68]/50 border border-[#D4B777]/40 text-[#E9E4D7] group-hover:text-[#D4B777] font-heading font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-[#527C68]/30 group-hover:bg-[#527C68]/50 border border-[#D4B777]/40 text-[#E9E4D7] group-hover:text-[#D4B777] font-heading font-bold text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>Open Executive 2D Dossier</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#D4B777]" />
@@ -259,7 +269,7 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       {/* 3. QUICK ACTIONS & DIRECT PROJECT ACCESS */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto pt-4 border-t border-[#527C68]/20 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+      <div className="w-full max-w-5xl mx-auto p-3 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#527C68]/30 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 mt-3">
         
         {/* Left: Autopilot Guided Tour */}
         <button
