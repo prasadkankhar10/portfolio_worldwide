@@ -231,6 +231,19 @@ const UnifiedWorld: React.FC<UnifiedWorldProps> = ({
           child.material.map.colorSpace = THREE.SRGBColorSpace;
         }
 
+        // Enable baked Global Illumination (AO + upward ground bounce)
+        if (child.geometry?.attributes?.color && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m: any) => {
+              m.vertexColors = true;
+              m.needsUpdate = true;
+            });
+          } else {
+            child.material.vertexColors = true;
+            child.material.needsUpdate = true;
+          }
+        }
+
         // Street lamps emissive (shared material to eliminate shader compile hitch)
         if (matName.includes('lamp_material') || matName.includes('lamp')) {
           child.material = sharedLampMaterial;

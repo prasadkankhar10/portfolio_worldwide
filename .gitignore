@@ -26,6 +26,7 @@ dist-ssr
 # Local Environment & Blender Backups
 .env
 *.blend1
+*.glb.bak
 __pycache__/
 crop_test.png
 
