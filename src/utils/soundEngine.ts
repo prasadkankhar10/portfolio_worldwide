@@ -197,6 +197,7 @@ class SoundEngine {
    * Start soft procedural ambient ocean & breeze wash in background
    */
   public startAmbientAtmosphere() {
+    this.loadFootstepBuffers().catch(() => {});
     if (this.isAmbienceRunning || this.isMuted()) return;
     const ctx = this.getContext();
     if (!ctx) return;
@@ -246,100 +247,95 @@ class SoundEngine {
     } catch {}
   }
 
-  private footstepAlternate = false;
+  private stepBuffers: Record<string, AudioBuffer[]> = {
+    wood: [],
+    grass: [],
+    stone: []
+  };
+  private isStepBuffersLoaded = false;
+  private stepBufferLoadingPromise: Promise<void> | null = null;
+  private currentStepIndex = 0;
   private lastFootstepTime = 0;
 
   /**
-   * Tactile Procedural Footsteps
-   * Dual-layer physical synthesis:
-   * 1. Sub-bass downward pitch glide for visceral body weight & foot plant feel.
-   * 2. Resonant acoustic bandpass filter for wood dock / stone / grass surfaces.
-   * Alternates subtle pitch variation between left and right steps for natural cadence.
+   * Preload authentic, recorded foley audio samples for wood, grass, and stone.
+   * Eliminates synthetic oscillator beeps and replaces them with 100% real acoustic boot foley.
+   */
+  public async loadFootstepBuffers() {
+    if (this.isStepBuffersLoaded) return;
+    if (this.stepBufferLoadingPromise) return this.stepBufferLoadingPromise;
+
+    this.stepBufferLoadingPromise = (async () => {
+      const ctx = this.getContext();
+      if (!ctx) return;
+
+      const base = import.meta.env.BASE_URL || './';
+      const cleanBase = base.endsWith('/') ? base : `${base}/`;
+      const surfaces = ['wood', 'grass', 'stone'];
+
+      for (const surface of surfaces) {
+        this.stepBuffers[surface] = [];
+        for (let i = 1; i <= 4; i++) {
+          try {
+            const url = `${cleanBase}audio/step_${surface}_${i}.wav`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const arrayBuffer = await res.arrayBuffer();
+              const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+              this.stepBuffers[surface].push(audioBuffer);
+            }
+          } catch {
+            // Silently continue
+          }
+        }
+      }
+      this.isStepBuffersLoaded = true;
+    })();
+
+    return this.stepBufferLoadingPromise;
+  }
+
+  /**
+   * Real Foley Footstep Player
+   * Plays pre-rendered high-definition physical boot impact samples with organic
+   * 4-variation cycling and subtle pitch randomization (+/- 3%).
    */
   public playFootstep(surface: 'wood' | 'grass' | 'stone' = 'grass') {
     if (this.isMuted()) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
+    if (!this.isStepBuffersLoaded && !this.stepBufferLoadingPromise) {
+      this.loadFootstepBuffers();
+    }
+
     const now = ctx.currentTime;
     if (now - this.lastFootstepTime < 0.22) return; // Prevent spamming
     this.lastFootstepTime = now;
 
-    try {
-      this.footstepAlternate = !this.footstepAlternate;
-      // Slight pitch alternation between left foot and right foot
-      const stepPitchMult = this.footstepAlternate ? 1.03 : 0.97;
+    const buffers = this.stepBuffers[surface] || this.stepBuffers.grass;
+    if (buffers && buffers.length > 0) {
+      try {
+        const buffer = buffers[this.currentStepIndex % buffers.length];
+        this.currentStepIndex++;
 
-      // --- Layer 1: Tactile Weight / Body Impact (Sub-bass pitch dive) ---
-      const subOsc = ctx.createOscillator();
-      const subGain = ctx.createGain();
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
 
-      const startLowFreq = (surface === 'wood' ? 135 : surface === 'stone' ? 155 : 105) * stepPitchMult;
-      const endLowFreq = (surface === 'wood' ? 50 : surface === 'stone' ? 62 : 40) * stepPitchMult;
+        // Subtle realistic playback pitch variation (+/- 3%) for natural cadence
+        source.playbackRate.value = 0.97 + Math.random() * 0.06;
 
-      subOsc.type = 'sine';
-      subOsc.frequency.setValueAtTime(startLowFreq, now);
-      subOsc.frequency.exponentialRampToValueAtTime(endLowFreq, now + 0.042);
+        const gainNode = ctx.createGain();
+        // Warm, tactile volume levels calibrated against ambient sea wash
+        const vol = surface === 'wood' ? 0.38 : surface === 'stone' ? 0.32 : 0.28;
+        gainNode.gain.setValueAtTime(vol, now);
 
-      const impactVol = surface === 'wood' ? 0.075 : surface === 'stone' ? 0.065 : 0.055;
-      subGain.gain.setValueAtTime(impactVol, now);
-      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
 
-      subOsc.connect(subGain);
-      subGain.connect(ctx.destination);
-
-      subOsc.start(now);
-      subOsc.stop(now + 0.06);
-
-      // --- Layer 2: Surface Material Acoustic Resonance ---
-      const matOsc = ctx.createOscillator();
-      const matFilter = ctx.createBiquadFilter();
-      const matGain = ctx.createGain();
-
-      if (surface === 'wood') {
-        // Hollow acoustic knock of wooden dock planks
-        matOsc.type = 'triangle';
-        matOsc.frequency.setValueAtTime(320 * stepPitchMult, now);
-        matOsc.frequency.exponentialRampToValueAtTime(160 * stepPitchMult, now + 0.038);
-
-        matFilter.type = 'bandpass';
-        matFilter.frequency.setValueAtTime(290, now);
-        matFilter.Q.setValueAtTime(2.8, now);
-
-        matGain.gain.setValueAtTime(0.055, now);
-        matGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-      } else if (surface === 'stone') {
-        // Firm stone pavement tap
-        matOsc.type = 'triangle';
-        matOsc.frequency.setValueAtTime(460 * stepPitchMult, now);
-        matOsc.frequency.exponentialRampToValueAtTime(190 * stepPitchMult, now + 0.032);
-
-        matFilter.type = 'bandpass';
-        matFilter.frequency.setValueAtTime(480, now);
-        matFilter.Q.setValueAtTime(2.0, now);
-
-        matGain.gain.setValueAtTime(0.045, now);
-        matGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.038);
-      } else {
-        // Soft dampened grass / loam step
-        matOsc.type = 'sine';
-        matOsc.frequency.setValueAtTime(175 * stepPitchMult, now);
-        matOsc.frequency.exponentialRampToValueAtTime(80 * stepPitchMult, now + 0.042);
-
-        matFilter.type = 'lowpass';
-        matFilter.frequency.setValueAtTime(240, now);
-
-        matGain.gain.setValueAtTime(0.04, now);
-        matGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.048);
-      }
-
-      matOsc.connect(matFilter);
-      matFilter.connect(matGain);
-      matGain.connect(ctx.destination);
-
-      matOsc.start(now);
-      matOsc.stop(now + 0.055);
-    } catch {}
+        source.start(now);
+      } catch {}
+    }
   }
 
   // --- Procedural Harbor Jukebox ---
