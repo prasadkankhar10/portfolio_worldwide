@@ -220,18 +220,18 @@ class SoundEngine {
 
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(450, ctx.currentTime);
+      filter.frequency.setValueAtTime(180, ctx.currentTime); // Low velvety oceanic swell, zero high-end hiss
 
       const lfo = ctx.createOscillator();
-      lfo.frequency.setValueAtTime(0.12, ctx.currentTime); // Gentle 8-second wave swells
+      lfo.frequency.setValueAtTime(0.08, ctx.currentTime); // Slow, gentle 12-second wave rhythm
       const lfoGain = ctx.createGain();
-      lfoGain.gain.setValueAtTime(160, ctx.currentTime);
+      lfoGain.gain.setValueAtTime(60, ctx.currentTime);
       lfo.connect(lfoGain);
       lfoGain.connect(filter.frequency);
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 3.0); // Gentle fade-in
+      gain.gain.linearRampToValueAtTime(0.012, ctx.currentTime + 3.0); // Gentle, subtle background presence
 
       noise.connect(filter);
       filter.connect(gain);
@@ -250,58 +250,13 @@ class SoundEngine {
   private lastFootstepTime = 0;
 
   /**
-   * Natural, organic procedural footstep audio (filtered micro-noise crunch)
+   * Footsteps: Silent to prevent audio pops/static while walking.
+   * Visual dust particle puffs are preserved in FootstepParticles.tsx.
    */
-  public playFootstep(surface: 'wood' | 'grass' | 'stone' = 'grass') {
-    if (this.isMuted()) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-
-    const now = ctx.currentTime;
-    if (now - this.lastFootstepTime < 0.32) return; // Prevent spamming
-    this.lastFootstepTime = now;
-
-    try {
-      if (!this.footstepNoiseBuffer) {
-        const bufferSize = Math.floor(ctx.sampleRate * 0.045); // 45ms buffer
-        this.footstepNoiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = this.footstepNoiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * 0.2;
-        }
-      }
-
-      const noise = ctx.createBufferSource();
-      noise.buffer = this.footstepNoiseBuffer;
-
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-
-      if (surface === 'wood') {
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(320 + Math.random() * 40, now);
-        gain.gain.setValueAtTime(0.014, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-      } else if (surface === 'stone') {
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(800 + Math.random() * 80, now);
-        gain.gain.setValueAtTime(0.008, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
-      } else {
-        // Soft organic soil/grass rustle
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(450 + Math.random() * 50, now);
-        gain.gain.setValueAtTime(0.010, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.032);
-      }
-
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      noise.start(now);
-      noise.stop(now + 0.04);
-    } catch {}
+  public playFootstep(_surface: 'wood' | 'grass' | 'stone' = 'grass') {
+    // Intentionally silent: Web Audio noise bursts sound like static/clacking on speakers/headphones.
+    // Keeping visual dust puffs in FootstepParticles ensures silky smooth traversal.
+    return;
   }
 
   // --- Procedural Harbor Jukebox ---
@@ -333,6 +288,7 @@ class SoundEngine {
       try {
         const now = c.currentTime;
         const osc = c.createOscillator();
+        const filter = c.createBiquadFilter();
         const gain = c.createGain();
 
         const freq = notes[step % notes.length];
@@ -341,15 +297,20 @@ class SoundEngine {
         osc.type = track === 'lofi' ? 'sine' : 'triangle';
         osc.frequency.setValueAtTime(freq, now);
 
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.linearRampToValueAtTime(track === 'lofi' ? 0.025 : 0.04, now + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + (track === 'lofi' ? 1.4 : 0.8));
+        // Lowpass filter to make it sound like a warm antique music box / kalimba
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(track === 'lofi' ? 550 : 850, now);
 
-        osc.connect(gain);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(track === 'lofi' ? 0.02 : 0.03, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (track === 'lofi' ? 1.4 : 0.85));
+
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(c.destination);
 
         osc.start(now);
-        osc.stop(now + (track === 'lofi' ? 1.5 : 0.9));
+        osc.stop(now + (track === 'lofi' ? 1.5 : 0.95));
       } catch {}
     };
 

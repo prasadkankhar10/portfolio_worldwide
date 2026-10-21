@@ -13,8 +13,8 @@ export const HarborJukebox: React.FC = () => {
   const [isNear, setIsNear] = useState(false);
   const discMeshRef = useRef<THREE.Mesh>(null);
 
-  // Exactly on the wooden plank arrival dock (COL_Dock_FirstAge) right beside the main pier walkway
-  const JUKEBOX_POS = new THREE.Vector3(107.8, 3.0, 124.0);
+  // Exact arrival dock placement requested by user: x=95.2, y=3.2, z=121.1
+  const JUKEBOX_POS = new THREE.Vector3(95.2, 3.2, 121.1);
 
   useFrame((_, delta) => {
     // Check distance to player
