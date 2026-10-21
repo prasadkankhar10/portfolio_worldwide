@@ -11,7 +11,8 @@ import { globalCourierShipState } from './ShipFleetController';
 export const globalPlayerState = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
-  headingDeg: 0
+  headingDeg: 0,
+  isMoving: false
 };
 
 // Static pre-allocated vectors to prevent GC allocations in useFrame
@@ -251,6 +252,7 @@ export const Character = () => {
     if (right) moveDirection.x += 1;
 
     const isMoving = moveDirection.lengthSq() > 0;
+    globalPlayerState.isMoving = isMoving;
     const speed = run ? runSpeed : walkSpeed;
 
     let nextAnimation = 'CharacterArmature|Idle';

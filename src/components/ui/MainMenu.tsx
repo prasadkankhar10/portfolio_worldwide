@@ -33,6 +33,9 @@ export const MainMenu: React.FC = () => {
   const toggleAudioMute = useGameStore((state) => state.toggleAudioMute);
   const worldPrewarmProgress = useGameStore((state) => state.worldPrewarmProgress);
   const isWorldPrewarmed = useGameStore((state) => state.isWorldPrewarmed);
+  const startRecruiterSpeedrun = useGameStore((state) => state.startRecruiterSpeedrun);
+  const setAITerminalOpen = useGameStore((state) => state.setAITerminalOpen);
+  const setGuestbookOpen = useGameStore((state) => state.setGuestbookOpen);
 
   // 1. Enter 3D Exploration
   const handleStart3D = () => {
@@ -276,14 +279,42 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       <div className="w-full max-w-5xl mx-auto p-3 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 mt-3">
         
-        {/* Left: Autopilot Guided Tour */}
-        <button
-          onClick={handleStartTour}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#D6BC83]/20 hover:bg-[#D6BC83]/35 border border-[#D6BC83]/40 text-[#D6BC83] font-heading font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-105"
-        >
-          <Play className="w-3.5 h-3.5 fill-[#D6BC83]" />
-          <span>Watch 60s Autopilot Guided Tour</span>
-        </button>
+        {/* Left: Recruiter Speedrun & Autopilot Tour */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              soundEngine.playClickSound();
+              startRecruiterSpeedrun();
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#D6BC83] to-[#B39352] text-[#111916] font-heading font-black text-xs transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+            title="Start 60-Second Recruiter Speedrun"
+          >
+            <span className="text-sm">⚡</span>
+            <span>Recruiter Speedrun (60s)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              soundEngine.playClickSound();
+              setAITerminalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1B2822]/90 hover:bg-[#1B2822] border border-[#D6BC83]/40 text-[#D6BC83] font-heading font-bold text-xs transition-all cursor-pointer"
+          >
+            <span>🤖</span>
+            <span>Ask Prasad AI</span>
+          </button>
+
+          <button
+            onClick={() => {
+              soundEngine.playClickSound();
+              setGuestbookOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1B2822]/90 hover:bg-[#1B2822] border border-[#3A4B40]/40 text-[#F0E9DA]/80 hover:text-[#D6BC83] font-sans text-xs transition-all cursor-pointer"
+          >
+            <span>📖</span>
+            <span>Guestbook</span>
+          </button>
+        </div>
 
         {/* Center: Direct Flagship Project Pills */}
         <div className="hidden lg:flex items-center gap-2">

@@ -135,6 +135,33 @@ interface GameStore {
   setWorldPrewarmProgress: (progress: number) => void;
   isWorldPrewarmed: boolean;
   setIsWorldPrewarmed: (prewarmed: boolean) => void;
+  // Recruiter 60-Second Speedrun Mode
+  isRecruiterSpeedrun: boolean;
+  speedrunIndex: number;
+  startRecruiterSpeedrun: () => void;
+  stopRecruiterSpeedrun: () => void;
+  setSpeedrunIndex: (index: number) => void;
+  // In-Game Photo Mode
+  isPhotoModeOpen: boolean;
+  togglePhotoMode: () => void;
+  setPhotoModeOpen: (open: boolean) => void;
+  photoFilter: 'none' | 'sepia' | 'cyberpunk' | 'golden' | 'noir';
+  setPhotoFilter: (filter: 'none' | 'sepia' | 'cyberpunk' | 'golden' | 'noir') => void;
+  // Harbor Pier Visitor Guestbook
+  isGuestbookOpen: boolean;
+  setGuestbookOpen: (open: boolean) => void;
+  // In-World AI Dialogue Terminal ("Ask Prasad")
+  isAITerminalOpen: boolean;
+  setAITerminalOpen: (open: boolean) => void;
+  // In-World Roguelike Mini-Game
+  isMiniGameOpen: boolean;
+  setMiniGameOpen: (open: boolean) => void;
+  // Secret Ancient Lore Scrolls
+  collectedScrollIds: string[];
+  collectScroll: (id: string) => void;
+  // Harbor Pier Jukebox Track
+  jukeboxTrack: 'off' | 'celestial' | 'journey' | 'lofi';
+  setJukeboxTrack: (track: 'off' | 'celestial' | 'journey' | 'lofi') => void;
 }
 
 const loadStorage = <T>(key: string, fallback: T): T => {
@@ -421,4 +448,81 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setWorldPrewarmProgress: (progress) => set({ worldPrewarmProgress: Math.min(100, Math.max(0, progress)) }),
   isWorldPrewarmed: false,
   setIsWorldPrewarmed: (prewarmed) => set({ isWorldPrewarmed: prewarmed }),
+  // Recruiter 60-Second Speedrun Mode
+  isRecruiterSpeedrun: false,
+  speedrunIndex: 0,
+  startRecruiterSpeedrun: () => {
+    if (typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({
+      isRecruiterSpeedrun: true,
+      speedrunIndex: 0,
+      hasStarted: true,
+      gameState: 'playing',
+      isQuickPortfolioOpen: false,
+      isStationModalOpen: false,
+      isTrackerOpen: false,
+      isWorldMapOpen: false,
+      isGuidedTourActive: false,
+    });
+  },
+  stopRecruiterSpeedrun: () => set({ isRecruiterSpeedrun: false, speedrunIndex: 0 }),
+  setSpeedrunIndex: (index) => set({ speedrunIndex: index }),
+  // In-Game Photo Mode
+  isPhotoModeOpen: false,
+  photoFilter: 'none',
+  togglePhotoMode: () => {
+    set((state) => {
+      const willOpen = !state.isPhotoModeOpen;
+      if (willOpen && typeof document !== 'undefined' && document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+      return { isPhotoModeOpen: willOpen };
+    });
+  },
+  setPhotoModeOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isPhotoModeOpen: open });
+  },
+  setPhotoFilter: (filter) => set({ photoFilter: filter }),
+  // Harbor Pier Visitor Guestbook
+  isGuestbookOpen: false,
+  setGuestbookOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isGuestbookOpen: open });
+  },
+  // In-World AI Dialogue Terminal ("Ask Prasad")
+  isAITerminalOpen: false,
+  setAITerminalOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isAITerminalOpen: open });
+  },
+  // In-World Roguelike Mini-Game
+  isMiniGameOpen: false,
+  setMiniGameOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isMiniGameOpen: open });
+  },
+  // Secret Ancient Lore Scrolls
+  collectedScrollIds: loadStorage<string[]>('portfolio_scrolls_collected', []),
+  collectScroll: (id) => {
+    set((state) => {
+      if (state.collectedScrollIds.includes(id)) return state;
+      const updated = [...state.collectedScrollIds, id];
+      saveStorage('portfolio_scrolls_collected', updated);
+      return { collectedScrollIds: updated };
+    });
+  },
+  // Harbor Pier Jukebox Track
+  jukeboxTrack: 'off',
+  setJukeboxTrack: (track) => set({ jukeboxTrack: track }),
 }));

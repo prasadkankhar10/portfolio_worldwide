@@ -15,6 +15,10 @@ import { FrameLagTracker } from './FrameLagTracker';
 import { InWorldWaypoint } from './InWorldWaypoint';
 import { GuidedTourController } from './GuidedTourController';
 import { MenuCameraController } from './MenuCameraController';
+import { RecruiterSpeedrunController } from './RecruiterSpeedrunController';
+import { HarborJukebox } from './HarborJukebox';
+import { FootstepParticles } from './FootstepParticles';
+import { SecretLoreScrolls } from './SecretLoreScrolls';
 const ClericNPC = React.lazy(() => import('./ClericNPC').then(m => ({ default: m.ClericNPC })));
 const BlueSoldierFemaleNPC = React.lazy(() => import('./BlueSoldierFemaleNPC').then(m => ({ default: m.BlueSoldierFemaleNPC })));
 const BlueSoldierMaleNPC = React.lazy(() => import('./BlueSoldierMaleNPC').then(m => ({ default: m.BlueSoldierMaleNPC })));
@@ -260,6 +264,18 @@ export const Scene = () => {
 
       {/* Cinematic Autopilot Guided Tour Camera Controller */}
       <GuidedTourController />
+
+      {/* Recruiter 60-Second Fast-Lane Cinematic Tour */}
+      <RecruiterSpeedrunController />
+
+      {/* Harbor Jukebox Physical Interactive Vinyl Player */}
+      <HarborJukebox />
+
+      {/* Footstep Dust Particle FX */}
+      <FootstepParticles />
+
+      {/* 3 Secret Lore Scrolls */}
+      <SecretLoreScrolls />
 
       {/* Cinematic Menu Orbit & Parallax Camera Controller */}
       <MenuCameraController />

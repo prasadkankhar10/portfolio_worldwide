@@ -247,6 +247,110 @@ class SoundEngine {
   }
 
   /**
+   * Procedural material-aware footstep audio
+   */
+  public playFootstep(surface: 'wood' | 'grass' | 'stone' = 'grass') {
+    if (this.isMuted()) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      if (surface === 'wood') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160 + Math.random() * 20, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.05);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      } else if (surface === 'stone') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(240 + Math.random() * 30, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.04);
+        gain.gain.setValueAtTime(0.02, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      } else {
+        // grass / dirt
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110 + Math.random() * 25, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.06);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      }
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.07);
+    } catch {}
+  }
+
+  // --- Procedural Harbor Jukebox ---
+  private jukeboxInterval: number | null = null;
+  private currentTrack: string | null = null;
+
+  public playJukeboxTrack(track: 'celestial' | 'journey' | 'lofi') {
+    this.stopJukebox();
+    if (this.isMuted()) return;
+    this.currentTrack = track;
+
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const scales: Record<string, number[]> = {
+      celestial: [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50], // Pentatonic Major
+      journey: [261.63, 329.63, 392.00, 440.00, 523.25], // Acoustic Lute
+      lofi: [220.00, 261.63, 293.66, 329.63, 392.00] // A minor chill
+    };
+
+    const notes = scales[track] || scales.celestial;
+    let step = 0;
+
+    const tick = () => {
+      if (this.isMuted() || this.currentTrack !== track) return;
+      const c = this.getContext();
+      if (!c) return;
+
+      try {
+        const now = c.currentTime;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+
+        const freq = notes[step % notes.length];
+        step = (step + 1 + Math.floor(Math.random() * 2)) % notes.length;
+
+        osc.type = track === 'lofi' ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(track === 'lofi' ? 0.025 : 0.04, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (track === 'lofi' ? 1.4 : 0.8));
+
+        osc.connect(gain);
+        gain.connect(c.destination);
+
+        osc.start(now);
+        osc.stop(now + (track === 'lofi' ? 1.5 : 0.9));
+      } catch {}
+    };
+
+    // Play immediate first note
+    tick();
+    const intervalTime = track === 'lofi' ? 1200 : 750;
+    this.jukeboxInterval = window.setInterval(tick, intervalTime);
+  }
+
+  public stopJukebox() {
+    if (this.jukeboxInterval !== null) {
+      clearInterval(this.jukeboxInterval);
+      this.jukeboxInterval = null;
+    }
+    this.currentTrack = null;
+  }
+
+  /**
    * Stop ambient sound
    */
   public stopAmbientAtmosphere() {

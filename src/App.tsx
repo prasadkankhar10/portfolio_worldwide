@@ -15,6 +15,11 @@ import { StationHUDPrompt } from './components/ui/StationHUDPrompt';
 import { QuickPortfolioModal } from './components/ui/QuickPortfolioModal';
 import { MiniMap } from './components/ui/MiniMap';
 import { GuidedTourOverlay } from './components/ui/GuidedTourOverlay';
+import { RecruiterSpeedrunHUD } from './components/ui/RecruiterSpeedrunHUD';
+import { AITerminalModal } from './components/ui/AITerminalModal';
+import { MiniGameModal } from './components/ui/MiniGameModal';
+import { HarborGuestbookModal } from './components/ui/HarborGuestbookModal';
+import { PhotoModeModal } from './components/ui/PhotoModeModal';
 import { Leva } from 'leva';
 
 export const Controls = {
@@ -111,6 +116,13 @@ function App() {
           store.toggleWorldMap();
         }
       }
+      if (e.key.toLowerCase() === 'p') {
+        const store = useGameStore.getState();
+        if (!store.isStationModalOpen && !store.isTrackerOpen && !store.isQuickPortfolioOpen && !store.isWorldMapOpen) {
+          e.preventDefault();
+          store.togglePhotoMode();
+        }
+      }
       if (e.key.toLowerCase() === 'y') {
         const store = useGameStore.getState();
         if (!store.activeRitual) {
@@ -148,6 +160,11 @@ function App() {
       {isMobile && hasStarted && gameState === 'playing' && !isQuickPortfolioOpen && !isStationModalOpen && !isWorldMapOpen && !isTrackerOpen && <RotateDeviceOverlay />}
       <MiniMap />
       <GuidedTourOverlay />
+      <RecruiterSpeedrunHUD />
+      <AITerminalModal />
+      <MiniGameModal />
+      <HarborGuestbookModal />
+      <PhotoModeModal />
       <div className="absolute inset-0 z-0">
         <Canvas
           frameloop={isTabVisible ? 'always' : 'never'}
