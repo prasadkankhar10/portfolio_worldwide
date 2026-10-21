@@ -23,8 +23,6 @@ export const HUD: React.FC = () => {
   const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
   const isWorldMapOpen = useGameStore((state) => state.isWorldMapOpen);
   const toggleWorldMap = useGameStore((state) => state.toggleWorldMap);
-  const isRecruiterSpeedrun = useGameStore((state) => state.isRecruiterSpeedrun);
-  const startRecruiterSpeedrun = useGameStore((state) => state.startRecruiterSpeedrun);
   const isPhotoModeOpen = useGameStore((state) => state.isPhotoModeOpen);
   const togglePhotoMode = useGameStore((state) => state.togglePhotoMode);
   const isGuestbookOpen = useGameStore((state) => state.isGuestbookOpen);
@@ -106,7 +104,7 @@ export const HUD: React.FC = () => {
     <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between select-none">
       
       {/* Click-to-Play Glass Overlay (Organic Forest & Gold) */}
-      {!isLocked && !isMobile && !isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen && !isWorldMapOpen && !isGuidedTourActive && !isRecruiterSpeedrun && !isPhotoModeOpen && !isGuestbookOpen && !isAITerminalOpen && !isMiniGameOpen && (
+      {!isLocked && !isMobile && !isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen && !isWorldMapOpen && !isGuidedTourActive && !isPhotoModeOpen && !isGuestbookOpen && !isAITerminalOpen && !isMiniGameOpen && (
         <div 
           className="absolute inset-0 bg-[#111916]/45 backdrop-blur-[2px] flex items-center justify-center cursor-pointer z-40 select-none animate-in fade-in duration-300 pointer-events-auto"
           onClick={requestLock}
@@ -306,7 +304,7 @@ export const HUD: React.FC = () => {
 
         {/* Right: Tactile 3D Beveled Game Navigation Buttons (Reference 2) */}
         <div className="pointer-events-auto flex items-center gap-1 sm:gap-2 flex-wrap justify-end max-w-full">
-          {/* Recruiter Speedrun 60s Fast-Lane */}
+          {/* Autopilot Guided Tour Button */}
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -314,13 +312,13 @@ export const HUD: React.FC = () => {
                 document.exitPointerLock();
               }
               soundEngine.playClickSound();
-              startRecruiterSpeedrun();
+              setIsGuidedTourActive(true);
             }}
             className="game-btn-tactile bg-gradient-to-r from-[#D6BC83] to-[#B39352] text-[#111916] font-heading font-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 shadow-md hover:scale-105"
-            title="Start Recruiter 60-Second Speedrun"
+            title="Start 60-Second Autopilot Tour"
           >
-            <Zap className="w-3.5 h-3.5 fill-[#111916]" />
-            <span className="hidden sm:inline">Speedrun</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#111916] fill-current" />
+            <span className="hidden sm:inline">60s Tour</span>
           </button>
 
           {/* Ask Prasad AI Terminal */}
@@ -355,23 +353,6 @@ export const HUD: React.FC = () => {
           >
             <Swords className="w-3.5 h-3.5 text-[#D6BC83]" />
             <span className="hidden md:inline">Duel</span>
-          </button>
-
-          {/* Autopilot Guided Tour Button */}
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (typeof document !== 'undefined' && document.pointerLockElement) {
-                document.exitPointerLock();
-              }
-              soundEngine.playClickSound();
-              setIsGuidedTourActive(true);
-            }}
-            className="game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-1.5"
-            title="Start Autopilot Guided Tour"
-          >
-            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#17221C]" />
-            <span className="hidden sm:inline">Tour</span>
           </button>
 
           {/* Expedition Map Button */}

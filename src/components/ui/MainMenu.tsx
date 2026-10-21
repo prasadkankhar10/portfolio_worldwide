@@ -33,7 +33,6 @@ export const MainMenu: React.FC = () => {
   const toggleAudioMute = useGameStore((state) => state.toggleAudioMute);
   const worldPrewarmProgress = useGameStore((state) => state.worldPrewarmProgress);
   const isWorldPrewarmed = useGameStore((state) => state.isWorldPrewarmed);
-  const startRecruiterSpeedrun = useGameStore((state) => state.startRecruiterSpeedrun);
   const setAITerminalOpen = useGameStore((state) => state.setAITerminalOpen);
   const setGuestbookOpen = useGameStore((state) => state.setGuestbookOpen);
 
@@ -279,18 +278,15 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       <div className="w-full max-w-5xl mx-auto p-3 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 mt-3">
         
-        {/* Left: Recruiter Speedrun & Autopilot Tour */}
+        {/* Left: 60s Autopilot Tour & Interactive Guides */}
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => {
-              soundEngine.playClickSound();
-              startRecruiterSpeedrun();
-            }}
+            onClick={handleStartTour}
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#D6BC83] to-[#B39352] text-[#111916] font-heading font-black text-xs transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
-            title="Start 60-Second Recruiter Speedrun"
+            title="Start 60-Second Autopilot Showcase Tour"
           >
-            <span className="text-sm">⚡</span>
-            <span>Recruiter Speedrun (60s)</span>
+            <Play className="w-3.5 h-3.5 fill-[#111916]" />
+            <span>60s Autopilot Tour</span>
           </button>
 
           <button

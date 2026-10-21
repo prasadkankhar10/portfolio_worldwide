@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
 import { soundEngine } from '../../utils/soundEngine';
-import { Disc, Music } from 'lucide-react';
+import { Disc, Music, Volume2, VolumeX } from 'lucide-react';
 import { globalPlayerState } from './Character';
 
 export const HarborJukebox: React.FC = () => {
@@ -12,13 +13,14 @@ export const HarborJukebox: React.FC = () => {
   const [isNear, setIsNear] = useState(false);
   const discMeshRef = useRef<THREE.Mesh>(null);
 
-  const JUKEBOX_POS = new THREE.Vector3(98.5, 3.2, 122.5);
+  // Exactly on the wooden plank arrival dock (COL_Dock_FirstAge) right beside the main pier walkway
+  const JUKEBOX_POS = new THREE.Vector3(107.8, 3.0, 124.0);
 
   useFrame((_, delta) => {
     // Check distance to player
     const pPos = globalPlayerState.position;
     const distSq = pPos.distanceToSquared(JUKEBOX_POS);
-    const near = distSq < 16; // 4 meters
+    const near = distSq < 25; // 5 meters
     if (near !== isNear) setIsNear(near);
 
     // Rotate spinning vinyl disc if playing
@@ -39,6 +41,13 @@ export const HarborJukebox: React.FC = () => {
     } else {
       soundEngine.playJukeboxTrack(next);
     }
+  };
+
+  const trackLabels: Record<string, string> = {
+    off: 'Muted (Click to Play)',
+    celestial: 'Track 1: Celestial Lullaby',
+    journey: 'Track 2: Explorer’s Lute',
+    lofi: 'Track 3: Midnight Lo-Fi'
   };
 
   return (
@@ -67,19 +76,31 @@ export const HarborJukebox: React.FC = () => {
         <meshStandardMaterial color="#D6BC83" metalness={0.9} roughness={0.2} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Floating Interactive Prompt */}
+      {/* Floating Interactive 3D HTML Label */}
       {isNear && (
-        <group position={[0, 2.0, 0]}>
-          {/* Billboard HTML-like visual representation */}
-          <mesh onClick={cycleTrack} position={[0, 0, 0]}>
-            <sphereGeometry args={[0.18, 16, 16]} />
-            <meshStandardMaterial 
-              color={jukeboxTrack !== 'off' ? '#10b981' : '#D6BC83'} 
-              emissive={jukeboxTrack !== 'off' ? '#059669' : '#8C6F2D'} 
-              emissiveIntensity={0.8} 
-            />
-          </mesh>
-        </group>
+        <Html position={[0, 1.85, 0]} center distanceFactor={14}>
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              cycleTrack();
+            }}
+            className="flex flex-col items-center gap-1 cursor-pointer select-none group"
+          >
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#111916]/95 border-2 border-[#D6BC83] shadow-xl backdrop-blur-md text-[#F0E9DA] hover:scale-105 active:scale-95 transition-all">
+              <Disc className={`w-3.5 h-3.5 text-[#D6BC83] ${jukeboxTrack !== 'off' ? 'animate-spin' : ''}`} />
+              <span className="font-heading font-black text-xs text-[#D6BC83]">
+                Harbor Jukebox
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83]" />
+              <span className="text-[10px] font-mono text-[#F0E9DA]/90 font-semibold">
+                {trackLabels[jukeboxTrack]}
+              </span>
+            </div>
+            <span className="text-[9px] font-mono text-[#D6BC83]/80 bg-black/75 px-2 py-0.5 rounded shadow">
+              Click to cycle soundtracks
+            </span>
+          </div>
+        </Html>
       )}
     </group>
   );

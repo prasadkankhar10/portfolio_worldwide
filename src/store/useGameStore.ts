@@ -135,12 +135,6 @@ interface GameStore {
   setWorldPrewarmProgress: (progress: number) => void;
   isWorldPrewarmed: boolean;
   setIsWorldPrewarmed: (prewarmed: boolean) => void;
-  // Recruiter 60-Second Speedrun Mode
-  isRecruiterSpeedrun: boolean;
-  speedrunIndex: number;
-  startRecruiterSpeedrun: () => void;
-  stopRecruiterSpeedrun: () => void;
-  setSpeedrunIndex: (index: number) => void;
   // In-Game Photo Mode
   isPhotoModeOpen: boolean;
   togglePhotoMode: () => void;
@@ -448,27 +442,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setWorldPrewarmProgress: (progress) => set({ worldPrewarmProgress: Math.min(100, Math.max(0, progress)) }),
   isWorldPrewarmed: false,
   setIsWorldPrewarmed: (prewarmed) => set({ isWorldPrewarmed: prewarmed }),
-  // Recruiter 60-Second Speedrun Mode
-  isRecruiterSpeedrun: false,
-  speedrunIndex: 0,
-  startRecruiterSpeedrun: () => {
-    if (typeof document !== 'undefined' && document.pointerLockElement) {
-      document.exitPointerLock();
-    }
-    set({
-      isRecruiterSpeedrun: true,
-      speedrunIndex: 0,
-      hasStarted: true,
-      gameState: 'playing',
-      isQuickPortfolioOpen: false,
-      isStationModalOpen: false,
-      isTrackerOpen: false,
-      isWorldMapOpen: false,
-      isGuidedTourActive: false,
-    });
-  },
-  stopRecruiterSpeedrun: () => set({ isRecruiterSpeedrun: false, speedrunIndex: 0 }),
-  setSpeedrunIndex: (index) => set({ speedrunIndex: index }),
   // In-Game Photo Mode
   isPhotoModeOpen: false,
   photoFilter: 'none',

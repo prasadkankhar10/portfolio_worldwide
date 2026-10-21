@@ -28,9 +28,9 @@ export const FootstepParticles: React.FC = () => {
     const isMoving = globalPlayerState.isMoving;
     const now = performance.now();
 
-    // Check if character moved enough to spawn a footstep
+    // Check if character moved enough to spawn a footstep (natural running stride)
     const distMoved = currentPos.distanceTo(lastPos.current);
-    if (isMoving && distMoved > 1.2 && now - lastEmitTime.current > 280) {
+    if (isMoving && distMoved > 1.6 && now - lastEmitTime.current > 360) {
       lastEmitTime.current = now;
       lastPos.current.copy(currentPos);
 

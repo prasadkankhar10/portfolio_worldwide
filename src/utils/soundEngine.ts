@@ -246,44 +246,61 @@ class SoundEngine {
     } catch {}
   }
 
+  private footstepNoiseBuffer: AudioBuffer | null = null;
+  private lastFootstepTime = 0;
+
   /**
-   * Procedural material-aware footstep audio
+   * Natural, organic procedural footstep audio (filtered micro-noise crunch)
    */
   public playFootstep(surface: 'wood' | 'grass' | 'stone' = 'grass') {
     if (this.isMuted()) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
+    const now = ctx.currentTime;
+    if (now - this.lastFootstepTime < 0.32) return; // Prevent spamming
+    this.lastFootstepTime = now;
+
     try {
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
+      if (!this.footstepNoiseBuffer) {
+        const bufferSize = Math.floor(ctx.sampleRate * 0.045); // 45ms buffer
+        this.footstepNoiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = this.footstepNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.2;
+        }
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = this.footstepNoiseBuffer;
+
+      const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
 
       if (surface === 'wood') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(160 + Math.random() * 20, now);
-        osc.frequency.exponentialRampToValueAtTime(70, now + 0.05);
-        gain.gain.setValueAtTime(0.04, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320 + Math.random() * 40, now);
+        gain.gain.setValueAtTime(0.014, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
       } else if (surface === 'stone') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(240 + Math.random() * 30, now);
-        osc.frequency.exponentialRampToValueAtTime(110, now + 0.04);
-        gain.gain.setValueAtTime(0.02, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(800 + Math.random() * 80, now);
+        gain.gain.setValueAtTime(0.008, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
       } else {
-        // grass / dirt
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(110 + Math.random() * 25, now);
-        osc.frequency.exponentialRampToValueAtTime(50, now + 0.06);
-        gain.gain.setValueAtTime(0.03, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        // Soft organic soil/grass rustle
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(450 + Math.random() * 50, now);
+        gain.gain.setValueAtTime(0.010, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.032);
       }
 
-      osc.connect(gain);
+      noise.connect(filter);
+      filter.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.07);
+
+      noise.start(now);
+      noise.stop(now + 0.04);
     } catch {}
   }
 

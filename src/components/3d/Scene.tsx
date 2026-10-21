@@ -15,7 +15,6 @@ import { FrameLagTracker } from './FrameLagTracker';
 import { InWorldWaypoint } from './InWorldWaypoint';
 import { GuidedTourController } from './GuidedTourController';
 import { MenuCameraController } from './MenuCameraController';
-import { RecruiterSpeedrunController } from './RecruiterSpeedrunController';
 import { HarborJukebox } from './HarborJukebox';
 import { FootstepParticles } from './FootstepParticles';
 import { SecretLoreScrolls } from './SecretLoreScrolls';
@@ -264,9 +263,6 @@ export const Scene = () => {
 
       {/* Cinematic Autopilot Guided Tour Camera Controller */}
       <GuidedTourController />
-
-      {/* Recruiter 60-Second Fast-Lane Cinematic Tour */}
-      <RecruiterSpeedrunController />
 
       {/* Harbor Jukebox Physical Interactive Vinyl Player */}
       <HarborJukebox />
