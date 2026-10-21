@@ -129,24 +129,24 @@ export const PortfolioTracker: React.FC = () => {
         {/* Close Button */}
         <button 
           onClick={() => setTrackerOpen(false)}
-          className="absolute top-4 right-4 p-2 text-[#F0E9DA]/60 hover:text-[#D6BC83] bg-[#111916]/70 hover:bg-[#111916] border border-[#3A4B40]/30 rounded-full transition-all z-20 cursor-pointer"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-[#F0E9DA]/60 hover:text-[#D6BC83] bg-[#111916]/70 hover:bg-[#111916] border border-[#3A4B40]/30 rounded-full transition-all z-20 cursor-pointer"
           title="Close (Esc)"
         >
-          <X className="w-5 h-5 stroke-[1.75]" />
+          <X className="w-4 sm:w-5 h-4 sm:h-5 stroke-[1.75]" />
         </button>
 
         {/* Sidebar */}
-        <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#3A4B40]/25 flex flex-col bg-[#25352D]/90 shrink-0">
+        <div className="w-full md:w-80 max-h-48 md:max-h-none border-b md:border-b-0 md:border-r border-[#3A4B40]/25 flex flex-col bg-[#25352D]/90 shrink-0">
           
           {/* Header */}
-          <div className="p-5 sm:p-6 border-b border-[#3A4B40]/20">
+          <div className="p-3 sm:p-5 sm:p-6 border-b border-[#3A4B40]/20">
             <div className="flex items-center gap-2 mb-1">
-              <Compass className="w-5 h-5 text-[#D6BC83] stroke-[1.75]" />
-              <h2 className="text-lg font-heading font-bold text-[#F0E9DA] tracking-tight">
+              <Compass className="w-4 sm:w-5 h-4 sm:h-5 text-[#D6BC83] stroke-[1.75]" />
+              <h2 className="text-base sm:text-lg font-heading font-bold text-[#F0E9DA] tracking-tight">
                 Portfolio Tracker
               </h2>
             </div>
-            <p className="text-xs text-[#F0E9DA]/60 font-sans mb-4">
+            <p className="text-xs text-[#F0E9DA]/60 font-sans mb-2 sm:mb-4 hidden sm:block">
               Explore Prasad's background and achievements
             </p>
 

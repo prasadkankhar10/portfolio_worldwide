@@ -203,11 +203,11 @@ export const StationPortfolioModal: React.FC = () => {
       >
         
         {/* Header Controls: Theme Switcher & Close Button */}
-        <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle compact={true} />
           <button
             onClick={() => setStationModalOpen(false)}
-            className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
+            className="game-btn-tactile game-btn-crimson p-1.5 sm:p-2 text-xs flex items-center justify-center"
             title="Close Modal (Esc)"
           >
             <X className="w-4 h-4" />
@@ -216,7 +216,7 @@ export const StationPortfolioModal: React.FC = () => {
 
         {/* --- LEFT SIDEBAR: STATIONS OF DISCOVERY --- */}
         <div 
-          className="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#3A4B40]/25 p-4 flex flex-col shrink-0 bg-[#25352D]/90"
+          className="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#3A4B40]/25 p-3 sm:p-4 flex flex-col shrink-0 bg-[#25352D]/90"
         >
           
           {/* Header & Station Count */}
@@ -315,7 +315,7 @@ export const StationPortfolioModal: React.FC = () => {
         </div>
 
         {/* --- RIGHT CONTENT AREA --- */}
-        <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar flex flex-col bg-[#1B2822]/90">
+        <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto custom-scrollbar flex flex-col bg-[#1B2822]/90">
           
           {/* Header Badges & Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-2 pr-10">

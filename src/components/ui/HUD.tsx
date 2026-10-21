@@ -203,8 +203,8 @@ export const HUD: React.FC = () => {
           </div>
         )}
 
-        {/* Center: Astrolabe Telemetry Compass Dial */}
-        <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 pointer-events-none animate-in fade-in duration-500">
+        {/* Center: Astrolabe Telemetry Compass Dial (Hidden on mobile to avoid overlapping top action buttons) */}
+        <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 pointer-events-none animate-in fade-in duration-500 hidden md:block">
           <div className="bg-[#141F1A]/90 backdrop-blur-md px-4 sm:px-6 py-1.5 rounded-full border-2 border-[#D6BC83]/40 shadow-[0_6px_20px_rgba(0,0,0,0.6)] flex items-center gap-3.5 text-xs font-mono text-[#F0E9DA]">
             <div className="flex items-center gap-1.5 font-bold border-r border-[#3A4B40]/40 pr-3">
               <span id="hud-fps-dot" className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
@@ -292,7 +292,7 @@ export const HUD: React.FC = () => {
         )}
 
         {/* Right: Tactile 3D Beveled Game Navigation Buttons (Reference 2) */}
-        <div className="pointer-events-auto flex items-center gap-2">
+        <div className="pointer-events-auto flex items-center gap-1 sm:gap-2 flex-wrap justify-end max-w-full">
           {/* Autopilot Guided Tour Button */}
           <button 
             onClick={(e) => {

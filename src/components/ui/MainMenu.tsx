@@ -31,6 +31,8 @@ export const MainMenu: React.FC = () => {
   const togglePerformanceMode = useGameStore((state) => state.togglePerformanceMode);
   const isAudioMuted = useGameStore((state) => state.isAudioMuted);
   const toggleAudioMute = useGameStore((state) => state.toggleAudioMute);
+  const worldPrewarmProgress = useGameStore((state) => state.worldPrewarmProgress);
+  const isWorldPrewarmed = useGameStore((state) => state.isWorldPrewarmed);
 
   // 1. Enter 3D Exploration
   const handleStart3D = () => {
@@ -74,29 +76,29 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. TOP BRAND & SOCIAL BAR */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto flex items-center justify-between p-3.5 px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[#3A4B40]/20 border border-[#D6BC83]/35 flex items-center justify-center text-[#D6BC83]">
+      <div className="w-full max-w-5xl mx-auto flex flex-wrap sm:flex-nowrap items-center justify-between p-3 sm:p-3.5 px-4 sm:px-5 rounded-2xl bg-[#0a1210]/60 backdrop-blur-md border border-[#3A4B40]/30 shadow-lg shrink-0 gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-[#3A4B40]/20 border border-[#D6BC83]/35 flex items-center justify-center text-[#D6BC83] shrink-0">
             <Compass className="w-4 h-4 animate-spin-slow" />
           </div>
-          <div>
-            <h2 className="font-heading font-bold text-sm tracking-wide text-[#F0E9DA]">
+          <div className="min-w-0">
+            <h2 className="font-heading font-bold text-xs sm:text-sm tracking-wide text-[#F0E9DA] truncate">
               Prasad Anil Kankhar
             </h2>
-            <p className="text-[11px] font-mono text-[#D6BC83]">
+            <p className="text-[10px] sm:text-[11px] font-mono text-[#D6BC83] truncate">
               Software & Game Engine Developer
             </p>
           </div>
         </div>
 
         {/* Quick Social & Resume Links */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <a
             href="https://github.com/prasadkankhar10"
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="p-1.5 sm:p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
             title="GitHub Profile"
           >
             <GithubIcon className="w-4 h-4" />
@@ -107,7 +109,7 @@ export const MainMenu: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="p-1.5 sm:p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer shadow-sm hover:scale-105"
             title="LinkedIn Profile"
           >
             <LinkedinIcon className="w-4 h-4" />
@@ -118,7 +120,7 @@ export const MainMenu: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => soundEngine.playClickSound()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1B2822]/90 hover:bg-[#1B2822] border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] text-xs font-heading font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#1B2822]/90 hover:bg-[#1B2822] border border-[#D6BC83]/30 hover:border-[#D6BC83]/60 text-[#F0E9DA] hover:text-[#D6BC83] text-xs font-heading font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
             title="Download Official Resume PDF"
           >
             <Download className="w-3.5 h-3.5 text-[#D6BC83]" />
@@ -131,7 +133,7 @@ export const MainMenu: React.FC = () => {
               toggleAudioMute();
               soundEngine.playClickSound();
             }}
-            className="p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-full bg-[#1B2822]/80 hover:bg-[#1B2822] border border-[#D6BC83]/25 text-[#F0E9DA]/80 hover:text-[#D6BC83] transition-all cursor-pointer"
             title={isAudioMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
             {isAudioMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#D6BC83]" />}
@@ -142,35 +144,39 @@ export const MainMenu: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. CENTRAL DUAL-INTENT GATEWAY HERO CARDS */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-5xl mx-auto my-auto py-6 sm:py-8 flex flex-col items-center">
+      <div className="w-full max-w-5xl mx-auto my-auto py-5 sm:py-8 flex flex-col items-center">
         
-        {/* Live 3D Orbit Status Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1B2822]/80 backdrop-blur-md border border-[#D6BC83]/40 text-[#D6BC83] text-xs font-mono mb-3 shadow-md">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        {/* Live 3D Pre-warming & Orbit Status Badge */}
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full bg-[#1B2822]/90 backdrop-blur-md border border-[#D6BC83]/40 text-[#D6BC83] text-[11px] sm:text-xs font-mono mb-3 shadow-md max-w-full">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isWorldPrewarmed ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${isWorldPrewarmed ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
           </span>
-          <span>Live 3D World Active in Background · Move Cursor to Orbit</span>
+          <span className="truncate">
+            {isWorldPrewarmed 
+              ? 'Live 3D World 100% Ready (Zero Lag) · Move Cursor to Orbit'
+              : `Loading 3D World in Background (${worldPrewarmProgress}%) · Smooth Entry Ready`}
+          </span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#F0E9DA] tracking-tight text-center mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-heading font-extrabold text-[#F0E9DA] tracking-tight text-center mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)] px-2">
           Choose How You Wish to Explore
         </h1>
-        <p className="text-xs sm:text-base text-[#F0E9DA]/85 font-sans text-center max-w-xl mb-6 leading-relaxed drop-shadow-sm">
+        <p className="text-xs sm:text-sm md:text-base text-[#F0E9DA]/85 font-sans text-center max-w-xl mb-5 sm:mb-6 leading-relaxed drop-shadow-sm px-2">
           Immerse yourself in a real-time WebGL island with physics and procedural sound, or jump straight to the executive 2D dossier.
         </p>
 
         {/* The Two Equal-Weight Primary Choice Cards (Game UI Styled) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-7 w-full">
           
           {/* CARD A: 3D WORLD EXPLORATION */}
           <div 
             onClick={handleStart3D}
-            className="group relative game-frame game-corner-brackets rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="group relative game-frame game-corner-brackets rounded-3xl p-5 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <div className="absolute top-5 right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-              <span>3D ENGINE LIVE</span>
+            <div className="absolute top-4 sm:top-5 right-4 sm:right-5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">
+              <span className={`w-1.5 h-1.5 rounded-full ${isWorldPrewarmed ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse shadow-[0_0_6px_#34d399]`} />
+              <span>{isWorldPrewarmed ? '3D ENGINE READY' : `PRE-WARMING ${worldPrewarmProgress}%`}</span>
             </div>
 
             <div>
@@ -180,25 +186,25 @@ export const MainMenu: React.FC = () => {
                 <span>Immersive 3D Experience</span>
               </div>
 
-              <h3 className="text-2xl font-heading font-extrabold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight drop-shadow">
+              <h3 className="text-xl sm:text-2xl font-heading font-extrabold text-[#F0E9DA] group-hover:text-[#D6BC83] transition-colors mb-2 tracking-tight drop-shadow">
                 Explore 3D Island
               </h3>
-              <p className="text-xs sm:text-sm text-[#F0E9DA]/85 font-sans leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#F0E9DA]/85 font-sans leading-relaxed mb-5 sm:mb-6">
                 Freely traverse an interactive 3D archipelago with third-person character physics, 18 architectural district stations, and procedural Web Audio.
               </p>
 
               {/* Feature Highlights */}
-              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/90 mb-8 border-t border-[#3A4B40]/40 pt-4">
+              <ul className="space-y-2 text-xs font-sans text-[#F0E9DA]/90 mb-6 sm:mb-8 border-t border-[#3A4B40]/40 pt-4">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm shrink-0" />
                   <span><strong>WASD & Sprint</strong> character controls + Rapier 3D physics</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm shrink-0" />
                   <span><strong>18 Stations</strong> with Blender cartography & in-world GPS</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D6BC83] shadow-sm shrink-0" />
                   <span><strong>Interactive Guides</strong>, logic puzzle & direct messaging boat</span>
                 </li>
               </ul>
@@ -208,7 +214,7 @@ export const MainMenu: React.FC = () => {
             <button 
               className="w-full py-3.5 px-6 game-btn-tactile game-btn-gold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer shadow-lg"
             >
-              <span>{hasStarted ? 'Resume 3D World' : 'Enter 3D World'}</span>
+              <span>{hasStarted ? 'Resume 3D World' : (isWorldPrewarmed ? 'Enter 3D World (Zero Lag)' : 'Enter 3D World')}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

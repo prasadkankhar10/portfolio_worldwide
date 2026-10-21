@@ -127,6 +127,11 @@ interface GameStore {
   uiTheme: UITheme;
   setUITheme: (theme: UITheme) => void;
   toggleUITheme: () => void;
+  // Background 3D World Pre-warming & Zero-Lag Loading
+  worldPrewarmProgress: number; // 0 to 100
+  setWorldPrewarmProgress: (progress: number) => void;
+  isWorldPrewarmed: boolean;
+  setIsWorldPrewarmed: (prewarmed: boolean) => void;
 }
 
 const loadStorage = <T>(key: string, fallback: T): T => {
@@ -383,4 +388,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     set({ uiTheme: nextTheme });
   },
+  // Background 3D World Pre-warming & Zero-Lag Loading
+  worldPrewarmProgress: 0,
+  setWorldPrewarmProgress: (progress) => set({ worldPrewarmProgress: Math.min(100, Math.max(0, progress)) }),
+  isWorldPrewarmed: false,
+  setIsWorldPrewarmed: (prewarmed) => set({ isWorldPrewarmed: prewarmed }),
 }));

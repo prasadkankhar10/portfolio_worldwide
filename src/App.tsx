@@ -37,6 +37,9 @@ function App() {
   const isMobile = useGameStore((state) => state.isMobile);
   const performanceMode = useGameStore((state) => state.performanceMode);
   const uiTheme = useGameStore((state) => state.uiTheme);
+  const gameState = useGameStore((state) => state.gameState);
+  const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
+  const isStationModalOpen = useGameStore((state) => state.isStationModalOpen);
 
   // Synchronize UI Theme attribute on document root
   useEffect(() => {
@@ -129,7 +132,7 @@ function App() {
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
       {hasStarted && <PortfolioTracker />}
-      {isMobile && <RotateDeviceOverlay />}
+      {isMobile && hasStarted && gameState === 'playing' && !isQuickPortfolioOpen && !isStationModalOpen && <RotateDeviceOverlay />}
       <MiniMap />
       <GuidedTourOverlay />
       <div className="absolute inset-0 z-0">

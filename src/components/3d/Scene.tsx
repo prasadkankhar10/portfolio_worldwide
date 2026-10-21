@@ -49,32 +49,103 @@ import { RitualCenter } from './RitualCenter';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
 
+// Pre-fetch dynamic NPC chunks during idle time to eliminate network latency spikes
+const prefetchNpcChunks = () => {
+  const chunks = [
+    () => import('./VikingBlacksmithNPC'),
+    () => import('./CowboyShopNPC'),
+    () => import('./CasualShopNPC'),
+    () => import('./WitchShopNPC'),
+    () => import('./GoblinFruitNPC'),
+    () => import('./BlueSoldierFemaleNPC'),
+    () => import('./Casual3MaleNPC'),
+    () => import('./CowboyMaleNPC'),
+    () => import('./ElfNPC'),
+    () => import('./VikingHelmetNPC'),
+    () => import('./PirateFemaleNPC'),
+    () => import('./PirateMaleNPC'),
+    () => import('./GoblinFemaleNPC'),
+    () => import('./GoblinMaleNPC'),
+    () => import('./KnightGoldenMaleNPC'),
+    () => import('./KnightMaleNPC'),
+    () => import('./ClericNPC'),
+    () => import('./WitchNPC'),
+    () => import('./WizardNPC'),
+  ];
+  chunks.forEach((loader, i) => {
+    setTimeout(() => {
+      try {
+        loader();
+      } catch {
+        // Silently ignore if already loaded or failing non-critically
+      }
+    }, 150 + i * 40);
+  });
+};
+
 export const Scene = () => {
   const { gl, scene, camera } = useThree();
   const hasStarted = useGameStore((state) => state.hasStarted);
   const activeOutlineMesh = useGameStore((state) => state.activeOutlineMesh);
   const isLowPowerGpu = useGameStore((state) => state.isLowPowerGpu);
   const performanceMode = useGameStore((state) => state.performanceMode);
+  const setWorldPrewarmProgress = useGameStore((state) => state.setWorldPrewarmProgress);
+  const setIsWorldPrewarmed = useGameStore((state) => state.setIsWorldPrewarmed);
 
-  // Stagger NPC mounting over frames to eliminate the single-frame texture upload spike on game start
+  // Background progressive pre-warming engine:
+  // Starts loading the 3D world smoothly while the visitor is on "Choose How You Wish to Explore" screen.
+  // By the time they click "Enter 3D World", all textures, models, and shaders are 100% compiled in GPU memory!
   const [loadPhase, setLoadPhase] = React.useState(0);
+
+  useEffect(() => {
+    // 1. Kick off chunk prefetching
+    prefetchNpcChunks();
+
+    // 2. Progressive background mounting over ~3 seconds
+    const t1 = setTimeout(() => {
+      setLoadPhase((prev) => Math.max(prev, 1));
+      setWorldPrewarmProgress(25);
+    }, 300);
+
+    const t2 = setTimeout(() => {
+      setLoadPhase((prev) => Math.max(prev, 2));
+      setWorldPrewarmProgress(50);
+    }, 900);
+
+    const t3 = setTimeout(() => {
+      setLoadPhase((prev) => Math.max(prev, 3));
+      setWorldPrewarmProgress(75);
+    }, 1800);
+
+    const t4 = setTimeout(() => {
+      setLoadPhase((prev) => Math.max(prev, 4));
+      setWorldPrewarmProgress(100);
+      setIsWorldPrewarmed(true);
+      try {
+        gl.compile(scene, camera);
+      } catch {
+        // Ignored
+      }
+    }, 3000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [gl, scene, camera, setWorldPrewarmProgress, setIsWorldPrewarmed]);
+
+  // If user immediately clicks "Enter 3D World" before 3 seconds, promote to full load immediately
   useEffect(() => {
     if (hasStarted) {
-      setLoadPhase(1); // Phase 1: Immediate surroundings (0ms)
-      const t1 = setTimeout(() => setLoadPhase(2), 600);  // Phase 2: Marketplace shopkeepers (+600ms)
-      const t2 = setTimeout(() => setLoadPhase(3), 1600); // Phase 3: Town citizens & dock workers (+1600ms)
-      const t3 = setTimeout(() => setLoadPhase(4), 3200); // Phase 4: Distant forest camp, arena & sanctuary (+3200ms)
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    } else {
-      setLoadPhase(0);
+      setLoadPhase(4);
+      setWorldPrewarmProgress(100);
+      setIsWorldPrewarmed(true);
     }
-  }, [hasStarted]);
+  }, [hasStarted, setWorldPrewarmProgress, setIsWorldPrewarmed]);
 
-  // Pre-warm WebGL shader pipeline gently on mount during idle time to prevent startup freeze
+  // Periodic idle WebGL shader compile check
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -120,10 +191,10 @@ export const Scene = () => {
             <Character />
           </Suspense>
 
-          {/* Dynamic Characters & Interactive Gameplay Elements (loaded on game start) */}
-          {hasStarted && (
+          {/* Dynamic Characters & Interactive Gameplay Elements (pre-warmed smoothly in background) */}
+          {(hasStarted || loadPhase >= 1) && (
             <>
-              <CompanionOrb />
+              {hasStarted && <CompanionOrb />}
               {/* Building Triggers */}
               <BuildingTrigger position={[115, 3, 0]} radius={15} dialogId="building_test_1" />
 

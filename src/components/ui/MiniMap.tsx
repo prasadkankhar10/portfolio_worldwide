@@ -59,6 +59,7 @@ export const MiniMap: React.FC = () => {
   const isTrackerOpen = useGameStore((s) => s.isTrackerOpen);
   const isQuickPortfolioOpen = useGameStore((s) => s.isQuickPortfolioOpen);
   const isWatchingVessel = useGameStore((s) => s.isWatchingVessel);
+  const isMobile = useGameStore((s) => s.isMobile);
 
   const setActiveStationId = useGameStore((s) => s.setActiveStationId);
   const setStationModalOpen = useGameStore((s) => s.setStationModalOpen);
@@ -115,6 +116,11 @@ export const MiniMap: React.FC = () => {
   }, []);
 
   // Keyboard shortcut: Press 'N' to toggle full expedition map
+  useEffect(() => {
+    if (isMobile) {
+      setIsCollapsed(true);
+    }
+  }, [isMobile]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'n' || e.key === 'N') {
@@ -213,7 +219,9 @@ export const MiniMap: React.FC = () => {
       {/* 1. CORNER MINI-MAP (Bottom-Right HUD Radar Widget) */}
       {/* ========================================================================= */}
       {!isModalActive && (
-        <div className="fixed bottom-5 right-5 z-50 pointer-events-auto flex flex-col items-end gap-2 animate-in fade-in duration-500 select-none">
+        <div className={`fixed z-50 pointer-events-auto flex flex-col items-end gap-2 animate-in fade-in duration-500 select-none ${
+          isMobile ? 'bottom-32 right-3' : 'bottom-5 right-5'
+        }`}>
           
           {/* Collapsed Compact Astrolabe Pill */}
           {isCollapsed ? (

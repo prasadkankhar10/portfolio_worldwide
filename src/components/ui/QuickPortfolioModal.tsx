@@ -186,35 +186,36 @@ export const QuickPortfolioModal: React.FC = () => {
         {/* ================================================================= */}
         {/* MODAL HEADER BAR WITH EMBOSSED WAX SEAL (Reference 1 & 4) */}
         {/* ================================================================= */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10">
-          <div className="flex items-center gap-3.5">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10 gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             {/* Embossed Red Wax Seal (Reference 1) */}
-            <div className="game-wax-seal shrink-0 shadow-lg">
-              <BookOpen className="w-5 h-5 text-[#FFE6A8] drop-shadow" />
+            <div className="game-wax-seal shrink-0 shadow-lg hidden sm:flex">
+              <BookOpen className="w-4 sm:w-5 h-4 sm:h-5 text-[#FFE6A8] drop-shadow" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-xl font-heading font-extrabold text-[#F0E9DA] tracking-wide flex items-center gap-2 drop-shadow">
-                  <span>ARCHIVE OF VERIFIED SYSTEMS</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-sm sm:text-xl font-heading font-extrabold text-[#F0E9DA] tracking-wide flex items-center gap-2 drop-shadow truncate">
+                  <span className="hidden sm:inline">ARCHIVE OF VERIFIED SYSTEMS</span>
+                  <span className="inline sm:hidden">VERIFIED SYSTEMS</span>
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#D6BC83]/20 text-[#D6BC83] font-bold border border-[#D6BC83]/40 uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded-md bg-[#D6BC83]/20 text-[#D6BC83] font-bold border border-[#D6BC83]/40 uppercase tracking-wider shrink-0">
                   Codex
                 </span>
               </div>
-              <p className="text-xs text-[#D6BC83]/80 font-sans hidden sm:block">
+              <p className="text-xs text-[#D6BC83]/80 font-sans hidden sm:block truncate">
                 All 19 verified production architectures, algorithmic achievements, and systems in one responsive view.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Theme Toggle (Forest Gold vs Obsidian Cobalt) */}
             <ThemeToggle compact={true} />
 
             {/* Switch to 3D Button (Tactile Gold Game Button) */}
             <button
               onClick={handleSwitchTo3D}
-              className="game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-2"
+              className="game-btn-tactile game-btn-gold px-2.5 sm:px-3.5 py-1.5 text-xs flex items-center gap-1.5"
               title="Return to the 3D Island World"
             >
               <Compass className="w-4 h-4 text-[#17221C]" />
@@ -224,7 +225,7 @@ export const QuickPortfolioModal: React.FC = () => {
             {/* Close Button (Tactile Crimson Game Button) */}
             <button
               onClick={() => setQuickPortfolioOpen(false)}
-              className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
+              className="game-btn-tactile game-btn-crimson p-1.5 sm:p-2 text-xs flex items-center justify-center"
               title="Close Portfolio (Esc)"
             >
               <X className="w-4 h-4" />
@@ -235,7 +236,7 @@ export const QuickPortfolioModal: React.FC = () => {
         {/* ================================================================= */}
         {/* SCROLLABLE MAIN CONTENT BODY */}
         {/* ================================================================= */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 space-y-6 sm:space-y-10">
 
           {/* ============================================================= */}
           {/* 1. CANDIDATE HERO & RECRUITER DOSSIER */}
@@ -827,43 +828,44 @@ export const QuickPortfolioModal: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Sticky Top Header Navigation */}
-              <div className="flex items-center justify-between px-6 py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 border-b-2 border-[#D6BC83]/40 bg-gradient-to-r from-[#111916]/95 via-[#182620]/90 to-[#111916]/95 backdrop-blur-xl shrink-0 z-10 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   <button
                     onClick={() => setSelectedProjectKey(null)}
-                    className="game-btn-tactile game-btn-slate px-3 py-1.5 text-xs flex items-center gap-1.5 shrink-0"
+                    className="game-btn-tactile game-btn-slate px-2.5 sm:px-3 py-1.5 text-xs flex items-center gap-1 sm:gap-1.5 shrink-0"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Back to Quests</span>
+                    <span className="hidden sm:inline">Back to Quests</span>
+                    <span className="sm:hidden">Back</span>
                   </button>
                   <div className="h-4 w-[1px] bg-[#3A4B40]/40 shrink-0 hidden sm:block" />
-                  <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-gradient-to-r from-[#8B2020] to-[#591010] border border-[#D6BC83]/50 text-[#FFF2D1] font-bold shrink-0 hidden sm:inline-block shadow-sm">
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-gradient-to-r from-[#8B2020] to-[#591010] border border-[#D6BC83]/50 text-[#FFF2D1] font-bold shrink-0 hidden md:inline-block shadow-sm">
                     {project.category}
                   </span>
-                  <span className="text-xs font-heading font-extrabold text-[#F0E9DA] truncate hidden md:inline-block drop-shadow-sm">
+                  <span className="text-xs font-heading font-extrabold text-[#F0E9DA] truncate hidden lg:inline-block drop-shadow-sm">
                     {project.title}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                   {/* Prev / Next Project Navigation */}
                   <div className="flex items-center bg-[#111916]/80 border border-[#3A4B40]/40 rounded-xl p-0.5">
                     <button
                       onClick={() => setSelectedProjectKey(prevProjectKey)}
                       title="Previous Project"
-                      className="p-1.5 rounded-lg hover:bg-[#3A4B40]/30 text-[#F0E9DA]/70 hover:text-[#D6BC83] transition-colors cursor-pointer"
+                      className="p-1 sm:p-1.5 rounded-lg hover:bg-[#3A4B40]/30 text-[#F0E9DA]/70 hover:text-[#D6BC83] transition-colors cursor-pointer"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                     </button>
-                    <span className="text-[10px] font-mono px-2 text-[#D6BC83] font-bold">
-                      {currentProjectIndex + 1} / {PROJECT_STATION_KEYS.length}
+                    <span className="text-[10px] font-mono px-1.5 sm:px-2 text-[#D6BC83] font-bold">
+                      {currentProjectIndex + 1}/{PROJECT_STATION_KEYS.length}
                     </span>
                     <button
                       onClick={() => setSelectedProjectKey(nextProjectKey)}
                       title="Next Project"
-                      className="p-1.5 rounded-lg hover:bg-[#3A4B40]/30 text-[#F0E9DA]/70 hover:text-[#D6BC83] transition-colors cursor-pointer"
+                      className="p-1 sm:p-1.5 rounded-lg hover:bg-[#3A4B40]/30 text-[#F0E9DA]/70 hover:text-[#D6BC83] transition-colors cursor-pointer"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                     </button>
                   </div>
 
@@ -873,16 +875,18 @@ export const QuickPortfolioModal: React.FC = () => {
                   {/* Explore in 3D Button */}
                   <button
                     onClick={() => handleExploreIn3D(selectedProjectKey)}
-                    className="hidden sm:inline-flex game-btn-tactile game-btn-gold px-3.5 py-1.5 text-xs flex items-center gap-1.5"
+                    className="game-btn-tactile game-btn-gold px-2.5 sm:px-3.5 py-1.5 text-xs flex items-center gap-1.5"
+                    title="Explore in 3D Island"
                   >
                     <Compass className="w-3.5 h-3.5 text-[#17221C]" />
-                    <span>Explore in 3D</span>
+                    <span className="hidden sm:inline">Explore in 3D</span>
+                    <span className="sm:hidden font-bold">3D</span>
                   </button>
 
                   {/* Close Modal Button */}
                   <button
                     onClick={() => setSelectedProjectKey(null)}
-                    className="game-btn-tactile game-btn-crimson p-2 text-xs flex items-center justify-center"
+                    className="game-btn-tactile game-btn-crimson p-1.5 sm:p-2 text-xs flex items-center justify-center"
                     title="Close Details (Esc)"
                   >
                     <X className="w-4 h-4" />
