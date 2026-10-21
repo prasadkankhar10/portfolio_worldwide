@@ -12,7 +12,9 @@ export const globalPlayerState = {
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
   headingDeg: 0,
-  isMoving: false
+  isMoving: false,
+  isRunning: false,
+  isGrounded: true
 };
 
 // Static pre-allocated vectors to prevent GC allocations in useFrame
@@ -253,6 +255,8 @@ export const Character = () => {
 
     const isMoving = moveDirection.lengthSq() > 0;
     globalPlayerState.isMoving = isMoving;
+    globalPlayerState.isRunning = isMoving && !!run;
+    globalPlayerState.isGrounded = isGrounded;
     const speed = run ? runSpeed : walkSpeed;
 
     let nextAnimation = 'CharacterArmature|Idle';

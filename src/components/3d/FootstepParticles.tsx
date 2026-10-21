@@ -26,17 +26,25 @@ export const FootstepParticles: React.FC = () => {
 
     const currentPos = globalPlayerState.position;
     const isMoving = globalPlayerState.isMoving;
+    const isRunning = globalPlayerState.isRunning;
+    const isGrounded = globalPlayerState.isGrounded ?? true;
     const now = performance.now();
 
-    // Check if character moved enough to spawn a footstep (natural running stride)
+    // Natural responsive stride cadence: ~260ms for sprinting, ~380ms for walking
+    const minStepDist = isRunning ? 1.1 : 0.6;
+    const minStepInterval = isRunning ? 260 : 380;
     const distMoved = currentPos.distanceTo(lastPos.current);
-    if (isMoving && distMoved > 1.6 && now - lastEmitTime.current > 360) {
+
+    if (isGrounded && isMoving && distMoved > minStepDist && now - lastEmitTime.current > minStepInterval) {
       lastEmitTime.current = now;
       lastPos.current.copy(currentPos);
 
-      // Determine surface: Pier is around Z > 100, Y < 4
-      const isWood = currentPos.z > 95 && currentPos.x > 75;
-      soundEngine.playFootstep(isWood ? 'wood' : 'grass');
+      // Determine surface: Pier is around Z > 80, X > 65, Y < 4.5
+      const isWood = currentPos.z > 80 && currentPos.x > 65 && currentPos.y < 4.5;
+      const isStone = currentPos.y > 8.0 || (Math.abs(currentPos.x) < 22 && Math.abs(currentPos.z) < 28);
+      const surface = isWood ? 'wood' : isStone ? 'stone' : 'grass';
+      
+      soundEngine.playFootstep(surface);
 
       // Spawn 2-3 dust puff particles
       for (let i = 0; i < 2; i++) {
