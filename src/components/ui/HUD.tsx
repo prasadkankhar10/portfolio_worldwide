@@ -20,6 +20,8 @@ export const HUD: React.FC = () => {
   const isTrackerOpen = useGameStore((state) => state.isTrackerOpen);
   const setTrackerOpen = useGameStore((state) => state.setTrackerOpen);
   const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
+  const isWorldMapOpen = useGameStore((state) => state.isWorldMapOpen);
+  const toggleWorldMap = useGameStore((state) => state.toggleWorldMap);
   
   // UX Features: Audio, Tour, Waypoint & Exploration Codex
   const isAudioMuted = useGameStore((state) => state.isAudioMuted);
@@ -93,7 +95,7 @@ export const HUD: React.FC = () => {
     <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between select-none">
       
       {/* Click-to-Play Glass Overlay (Organic Forest & Gold) */}
-      {!isLocked && !isMobile && !isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen && (
+      {!isLocked && !isMobile && !isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen && !isWorldMapOpen && !isGuidedTourActive && (
         <div 
           className="absolute inset-0 bg-[#111916]/45 backdrop-blur-[2px] flex items-center justify-center cursor-pointer z-40 select-none animate-in fade-in duration-300 pointer-events-auto"
           onClick={requestLock}
@@ -317,6 +319,7 @@ export const HUD: React.FC = () => {
               if (typeof document !== 'undefined' && document.pointerLockElement) {
                 document.exitPointerLock();
               }
+              toggleWorldMap();
               window.dispatchEvent(new CustomEvent('toggle-world-map'));
             }}
             className="game-btn-tactile game-btn-emerald px-3.5 py-1.5 text-xs flex items-center gap-1.5"

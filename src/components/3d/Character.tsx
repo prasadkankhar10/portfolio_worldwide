@@ -99,8 +99,11 @@ export const Character = () => {
   // Mouse input handling
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Ignore character mouse movement if free cam is active
-      if (document.pointerLockElement && gameState === 'playing' && !isFreeCam) {
+      // Ignore character mouse movement if free cam is active or any modal is open
+      const store = useGameStore.getState();
+      const isAnyModalOpen = store.isStationModalOpen || store.isTrackerOpen || store.isQuickPortfolioOpen || store.isWorldMapOpen;
+
+      if (document.pointerLockElement && gameState === 'playing' && !isFreeCam && !isAnyModalOpen) {
         yaw.current -= e.movementX * 0.002;
         pitch.current += e.movementY * 0.002; // Moving mouse up looks up (Non-inverted)
         pitch.current = Math.max(minPitch, Math.min(maxPitch, pitch.current));
@@ -108,7 +111,10 @@ export const Character = () => {
     };
     
     const handleWheel = (e: WheelEvent) => {
-      if (document.pointerLockElement && gameState === 'playing' && !isFreeCam) {
+      const store = useGameStore.getState();
+      const isAnyModalOpen = store.isStationModalOpen || store.isTrackerOpen || store.isQuickPortfolioOpen || store.isWorldMapOpen;
+
+      if (document.pointerLockElement && gameState === 'playing' && !isFreeCam && !isAnyModalOpen) {
         zoomDistance.current += e.deltaY * 0.01;
         zoomDistance.current = Math.max(2, Math.min(25, zoomDistance.current));
       }
@@ -161,7 +167,14 @@ export const Character = () => {
       }
     }
 
-    if (isFreeCam) {
+    const storeState = useGameStore.getState();
+    const isAnyModalOpen = storeState.isStationModalOpen || 
+                           storeState.isTrackerOpen || 
+                           storeState.isQuickPortfolioOpen || 
+                           storeState.isWorldMapOpen ||
+                           storeState.activeDialogId !== null;
+
+    if (isFreeCam || isAnyModalOpen) {
       forward = back = left = right = run = jump = false;
     }
 

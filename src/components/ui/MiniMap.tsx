@@ -66,11 +66,13 @@ export const MiniMap: React.FC = () => {
   const teleportPlayer = useGameStore((s) => s.teleportPlayer);
   const activeWaypointStationId = useGameStore((s) => s.activeWaypointStationId);
   const setActiveWaypointStationId = useGameStore((s) => s.setActiveWaypointStationId);
+  const isWorldMapOpen = useGameStore((s) => s.isWorldMapOpen);
+  const setWorldMapOpen = useGameStore((s) => s.setWorldMapOpen);
+  const toggleWorldMap = useGameStore((s) => s.toggleWorldMap);
 
   // Radar modes: 'follow' (zoomed in, player-centered) or 'overview' (whole island view)
   const [radarMode, setRadarMode] = useState<'follow' | 'overview'>('follow');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isExpandedModal, setIsExpandedModal] = useState(false);
   const [hoveredStation, setHoveredStation] = useState<StationMonumentDef | null>(null);
   const [selectedStation, setSelectedStation] = useState<StationMonumentDef | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -121,19 +123,41 @@ export const MiniMap: React.FC = () => {
       setIsCollapsed(true);
     }
   }, [isMobile]);
+
+  // Automatically release pointer lock whenever the expedition world map opens so mouse cursor is freed
+  useEffect(() => {
+    if (isWorldMapOpen && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+  }, [isWorldMapOpen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't toggle or intercept if user is typing in a search input
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape' && isWorldMapOpen) {
+          setWorldMapOpen(false);
+        }
+        return;
+      }
+
       if (e.key === 'n' || e.key === 'N') {
         if (!isStationModalOpen && !isTrackerOpen && !isQuickPortfolioOpen) {
-          setIsExpandedModal((prev) => !prev);
+          if (typeof document !== 'undefined' && document.pointerLockElement) {
+            document.exitPointerLock();
+          }
+          toggleWorldMap();
         }
       }
-      if (e.key === 'Escape' && isExpandedModal) {
-        setIsExpandedModal(false);
+      if (e.key === 'Escape' && isWorldMapOpen) {
+        setWorldMapOpen(false);
       }
     };
     const handleToggleEvent = () => {
-      setIsExpandedModal((prev) => !prev);
+      if (typeof document !== 'undefined' && document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+      toggleWorldMap();
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('toggle-world-map', handleToggleEvent);
@@ -141,7 +165,7 @@ export const MiniMap: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('toggle-world-map', handleToggleEvent);
     };
-  }, [isExpandedModal, isStationModalOpen, isTrackerOpen, isQuickPortfolioOpen]);
+  }, [isWorldMapOpen, isStationModalOpen, isTrackerOpen, isQuickPortfolioOpen, toggleWorldMap, setWorldMapOpen]);
 
   // Convert 3D world coordinates to percentage of map canvas
   const worldToPercent = (x: number, z: number) => {
@@ -175,10 +199,10 @@ export const MiniMap: React.FC = () => {
     });
   }, [categoryFilter, searchQuery]);
 
-  if (gameState !== 'playing' && !isExpandedModal) return null;
+  if (gameState !== 'playing' && !isWorldMapOpen) return null;
   if (isWatchingVessel) return null;
 
-  const isModalActive = isStationModalOpen || isTrackerOpen || isQuickPortfolioOpen;
+  const isModalActive = isStationModalOpen || isTrackerOpen || isQuickPortfolioOpen || isWorldMapOpen;
 
   // Zoom scale for follow radar mode
   const followZoom = 3.2;
@@ -256,7 +280,12 @@ export const MiniMap: React.FC = () => {
                 <div className="w-[1px] h-3 bg-[#3A4B40]/40" />
 
                 <button
-                  onClick={() => setIsExpandedModal(true)}
+                  onClick={() => {
+                    if (typeof document !== 'undefined' && document.pointerLockElement) {
+                      document.exitPointerLock();
+                    }
+                    setWorldMapOpen(true);
+                  }}
                   className="p-1 rounded-full hover:bg-[#3A4B40]/30 text-[#F0E9DA]/75 hover:text-[#D6BC83] transition-colors cursor-pointer"
                   title="Open Full Expedition Map (N)"
                 >
@@ -277,7 +306,12 @@ export const MiniMap: React.FC = () => {
               {/* Circular Astrolabe Disk */}
               <div 
                 className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full border-[3px] border-[#D6BC83] bg-[#0d1715] shadow-[0_12px_40px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(0,0,0,0.8)] overflow-hidden cursor-crosshair"
-                onClick={() => setIsExpandedModal(true)}
+                onClick={() => {
+                  if (typeof document !== 'undefined' && document.pointerLockElement) {
+                    document.exitPointerLock();
+                  }
+                  setWorldMapOpen(true);
+                }}
               >
                 {/* 1. Deep Ocean Cartographic Canvas */}
                 <div 
@@ -319,8 +353,11 @@ export const MiniMap: React.FC = () => {
                         key={station.id}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (typeof document !== 'undefined' && document.pointerLockElement) {
+                            document.exitPointerLock();
+                          }
                           setSelectedStation(station);
-                          setIsExpandedModal(true);
+                          setWorldMapOpen(true);
                         }}
                         onMouseEnter={() => setHoveredStation(station)}
                         onMouseLeave={() => setHoveredStation(null)}
@@ -427,10 +464,10 @@ export const MiniMap: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. EXPEDITION WORLD MAP MODAL (Full Interactive Cartography) */}
       {/* ========================================================================= */}
-      {isExpandedModal && (
+      {isWorldMapOpen && (
         <div 
           className="fixed inset-0 z-50 bg-[#111916]/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-300 pointer-events-auto select-none"
-          onClick={() => setIsExpandedModal(false)}
+          onClick={() => setWorldMapOpen(false)}
         >
           <div 
             className="relative w-full max-w-4xl max-h-[92vh] bg-[#1B2822] border-2 border-[#D6BC83]/60 rounded-3xl p-5 sm:p-8 shadow-[0_30px_70px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden"
@@ -453,7 +490,7 @@ export const MiniMap: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setIsExpandedModal(false)}
+                onClick={() => setWorldMapOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#111916]/80 hover:bg-[#111916] border border-[#D6BC83]/30 text-[#F0E9DA]/75 hover:text-[#D6BC83] flex items-center justify-center transition-all cursor-pointer"
                 title="Close Map (ESC)"
               >
@@ -628,7 +665,7 @@ export const MiniMap: React.FC = () => {
                     <button
                       onClick={() => {
                         soundEngine.playClickSound();
-                        setIsExpandedModal(false);
+                        setWorldMapOpen(false);
                         setActiveStationId(selectedStation.id);
                         setStationModalOpen(true);
                       }}
@@ -663,7 +700,7 @@ export const MiniMap: React.FC = () => {
                           y: selectedStation.pos[1] + 0.5,
                           z: selectedStation.pos[2] + 2.0
                         });
-                        setIsExpandedModal(false);
+                        setWorldMapOpen(false);
                       }}
                       className="py-1.5 px-3 rounded-xl bg-[#3A4B40]/30 hover:bg-[#3A4B40]/50 border border-[#D6BC83]/40 text-[#F0E9DA] font-heading font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >

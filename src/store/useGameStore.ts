@@ -55,6 +55,9 @@ interface GameStore {
   isTrackerOpen: boolean;
   toggleTracker: () => void;
   setTrackerOpen: (open: boolean) => void;
+  isWorldMapOpen: boolean;
+  toggleWorldMap: () => void;
+  setWorldMapOpen: (open: boolean) => void;
   // Farming Logic
   farmPlots: THREE.Vector3[];
   setFarmPlots: (plots: THREE.Vector3[]) => void;
@@ -267,8 +270,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
     virtualButtons: { ...state.virtualButtons, [button]: active }
   })),
   
-  toggleTracker: () => set((state) => ({ isTrackerOpen: !state.isTrackerOpen })),
-  setTrackerOpen: (open) => set({ isTrackerOpen: open }),
+  toggleTracker: () => set((state) => {
+    const willOpen = !state.isTrackerOpen;
+    if (willOpen && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    return { isTrackerOpen: willOpen };
+  }),
+  setTrackerOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isTrackerOpen: open });
+  },
+  isWorldMapOpen: false,
+  toggleWorldMap: () => set((state) => {
+    const willOpen = !state.isWorldMapOpen;
+    if (willOpen && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    return { isWorldMapOpen: willOpen };
+  }),
+  setWorldMapOpen: (open) => {
+    if (open && typeof document !== 'undefined' && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    set({ isWorldMapOpen: open });
+  },
   
   farmPlots: [],
   setFarmPlots: (plots) => set({ farmPlots: plots }),

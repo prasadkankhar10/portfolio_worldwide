@@ -40,6 +40,8 @@ function App() {
   const gameState = useGameStore((state) => state.gameState);
   const isQuickPortfolioOpen = useGameStore((state) => state.isQuickPortfolioOpen);
   const isStationModalOpen = useGameStore((state) => state.isStationModalOpen);
+  const isTrackerOpen = useGameStore((state) => state.isTrackerOpen);
+  const isWorldMapOpen = useGameStore((state) => state.isWorldMapOpen);
 
   // Synchronize UI Theme attribute on document root
   useEffect(() => {
@@ -98,6 +100,17 @@ function App() {
         }
         toggleTracker();
       }
+      if (e.key.toLowerCase() === 'n') {
+        const store = useGameStore.getState();
+        if (!store.isStationModalOpen && !store.isTrackerOpen && !store.isQuickPortfolioOpen) {
+          e.preventDefault();
+          const willOpen = !store.isWorldMapOpen;
+          if (willOpen && document.pointerLockElement) {
+            document.exitPointerLock();
+          }
+          store.toggleWorldMap();
+        }
+      }
       if (e.key.toLowerCase() === 'y') {
         const store = useGameStore.getState();
         if (!store.activeRitual) {
@@ -132,7 +145,7 @@ function App() {
       {hasStarted && <DialogOverlay />}
       {hasStarted && <MobileControls />}
       {hasStarted && <PortfolioTracker />}
-      {isMobile && hasStarted && gameState === 'playing' && !isQuickPortfolioOpen && !isStationModalOpen && <RotateDeviceOverlay />}
+      {isMobile && hasStarted && gameState === 'playing' && !isQuickPortfolioOpen && !isStationModalOpen && !isWorldMapOpen && !isTrackerOpen && <RotateDeviceOverlay />}
       <MiniMap />
       <GuidedTourOverlay />
       <div className="absolute inset-0 z-0">
